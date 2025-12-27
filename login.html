@@ -7,11 +7,9 @@
   <style>
     :root{
       --bg:#0b0c10;
-      --card:#111218;
       --border:rgba(255,255,255,.10);
       --text:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.62);
-      --accent:#5ac8fa;
       --shadow: 0 24px 60px rgba(0,0,0,.55);
       --radius: 18px;
     }
@@ -105,6 +103,7 @@
       background: rgba(0,0,0,.22);
       color: var(--muted);
       display:none;
+      word-break: break-word;
     }
     .msg.ok{border-color: rgba(48,209,88,.35); color: rgba(48,209,88,.95)}
     .msg.err{border-color: rgba(255,69,58,.35); color: rgba(255,69,58,.95)}
@@ -173,7 +172,7 @@
         <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
       </div>
 
-      <button class="btn" id="btnSignIn">Sign in</button>
+      <button class="btn" id="btnSignIn" type="button">Sign in</button>
 
       <div class="msg" id="msgBox"></div>
 
@@ -212,7 +211,10 @@
       </div>
 
       <button class="btn" id="btnSaveUser" type="button">Create account</button>
-      <p class="small">This will save the user to your Google Sheet via Apps Script.</p>
+      <p class="small">
+        This will save the user to your Google Sheet via Apps Script.
+        <br><b>Prototype note:</b> Password is sent in the URL (GET) in this phase.
+      </p>
     </div>
   </div>
 
@@ -239,7 +241,7 @@
   </div>
 
   <script>
-    // CoreSight Auth API (Google Apps Script Web App)
+    // ✅ Your Apps Script Web App URL
     const API_URL = "https://script.google.com/macros/s/AKfycbx9Qftjb5-4d2XjlK7F3zTlfZnWIBjBGi4iVV-GdabSeqDpzkljewQsElsVt2wbntIQcA/exec";
 
     const msgBox = document.getElementById("msgBox");
@@ -255,12 +257,11 @@
       msgBox.className = "msg";
     }
 
-    async function postAPI(body){
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+    // ✅ GET-based API call (avoids Apps Script header/CORS limitations)
+    async function callAPI(params){
+      const url = new URL(API_URL);
+      Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+      const res = await fetch(url.toString(), { method: "GET" });
       return await res.json();
     }
 
@@ -293,18 +294,22 @@
       }
 
       try {
-        const data = await postAPI({ action: "login", email, password: pass });
+        const data = await callAPI({ action: "login", email, password: pass });
 
         if(!data.ok){
           showMsg(data.error || "Login failed.", "err");
           return;
         }
 
+        // store session for prototype
         localStorage.setItem("coresight_token", data.token || "");
         localStorage.setItem("coresight_user", JSON.stringify(data.user || {}));
 
         showMsg(`Welcome, ${data.user?.name || "User"}. Login successful.`, "ok");
+
+        // Optional redirect (enable after dashboard.html exists)
         // window.location.href = "dashboard.html";
+
       } catch (e) {
         showMsg("Network/API error. Please try again.", "err");
       }
@@ -322,7 +327,7 @@
       }
 
       try {
-        const data = await postAPI({ action: "signup", name, email, password: pass });
+        const data = await callAPI({ action: "signup", name, email, password: pass });
 
         if(!data.ok){
           alert(data.error || "Signup failed.");
@@ -332,12 +337,15 @@
         closeModal(createBack);
         showMsg("Account created successfully. You can now sign in.", "ok");
 
+        // prefill login
         document.getElementById("email").value = email;
         document.getElementById("password").value = pass;
 
+        // clear modal fields
         document.getElementById("newName").value = "";
         document.getElementById("newEmail").value = "";
         document.getElementById("newPass").value = "";
+
       } catch (e) {
         alert("Network/API error. Please try again.");
       }
@@ -352,7 +360,7 @@
       }
 
       try {
-        const data = await postAPI({ action: "forgot", email });
+        const data = await callAPI({ action: "forgot", email });
 
         closeModal(forgotBack);
         showMsg(data.message || "If this email exists, reset instructions were sent (prototype).", "ok");
