@@ -1,135 +1,367 @@
-<script>
-  // CoreSight Auth API (Google Apps Script Web App)
-  const API_URL = "https://script.google.com/macros/s/AKfycbx9Qftjb5-4d2XjlK7F3zTlfZnWIBjBGi4iVV-GdabSeqDpzkljewQsElsVt2wbntIQcA/exec";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CoreSight — Sign in</title>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --card:#111218;
+      --border:rgba(255,255,255,.10);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --accent:#5ac8fa;
+      --shadow: 0 24px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1000px 600px at 20% 0%, rgba(90,200,250,.12), transparent 60%),
+                  radial-gradient(900px 500px at 80% 20%, rgba(10,132,255,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .wrap{ width:min(460px, 100%); }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 26px;
+      backdrop-filter: blur(10px);
+    }
+    .brand{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .logo{
+      width:44px;height:44px;
+      border-radius: 12px;
+      display:grid;place-items:center;
+      background: rgba(90,200,250,.12);
+      border:1px solid rgba(90,200,250,.25);
+      flex: 0 0 auto;
+    }
+    h1{ font-size: 20px; margin:0; letter-spacing:.2px; }
+    .sub{ margin:6px 0 18px; color:var(--muted); font-size: 13px; line-height: 1.45; }
+    .field{ margin: 12px 0; }
+    label{ display:block; font-size:12px; color: var(--muted); margin-bottom: 8px; }
+    input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      outline:none;
+      transition: .15s ease;
+      font-size: 14px;
+    }
+    input:focus{
+      border-color: rgba(90,200,250,.45);
+      box-shadow: 0 0 0 4px rgba(90,200,250,.12);
+    }
+    .btn{
+      width:100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border:1px solid rgba(90,200,250,.35);
+      background: linear-gradient(180deg, rgba(90,200,250,.22), rgba(90,200,250,.10));
+      color: var(--text);
+      font-weight: 600;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(90,200,250,.55)}
+    .btn:active{transform: translateY(0px)}
+    .links{
+      display:flex;
+      justify-content:space-between;
+      margin-top: 12px;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .link{
+      background: none;
+      border:none;
+      color: rgba(90,200,250,.95);
+      cursor:pointer;
+      padding:0;
+      font-size: 13px;
+    }
+    .link:hover{ text-decoration: underline; }
+    .note{ margin-top: 14px; font-size: 12px; color: var(--muted); }
+    .msg{
+      margin-top: 12px;
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      color: var(--muted);
+      display:none;
+    }
+    .msg.ok{border-color: rgba(48,209,88,.35); color: rgba(48,209,88,.95)}
+    .msg.err{border-color: rgba(255,69,58,.35); color: rgba(255,69,58,.95)}
+    .footer{ text-align:center; margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.42); }
 
-  const msgBox = document.getElementById("msgBox");
+    /* Modal */
+    .modalBack{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 20px;
+    }
+    .modal{
+      width:min(520px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(10px);
+    }
+    .modalHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 12px;
+    }
+    .modalTitle{ font-weight:700; font-size: 15px; margin:0; }
+    .x{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      width:34px;height:34px;
+      border-radius: 10px;
+      cursor:pointer;
+    }
+    .small{ font-size:12px; color:var(--muted); margin: 8px 0 0; line-height:1.5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">
+        <div class="logo" aria-hidden="true" title="CoreSight">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3C7.2 3 3.3 7 3.3 12S7.2 21 12 21s8.7-4 8.7-9S16.8 3 12 3Z" stroke="rgba(90,200,250,.95)" stroke-width="1.6"/>
+            <path d="M12 7.2c2.65 0 4.8 2.15 4.8 4.8s-2.15 4.8-4.8 4.8-4.8-2.15-4.8-4.8 2.15-4.8 4.8-4.8Z" stroke="rgba(90,200,250,.65)" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Sign in to CoreSight</h1>
+          <div class="sub">Prototype login connected to Google Sheets (Apps Script API).</div>
+        </div>
+      </div>
 
-  function showMsg(text, type){
-    msgBox.textContent = text;
-    msgBox.className = "msg " + (type || "");
-    msgBox.style.display = "block";
-  }
-  function clearMsg(){
-    msgBox.style.display = "none";
-    msgBox.textContent = "";
-    msgBox.className = "msg";
-  }
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" placeholder="name@company.com" />
+      </div>
 
-  async function postAPI(body){
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+
+      <button class="btn" id="btnSignIn">Sign in</button>
+
+      <div class="msg" id="msgBox"></div>
+
+      <div class="links">
+        <button class="link" id="btnCreate" type="button">Create new user</button>
+        <button class="link" id="btnForgot" type="button">Forgot password?</button>
+      </div>
+
+      <div class="note">
+        Prototype note: Users are stored in Google Sheets. Token is stored locally for session demo.
+      </div>
+    </div>
+
+    <div class="footer">© CoreSight Prototype</div>
+  </div>
+
+  <!-- Modal: Create user -->
+  <div class="modalBack" id="createModalBack" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHead">
+        <p class="modalTitle">Create new user</p>
+        <button class="x" id="closeCreate" aria-label="Close" type="button">✕</button>
+      </div>
+
+      <div class="field">
+        <label for="newName">Full name</label>
+        <input id="newName" type="text" placeholder="Mohsin" />
+      </div>
+      <div class="field">
+        <label for="newEmail">Email</label>
+        <input id="newEmail" type="email" placeholder="name@company.com" />
+      </div>
+      <div class="field">
+        <label for="newPass">Password</label>
+        <input id="newPass" type="password" placeholder="Create a password" />
+      </div>
+
+      <button class="btn" id="btnSaveUser" type="button">Create account</button>
+      <p class="small">This will save the user to your Google Sheet via Apps Script.</p>
+    </div>
+  </div>
+
+  <!-- Modal: Forgot password -->
+  <div class="modalBack" id="forgotModalBack" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHead">
+        <p class="modalTitle">Forgot password</p>
+        <button class="x" id="closeForgot" aria-label="Close" type="button">✕</button>
+      </div>
+
+      <p class="small">
+        Prototype behavior: shows a reset message. (Real SaaS uses email tokens.)
+      </p>
+
+      <div class="field">
+        <label for="forgotEmail">Email</label>
+        <input id="forgotEmail" type="email" placeholder="name@company.com" />
+      </div>
+
+      <button class="btn" id="btnSendReset" type="button">Send reset link</button>
+      <p class="small">No email is actually sent in this prototype.</p>
+    </div>
+  </div>
+
+  <script>
+    // CoreSight Auth API (Google Apps Script Web App)
+    const API_URL = "https://script.google.com/macros/s/AKfycbx9Qftjb5-4d2XjlK7F3zTlfZnWIBjBGi4iVV-GdabSeqDpzkljewQsElsVt2wbntIQcA/exec";
+
+    const msgBox = document.getElementById("msgBox");
+
+    function showMsg(text, type){
+      msgBox.textContent = text;
+      msgBox.className = "msg " + (type || "");
+      msgBox.style.display = "block";
+    }
+    function clearMsg(){
+      msgBox.style.display = "none";
+      msgBox.textContent = "";
+      msgBox.className = "msg";
+    }
+
+    async function postAPI(body){
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      return await res.json();
+    }
+
+    // ---- Modals ----
+    const createBack = document.getElementById("createModalBack");
+    const forgotBack = document.getElementById("forgotModalBack");
+
+    function openModal(back){ back.style.display = "flex"; }
+    function closeModal(back){ back.style.display = "none"; }
+
+    document.getElementById("btnCreate").addEventListener("click", () => openModal(createBack));
+    document.getElementById("btnForgot").addEventListener("click", () => openModal(forgotBack));
+
+    document.getElementById("closeCreate").addEventListener("click", () => closeModal(createBack));
+    document.getElementById("closeForgot").addEventListener("click", () => closeModal(forgotBack));
+
+    createBack.addEventListener("click", (e) => { if(e.target === createBack) closeModal(createBack); });
+    forgotBack.addEventListener("click", (e) => { if(e.target === forgotBack) closeModal(forgotBack); });
+
+    // ---- Sign in ----
+    document.getElementById("btnSignIn").addEventListener("click", async () => {
+      clearMsg();
+
+      const email = (document.getElementById("email").value || "").trim().toLowerCase();
+      const pass  = document.getElementById("password").value || "";
+
+      if(!email || !pass){
+        showMsg("Please enter your email and password.", "err");
+        return;
+      }
+
+      try {
+        const data = await postAPI({ action: "login", email, password: pass });
+
+        if(!data.ok){
+          showMsg(data.error || "Login failed.", "err");
+          return;
+        }
+
+        localStorage.setItem("coresight_token", data.token || "");
+        localStorage.setItem("coresight_user", JSON.stringify(data.user || {}));
+
+        showMsg(`Welcome, ${data.user?.name || "User"}. Login successful.`, "ok");
+        // window.location.href = "dashboard.html";
+      } catch (e) {
+        showMsg("Network/API error. Please try again.", "err");
+      }
     });
-    // If Apps Script returns HTML error, this may throw — handled in callers
-    return await res.json();
-  }
 
-  // ---- Modals ----
-  const createBack = document.getElementById("createModalBack");
-  const forgotBack = document.getElementById("forgotModalBack");
+    // ---- Create user ----
+    document.getElementById("btnSaveUser").addEventListener("click", async () => {
+      const name  = (document.getElementById("newName").value || "").trim();
+      const email = (document.getElementById("newEmail").value || "").trim().toLowerCase();
+      const pass  = document.getElementById("newPass").value || "";
 
-  function openModal(back){ back.style.display = "flex"; }
-  function closeModal(back){ back.style.display = "none"; }
-
-  document.getElementById("btnCreate").addEventListener("click", () => openModal(createBack));
-  document.getElementById("btnForgot").addEventListener("click", () => openModal(forgotBack));
-
-  document.getElementById("closeCreate").addEventListener("click", () => closeModal(createBack));
-  document.getElementById("closeForgot").addEventListener("click", () => closeModal(forgotBack));
-
-  // Close if click outside modal
-  createBack.addEventListener("click", (e) => { if(e.target === createBack) closeModal(createBack); });
-  forgotBack.addEventListener("click", (e) => { if(e.target === forgotBack) closeModal(forgotBack); });
-
-  // ---- Sign in (validates against Google Sheet) ----
-  document.getElementById("btnSignIn").addEventListener("click", async () => {
-    clearMsg();
-
-    const email = (document.getElementById("email").value || "").trim().toLowerCase();
-    const pass  = document.getElementById("password").value || "";
-
-    if(!email || !pass){
-      showMsg("Please enter your email and password.", "err");
-      return;
-    }
-
-    try {
-      const data = await postAPI({ action: "login", email, password: pass });
-
-      if(!data.ok){
-        showMsg(data.error || "Login failed.", "err");
+      if(!name || !email || !pass){
+        alert("Please fill all fields.");
         return;
       }
 
-      // Store prototype session
-      localStorage.setItem("coresight_token", data.token || "");
-      localStorage.setItem("coresight_user", JSON.stringify(data.user || {}));
+      try {
+        const data = await postAPI({ action: "signup", name, email, password: pass });
 
-      showMsg(`Welcome, ${data.user?.name || "User"}. Login successful.`, "ok");
+        if(!data.ok){
+          alert(data.error || "Signup failed.");
+          return;
+        }
 
-      // Optional redirect (enable when dashboard.html exists)
-      // window.location.href = "dashboard.html";
+        closeModal(createBack);
+        showMsg("Account created successfully. You can now sign in.", "ok");
 
-    } catch (e) {
-      showMsg("Network/API error. Please try again.", "err");
-    }
-  });
+        document.getElementById("email").value = email;
+        document.getElementById("password").value = pass;
 
-  // ---- Create user (saves to Google Sheet) ----
-  document.getElementById("btnSaveUser").addEventListener("click", async () => {
-    const name  = (document.getElementById("newName").value || "").trim();
-    const email = (document.getElementById("newEmail").value || "").trim().toLowerCase();
-    const pass  = document.getElementById("newPass").value || "";
+        document.getElementById("newName").value = "";
+        document.getElementById("newEmail").value = "";
+        document.getElementById("newPass").value = "";
+      } catch (e) {
+        alert("Network/API error. Please try again.");
+      }
+    });
 
-    if(!name || !email || !pass){
-      alert("Please fill all fields.");
-      return;
-    }
-
-    try {
-      const data = await postAPI({ action: "signup", name, email, password: pass });
-
-      if(!data.ok){
-        alert(data.error || "Signup failed.");
+    // ---- Forgot password ----
+    document.getElementById("btnSendReset").addEventListener("click", async () => {
+      const email = (document.getElementById("forgotEmail").value || "").trim().toLowerCase();
+      if(!email){
+        alert("Enter your email.");
         return;
       }
 
-      closeModal(createBack);
-      showMsg("Account created successfully. You can now sign in.", "ok");
+      try {
+        const data = await postAPI({ action: "forgot", email });
 
-      // prefill login
-      document.getElementById("email").value = email;
-      document.getElementById("password").value = pass;
-
-      // clear modal fields
-      document.getElementById("newName").value = "";
-      document.getElementById("newEmail").value = "";
-      document.getElementById("newPass").value = "";
-
-    } catch (e) {
-      alert("Network/API error. Please try again.");
-    }
-  });
-
-  // ---- Forgot password (prototype message via API) ----
-  document.getElementById("btnSendReset").addEventListener("click", async () => {
-    const email = (document.getElementById("forgotEmail").value || "").trim().toLowerCase();
-    if(!email){
-      alert("Enter your email.");
-      return;
-    }
-
-    try {
-      const data = await postAPI({ action: "forgot", email });
-
-      closeModal(forgotBack);
-      showMsg(data.message || "If this email exists, reset instructions were sent (prototype).", "ok");
-      document.getElementById("forgotEmail").value = "";
-
-    } catch (e) {
-      closeModal(forgotBack);
-      showMsg("Network/API error. Please try again.", "err");
-    }
-  });
-</script>
+        closeModal(forgotBack);
+        showMsg(data.message || "If this email exists, reset instructions were sent (prototype).", "ok");
+        document.getElementById("forgotEmail").value = "";
+      } catch (e) {
+        closeModal(forgotBack);
+        showMsg("Network/API error. Please try again.", "err");
+      }
+    });
+  </script>
+</body>
+</html>
