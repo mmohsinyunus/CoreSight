@@ -1,31 +1,42 @@
-import { Routes, Route, Link } from "react-router-dom"
-
-function Home() {
-  return <h2>Home</h2>
-}
-function Dashboard() {
-  return <h2>Dashboard</h2>
-}
-function Reports() {
-  return <h2>Reports</h2>
-}
+import { HashRouter, Routes, Route } from "react-router-dom"
+import AppLayout from "./layout/AppLayout"
+import Home from "./pages/Home"
+import Dashboard from "./pages/Dashboard"
+import Reports from "./pages/Reports"
+import AdminHome from "./pages/admin/AdminHome"
+import Vendors from "./pages/admin/Vendors"
+import RequireRole from "./auth/RequireRole"
+import { mockUser } from "./auth/auth"
 
 export default function App() {
+  const user = mockUser
   return (
-    <div style={{ padding: 40, fontSize: 20 }}>
-      <h1>🚀 CoreSight Frontend is Live</h1>
+    <HashRouter>
+      <AppLayout>
+        <Routes>
+                    <Route
+            path="/admin"
+            element={
+              <RequireRole user={user} allow={["platform_admin"]}>
+                <AdminHome />
+              </RequireRole>
+            }
+          />
 
-      <nav style={{ display: "flex", gap: 16, margin: "20px 0" }}>
-        <Link to="/">Home</Link>
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/reports">Reports</Link>
-      </nav>
+          <Route
+            path="/admin/vendors"
+            element={
+              <RequireRole user={user} allow={["platform_admin"]}>
+                <Vendors />
+              </RequireRole>
+            }
+          />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/reports" element={<Reports />} />
-      </Routes>
-    </div>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/reports" element={<Reports />} />
+        </Routes>
+      </AppLayout>
+    </HashRouter>
   )
 }
