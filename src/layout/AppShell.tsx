@@ -1,69 +1,5 @@
-// src/layout/AppShell.tsx
-
-import type { ReactNode, CSSProperties } from "react"
+import { ReactNode } from "react"
 import { NavLink } from "react-router-dom"
-
-const shell: CSSProperties = {
-  minHeight: "100vh",
-  display: "grid",
-  gridTemplateColumns: "260px 1fr",
-}
-
-const sidebar: CSSProperties = {
-  padding: 18,
-  borderRight: "1px solid var(--border)",
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
-}
-
-const brand: CSSProperties = {
-  fontSize: 18,
-  fontWeight: 900,
-  marginBottom: 20,
-}
-
-const navTitle: CSSProperties = {
-  fontSize: 11,
-  textTransform: "uppercase",
-  letterSpacing: 1,
-  opacity: 0.6,
-  marginTop: 18,
-  marginBottom: 8,
-}
-
-const navItem = (active: boolean): CSSProperties => ({
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  padding: "10px 12px",
-  borderRadius: 12,
-  marginBottom: 6,
-  textDecoration: "none",
-  fontSize: 13,
-  fontWeight: 600,
-  color: "var(--text)",
-  background: active ? "var(--accent-soft)" : "transparent",
-  border: `1px solid ${active ? "rgba(42,161,255,0.35)" : "transparent"}`,
-})
-
-const main: CSSProperties = {
-  padding: 24,
-}
-
-const topbar: CSSProperties = {
-  position: "sticky",
-  top: 0,
-  zIndex: 10,
-  backdropFilter: "blur(16px)",
-  background: "rgba(11,12,16,0.75)",
-  borderBottom: "1px solid var(--border)",
-  borderRadius: 16,
-  padding: "14px 18px",
-  marginBottom: 18,
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-}
 
 export default function AppShell({
   title,
@@ -73,48 +9,109 @@ export default function AppShell({
   children: ReactNode
 }) {
   return (
-    <div style={shell}>
-      <aside style={sidebar}>
-        <div style={brand}>CoreSight</div>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: "280px 1fr",
+        background: "var(--bg)",
+      }}
+    >
+      {/* Sidebar */}
+      <aside
+        style={{
+          padding: 18,
+          borderRight: "1px solid var(--border)",
+          background: "linear-gradient(180deg, #ffffff, #f7f8fa)",
+        }}
+      >
+        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.2 }}>
+          CoreSight
+        </div>
+        <div style={{ marginTop: 6, fontSize: 12, color: "var(--muted)" }}>
+          Clean admin experience — Apple-style UI
+        </div>
 
-        <div style={navTitle}>Platform</div>
+        <div style={{ marginTop: 18, fontSize: 11, color: "var(--muted)" }}>
+          PLATFORM
+        </div>
+        <nav style={{ marginTop: 8, display: "grid", gap: 8 }}>
+          <SideLink to="/home" label="Home" />
+          <SideLink to="/dashboard" label="Dashboard" />
+          <SideLink to="/reports" label="Reports" />
+        </nav>
 
-        <NavLink
-          to="/admin/vendors"
-          style={({ isActive }) => navItem(isActive)}
+        <div style={{ marginTop: 18, fontSize: 11, color: "var(--muted)" }}>
+          VENDOR ONBOARDING
+        </div>
+        <nav style={{ marginTop: 8, display: "grid", gap: 8 }}>
+          <SideLink to="/admin/vendors" label="Tenants" />
+          <SideLink to="/admin/vendor-new" label="Onboard Tenant" />
+        </nav>
+
+        <div style={{ marginTop: 18, fontSize: 11, color: "var(--muted)" }}>
+          ADMIN
+        </div>
+        <nav style={{ marginTop: 8, display: "grid", gap: 8 }}>
+          <SideLink to="/admin/settings" label="Settings" />
+        </nav>
+
+        <div
+          style={{
+            marginTop: 18,
+            padding: 12,
+            borderRadius: 16,
+            border: "1px solid var(--border)",
+            background: "rgba(10,132,255,0.06)",
+            fontSize: 12,
+            color: "var(--muted)",
+          }}
         >
-          Tenants
-        </NavLink>
-
-        <NavLink
-          to="/admin/vendor-new"
-          style={({ isActive }) => navItem(isActive)}
-        >
-          Create Tenant
-        </NavLink>
-
-        <div style={navTitle}>Admin</div>
-
-        <NavLink to="/settings" style={({ isActive }) => navItem(isActive)}>
-          Settings
-        </NavLink>
+          Tip: Use <b>Onboard Tenant</b> to append rows into your Google Sheet.
+        </div>
       </aside>
 
-      <main style={main}>
-        <div style={topbar}>
+      {/* Main */}
+      <main style={{ padding: 22 }}>
+        <div
+          className="card"
+          style={{
+            padding: 18,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
           <div>
-            <div style={{ fontSize: 20, fontWeight: 900 }}>{title}</div>
-            <div style={{ fontSize: 12, opacity: 0.6 }}>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{title}</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
               Enterprise Intelligence Platform
             </div>
           </div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>PROD • KSA</div>
+
+          <div style={{ fontSize: 12, color: "var(--muted)" }}>PROD • KSA</div>
         </div>
 
-        <div className="card" style={{ padding: 18 }}>
-          {children}
-        </div>
+        {children}
       </main>
     </div>
+  )
+}
+
+function SideLink({ to, label }: { to: string; label: string }) {
+  return (
+    <NavLink
+      to={to}
+      style={({ isActive }) => ({
+        padding: "10px 12px",
+        borderRadius: 14,
+        border: "1px solid var(--border)",
+        background: isActive ? "rgba(10,132,255,0.12)" : "transparent",
+        fontWeight: 500,
+      })}
+    >
+      {label}
+    </NavLink>
   )
 }
