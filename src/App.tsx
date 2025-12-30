@@ -6,9 +6,9 @@ import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 import Reports from "./pages/Reports"
 
-// NEW real subscription pages
-import Subscriptions from "./pages/Subscriptions"
-import SubscriptionDetail from "./pages/SubscriptionDetail"
+// NEW real pages
+import Renewals from "./pages/Renewals"
+import RenewalDetail from "./pages/RenewalDetail"
 
 // Existing admin pages
 import Vendors from "./pages/admin/Vendors"
@@ -43,31 +43,19 @@ export default function App() {
         <Route
           path="/login"
           element={
-            <PlaceholderPage
-              title="Login"
-              subtitle="SSO + email login (demo stub)"
-            />
+            <PlaceholderPage title="Login" subtitle="SSO + email login (demo stub)" />
           }
         />
         <Route
           path="/tenant-selection"
           element={
-            <PlaceholderPage
-              title="Tenant Selection"
-              subtitle="Choose tenant and role"
-            />
+            <PlaceholderPage title="Tenant Selection" subtitle="Choose tenant and role" />
           }
         />
 
         {/* Setup */}
-        <Route
-          path="/company-setup"
-          element={<PlaceholderPage title="Company Setup" />}
-        />
-        <Route
-          path="/department-setup"
-          element={<PlaceholderPage title="Department Setup" />}
-        />
+        <Route path="/company-setup" element={<PlaceholderPage title="Company Setup" />} />
+        <Route path="/department-setup" element={<PlaceholderPage title="Department Setup" />} />
         <Route
           path="/connect-sources"
           element={
@@ -80,29 +68,30 @@ export default function App() {
         <Route
           path="/sync-progress"
           element={
-            <PlaceholderPage
-              title="Sync Progress"
-              subtitle="Live progress + error handling"
-            />
+            <PlaceholderPage title="Sync Progress" subtitle="Live progress + error handling" />
           }
         />
 
-        {/* Subscriptions (REAL PAGES) */}
+        {/* Subscriptions */}
         <Route
           path="/subscriptions"
-          element={<Subscriptions />}
+          element={
+            <PlaceholderPage
+              title="Subscriptions List"
+              subtitle="Plans, seats, renewals, and actions"
+            />
+          }
         />
         <Route
           path="/subscriptions/detail"
-          element={<SubscriptionDetail />}
+          element={
+            <PlaceholderPage title="Subscription Detail" subtitle="Reclaim, edit, audit trail" />
+          }
         />
 
         {/* Users / identity */}
         <Route path="/users" element={<PlaceholderPage title="Users List" />} />
-        <Route
-          path="/users/profile"
-          element={<PlaceholderPage title="User Profile" />}
-        />
+        <Route path="/users/profile" element={<PlaceholderPage title="User Profile" />} />
         <Route
           path="/identity-queue"
           element={
@@ -112,56 +101,35 @@ export default function App() {
             />
           }
         />
-        <Route
-          path="/departments"
-          element={<PlaceholderPage title="Departments Overview" />}
-        />
+        <Route path="/departments" element={<PlaceholderPage title="Departments Overview" />} />
 
         {/* Vendors / admin onboarding (REAL) */}
         <Route path="/admin/vendors" element={<Vendors />} />
         <Route path="/admin/vendor-new" element={<VendorNew />} />
         <Route path="/admin/settings" element={<Settings />} />
 
-        {/* Renewals / approvals / audit */}
-        <Route
-          path="/renewals"
-          element={<PlaceholderPage title="Renewals Dashboard" />}
-        />
-        <Route
-          path="/renewals/detail"
-          element={<PlaceholderPage title="Renewal Detail" />}
-        />
+        {/* Renewals (REAL now) */}
+        <Route path="/renewals" element={<Renewals />} />
+        <Route path="/renewals/detail" element={<RenewalDetail />} />
+
+        {/* Approvals / audit */}
         <Route
           path="/approvals"
-          element={
-            <PlaceholderPage
-              title="Approval Center"
-              subtitle="Approvals, SLA, escalations"
-            />
-          }
+          element={<PlaceholderPage title="Approval Center" subtitle="Approvals, SLA, escalations" />}
         />
         <Route
           path="/audit-log"
           element={
-            <PlaceholderPage
-              title="Audit Log"
-              subtitle="All actions are tracked here (demo log next)"
-            />
+            <PlaceholderPage title="Audit Log" subtitle="All actions are tracked here (demo log next)" />
           }
         />
 
         {/* Policies / settings */}
-        <Route
-          path="/tenant-settings"
-          element={<PlaceholderPage title="Tenant Settings" />}
-        />
+        <Route path="/tenant-settings" element={<PlaceholderPage title="Tenant Settings" />} />
         <Route
           path="/policies"
           element={
-            <PlaceholderPage
-              title="Policies"
-              subtitle="Security + retention + data governance"
-            />
+            <PlaceholderPage title="Policies" subtitle="Security + retention + data governance" />
           }
         />
 
