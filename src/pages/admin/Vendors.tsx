@@ -9,27 +9,45 @@ const SHEET_URL =
 export default function Vendors() {
   const [rows, setRows] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(SHEET_URL, { redirect: "follow", cache: "no-store" })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = (await res.json()) as Vendor[]
+      setRows(Array.isArray(data) ? data : [])
+    } catch (e: unknown) {
+      setError((e as Error)?.message ?? String(e))
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    fetch(SHEET_URL)
-      .then(r => r.json())
-      .then(setRows)
-      .finally(() => setLoading(false))
+    load()
   }, [])
 
   return (
     <AppShell title="Tenants">
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <div style={{ fontSize: 14, opacity: 0.7 }}>
-          Manage enterprise tenants
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ color: "var(--muted)", fontSize: 13 }}>
+          Tenants from Google Sheet (Tenants tab)
         </div>
-        <Link to="/admin/vendor-new" className="btn-primary">
-          + Create Tenant
-        </Link>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={load}>Refresh</button>
+          <Link to="/admin/vendor-new" className="btn-primary">
+            + Onboard Tenant
+          </Link>
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ opacity: 0.6 }}>Loading…</div>
+        <div style={{ color: "var(--muted)" }}>Loading…</div>
+      ) : error ? (
+        <div style={{ color: "var(--accent-bad)" }}>Failed to fetch: {error}</div>
       ) : (
         <table>
           <thead>
@@ -40,11 +58,12 @@ export default function Vendors() {
               <th>Plan</th>
               <th>Status</th>
               <th>Country</th>
-              <th>Admin</th>
+              <th>Admin Email</th>
+              <th>VAT</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map(v => (
+            {rows.map((v) => (
               <tr key={v.tenant_id}>
                 <td>{v.tenant_code}</td>
                 <td>{v.tenant_name}</td>
@@ -53,6 +72,7 @@ export default function Vendors() {
                 <td>{v.subscription_status}</td>
                 <td>{v.primary_country}</td>
                 <td>{v.primary_admin_email}</td>
+                <td>{v.vat_registration_number || "-"}</td>
               </tr>
             ))}
           </tbody>

@@ -1,8 +1,14 @@
 // src/data/vendors.ts
 
-export type TenantType = "Enterprise" | "SME" | "Internal" | string
-export type PlanType = "Free" | "Standard" | "Premium" | string
-export type SubscriptionStatus = "Active" | "Inactive" | "Trial" | string
+export type TenantType = "Enterprise" | "SME" | "Partner" | "Internal" | string
+export type PlanType = "Free" | "Standard" | "Pro" | "Enterprise" | string
+export type SubscriptionStatus =
+  | "Active"
+  | "Trial"
+  | "Suspended"
+  | "Cancelled"
+  | "Inactive"
+  | string
 
 export interface Vendor {
   tenant_id: string
@@ -46,12 +52,26 @@ export interface Vendor {
   national_address?: string
 }
 
-export const TENANT_TYPE_OPTIONS: TenantType[] = ["Enterprise", "SME", "Internal"]
-export const PLAN_TYPE_OPTIONS: PlanType[] = ["Free", "Standard", "Premium"]
+export const TENANT_TYPE_OPTIONS: TenantType[] = [
+  "Enterprise",
+  "SME",
+  "Partner",
+  "Internal",
+]
+
+export const PLAN_TYPE_OPTIONS: PlanType[] = [
+  "Free",
+  "Standard",
+  "Pro",
+  "Enterprise",
+]
+
 export const SUBSCRIPTION_STATUS_OPTIONS: SubscriptionStatus[] = [
   "Active",
-  "Inactive",
   "Trial",
+  "Suspended",
+  "Cancelled",
+  "Inactive",
 ]
 
 export function makeTenantId(): string {
