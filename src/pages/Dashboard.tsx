@@ -1,446 +1,299 @@
 // src/pages/Dashboard.tsx
-import { useMemo } from "react"
-import { useNavigate } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
 import AppShell from "../layout/AppShell"
 
-type SubscriptionRow = {
-  vendor: string
-  plan: string
-  seats: number
-  used: number
-  renewalDate: string // YYYY-MM-DD
-  status: "Active" | "Trial" | "At risk"
-  estAnnualCost: number
+type TenantRow = {
+  tenant_id?: string
+  tenant_code?: string
+  tenant_name?: string
+  tenant_type?: string
+  plan_type?: string
+  subscription_status?: string
+  primary_country?: string
+  primary_admin_email?: string
+  is_demo_tenant?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
-function daysUntil(dateISO: string) {
-  const now = new Date()
-  const d = new Date(dateISO + "T00:00:00")
-  const ms = d.getTime() - now.getTime()
-  return Math.ceil(ms / (1000 * 60 * 60 * 24))
-}
-
-function formatSAR(n: number) {
-  try {
-    return new Intl.NumberFormat("en-SA", {
-      style: "currency",
-      currency: "SAR",
-      maximumFractionDigits: 0,
-    }).format(n)
-  } catch {
-    return `SAR ${Math.round(n).toLocaleString()}`
-  }
-}
+const SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbwxTAPJITLdR3AUQoseEs-TsUefbWfuPPmt2rrqsmgDBGXSfAL3xDeUG10VLKUrGhDb0w/exec"
 
 export default function Dashboard() {
-  const nav = useNavigate()
+  const [rows, setRows] = useState<TenantRow[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  // Mock data (VC-friendly + realistic). Later we'll load via Apps Script.
-  const rows: SubscriptionRow[] = useMemo(
-    () => [
-      {
-        vendor: "Microsoft 365",
-        plan: "Enterprise",
-        seats: 420,
-        used: 401,
-        renewalDate: "2026-02-15",
-        status: "Active",
-        estAnnualCost: 980000,
-      },
-      {
-        vendor: "Salesforce",
-        plan: "Pro",
-        seats: 160,
-        used: 118,
-        renewalDate: "2026-01-18",
-        status: "At risk",
-        estAnnualCost: 760000,
-      },
-      {
-        vendor: "Jira / Atlassian",
-        plan: "Standard",
-        seats: 260,
-        used: 212,
-        renewalDate: "2026-03-05",
-        status: "Active",
-        estAnnualCost: 185000,
-      },
-      {
-        vendor: "Slack",
-        plan: "Business+",
-        seats: 300,
-        used: 244,
-        renewalDate: "2026-01-07",
-        status: "Trial",
-        estAnnualCost: 220000,
-      },
-      {
-        vendor: "Adobe",
-        plan: "Creative Cloud",
-        seats: 85,
-        used: 72,
-        renewalDate: "2026-01-28",
-        status: "At risk",
-        estAnnualCost: 340000,
-      },
-    ],
-    []
-  )
+  async function load() {
+    setError("")
+    setLoading(true)
+    try {
+      // cache-bust so Pages doesn’t serve a stale response
+      const res = await fetch(`${SHEET_URL}?t=${Date.now()}`, { method: "GET" })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const json = await res.json()
 
-  const kpis = useMemo(() => {
-    const total = rows.length
-    const active = rows.filter((r) => r.status === "Active").length
-    const trial = rows.filter((r) => r.status === "Trial").length
-    const atRisk = rows.filter((r) => r.status === "At risk").length
+      // Your script returns an array (as you showed in the screenshot)
+      const arr = Array.isArray(json) ? json : json?.data || []
+      if (!Array.isArray(arr)) throw new Error("Unexpected response shape")
 
-    const annualCost = rows.reduce((a, r) => a + r.estAnnualCost, 0)
-    const unusedSeats = rows.reduce((a, r) => a + Math.max(0, r.seats - r.used), 0)
-
-    // simple “savings potential” mock
-    const savingsPotential = Math.round(unusedSeats * 1200) // SAR/seat heuristic
-
-    return {
-      total,
-      active,
-      trial,
-      atRisk,
-      annualCost,
-      unusedSeats,
-      savingsPotential,
+      setRows(arr as TenantRow[])
+    } catch (e: any) {
+      setError(e?.message || "Failed to fetch")
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const metrics = useMemo(() => {
+    const total = rows.length
+    const active = rows.filter((r) => (r.subscription_status || "").toLowerCase() === "active").length
+    const trial = rows.filter((r) => (r.subscription_status || "").toLowerCase() === "trial").length
+    const demo = rows.filter((r) => !!r.is_demo_tenant).length
+    return { total, active, trial, demo }
   }, [rows])
 
-  const expiringSoon = useMemo(() => {
-    return rows
-      .map((r) => ({ ...r, days: daysUntil(r.renewalDate) }))
-      .sort((a, b) => a.days - b.days)
-      .slice(0, 5)
+  const recent = useMemo(() => {
+    // Sort by created_at/updated_at if present, else keep as-is
+    const score = (r: TenantRow) => {
+      const d = r.updated_at || r.created_at || ""
+      const t = Date.parse(d)
+      return Number.isFinite(t) ? t : 0
+    }
+    return [...rows].sort((a, b) => score(b) - score(a)).slice(0, 8)
   }, [rows])
 
   return (
-    <AppShell title="Dashboard" subtitle="Executive snapshot — renewals, risk, and savings opportunities">
-      <div style={page}>
-        {/* Top hero */}
-        <div style={hero}>
-          <div>
-            <div style={heroKicker}>Good morning</div>
-            <div style={heroTitle}>Your subscription spend is under control.</div>
-            <div style={heroSub}>
-              Track renewals, reduce unused seats, and keep approvals audit-ready — all in one place.
-            </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-              <button style={primaryBtn} onClick={() => nav("/subscriptions")}>
-                View Subscriptions
-              </button>
-              <button style={secondaryBtn} onClick={() => nav("/renewals")}>
-                Open Renewals
-              </button>
-            </div>
+    <AppShell title="Dashboard" subtitle="Executive overview + drilldowns (Demo-ready UI)">
+      <div style={wrap}>
+        <div style={topRow}>
+          <div style={pillRow}>
+            <span style={pill}>Tenant: Demo</span>
+            <span style={pill}>Env: PROD</span>
           </div>
 
-          <div style={heroCard}>
-            <div style={miniTitle}>This month</div>
-            <div style={miniValue}>{formatSAR(kpis.savingsPotential)}</div>
-            <div style={miniSub}>Potential annual savings from unused seats (estimated)</div>
+          <button style={btn} onClick={load} disabled={loading}>
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
 
-            {/* Tiny mock “sparkline” */}
-            <div style={sparkWrap} aria-hidden="true">
-              <div style={{ ...sparkBar, height: 18 }} />
-              <div style={{ ...sparkBar, height: 26 }} />
-              <div style={{ ...sparkBar, height: 20 }} />
-              <div style={{ ...sparkBar, height: 34 }} />
-              <div style={{ ...sparkBar, height: 28 }} />
-              <div style={{ ...sparkBar, height: 40 }} />
-              <div style={{ ...sparkBar, height: 30 }} />
-            </div>
-            <div style={mutedSmall}>Based on current seat utilization across key vendors.</div>
+        {error && (
+          <div style={errorBox}>
+            <b>Couldn’t load data:</b> {error}
           </div>
+        )}
+
+        <div style={grid4}>
+          <Kpi title="Tenants" value={metrics.total} hint="From Tenants sheet" />
+          <Kpi title="Active" value={metrics.active} hint="Subscription status = Active" />
+          <Kpi title="Trials" value={metrics.trial} hint="Subscription status = Trial" />
+          <Kpi title="Demo" value={metrics.demo} hint="is_demo_tenant = true" />
         </div>
 
-        {/* KPI grid */}
-        <div style={grid}>
-          <KpiCard label="Subscriptions" value={kpis.total.toString()} hint="Tracked vendors & apps" />
-          <KpiCard label="Active" value={kpis.active.toString()} hint="In good standing" />
-          <KpiCard label="Trials" value={kpis.trial.toString()} hint="Monitor conversion" />
-          <KpiCard label="At risk" value={kpis.atRisk.toString()} hint="Renewal attention needed" tone="warn" />
-          <KpiCard label="Annual spend" value={formatSAR(kpis.annualCost)} hint="Estimated total contract value" />
-          <KpiCard label="Unused seats" value={kpis.unusedSeats.toString()} hint="Reclaimable licenses" tone="good" />
-        </div>
-
-        {/* Table */}
-        <div style={panel}>
-          <div style={panelTop}>
+        <div style={card}>
+          <div style={cardHead}>
             <div>
-              <div style={panelTitle}>Upcoming renewals</div>
-              <div style={panelSub}>Next 90 days — prioritize approvals and renegotiation.</div>
+              <div style={cardTitle}>Recent tenants</div>
+              <div style={cardSub}>Latest created/updated records</div>
             </div>
-            <button style={ghostBtn} onClick={() => nav("/renewals")}>
-              View all
-            </button>
+            <div style={smallMuted}>{loading ? "Loading…" : `${rows.length} total`}</div>
           </div>
 
-          <div style={tableWrap}>
+          <div style={{ overflowX: "auto" }}>
             <table style={table}>
               <thead>
                 <tr>
-                  <th style={th}>Vendor</th>
+                  <th style={th}>Code</th>
+                  <th style={th}>Name</th>
+                  <th style={th}>Type</th>
                   <th style={th}>Plan</th>
-                  <th style={thRight}>Seats</th>
-                  <th style={thRight}>Used</th>
-                  <th style={th}>Renewal</th>
                   <th style={th}>Status</th>
+                  <th style={th}>Country</th>
+                  <th style={th}>Admin Email</th>
                 </tr>
               </thead>
               <tbody>
-                {expiringSoon.map((r) => (
-                  <tr key={r.vendor} style={tr}>
-                    <td style={tdStrong}>{r.vendor}</td>
-                    <td style={td}>{r.plan}</td>
-                    <td style={tdRight}>{r.seats}</td>
-                    <td style={tdRight}>{r.used}</td>
-                    <td style={td}>{r.renewalDate}</td>
+                {recent.map((r, idx) => (
+                  <tr key={`${r.tenant_id || r.tenant_code || idx}`} style={tr}>
+                    <td style={tdMono}>{r.tenant_code || "-"}</td>
+                    <td style={td}>{r.tenant_name || "-"}</td>
+                    <td style={td}>{r.tenant_type || "-"}</td>
+                    <td style={td}>{r.plan_type || "-"}</td>
                     <td style={td}>
-                      <StatusPill status={r.status} />
+                      <span style={statusPill(r.subscription_status)}>{r.subscription_status || "-"}</span>
                     </td>
+                    <td style={td}>{r.primary_country || "-"}</td>
+                    <td style={td}>{r.primary_admin_email || "-"}</td>
                   </tr>
                 ))}
+
+                {!loading && recent.length === 0 && (
+                  <tr>
+                    <td style={{ ...td, padding: 18 }} colSpan={7}>
+                      No tenant rows found yet. Try onboarding one from <b>Vendor Onboarding → Onboard Tenant</b>.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+        </div>
 
-          <div style={panelBottom}>
-            <button style={linkBtn} onClick={() => nav("/approvals")}>
-              Go to Approval Center →
-            </button>
-            <button style={linkBtn} onClick={() => nav("/audit-log")}>
-              View Audit Log →
-            </button>
-          </div>
+        <div style={noteCard}>
+          <div style={noteTitle}>Next implementation (after Dashboard v1)</div>
+          <ul style={list}>
+            <li>Top action bar (Search + Filters + primary CTA)</li>
+            <li>Detail drawer (open a tenant row)</li>
+            <li>Apps Script: add “recent activity” endpoint (audit log stream)</li>
+          </ul>
         </div>
       </div>
     </AppShell>
   )
 }
 
-function KpiCard({
-  label,
-  value,
-  hint,
-  tone,
-}: {
-  label: string
-  value: string
-  hint: string
-  tone?: "warn" | "good"
-}) {
-  const accent =
-    tone === "warn"
-      ? "rgba(255,149,0,0.18)"
-      : tone === "good"
-      ? "rgba(52,199,89,0.18)"
-      : "rgba(10,132,255,0.14)"
-
+function Kpi({ title, value, hint }: { title: string; value: number; hint: string }) {
   return (
-    <div style={kpiCard}>
+    <div style={kpi}>
       <div style={kpiTop}>
-        <div style={kpiLabel}>{label}</div>
-        <div style={{ width: 34, height: 34, borderRadius: 12, background: accent }} />
+        <div style={kpiTitle}>{title}</div>
+        <div style={kpiHint}>{hint}</div>
       </div>
       <div style={kpiValue}>{value}</div>
-      <div style={kpiHint}>{hint}</div>
     </div>
   )
 }
 
-function StatusPill({ status }: { status: SubscriptionRow["status"] }) {
-  const style =
-    status === "Active"
-      ? { background: "rgba(52,199,89,0.14)", border: "1px solid rgba(52,199,89,0.25)", color: "rgba(10,80,30,0.95)" }
-      : status === "Trial"
-      ? { background: "rgba(10,132,255,0.12)", border: "1px solid rgba(10,132,255,0.22)", color: "rgba(10,60,120,0.95)" }
-      : { background: "rgba(255,149,0,0.14)", border: "1px solid rgba(255,149,0,0.26)", color: "rgba(120,60,0,0.95)" }
+function statusPill(status?: string): React.CSSProperties {
+  const s = (status || "").toLowerCase()
+  let bg = "rgba(15,23,42,0.06)"
+  let border = "rgba(15,23,42,0.10)"
+  let color = "rgba(15,23,42,0.80)"
 
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "6px 10px",
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 700,
-        ...style,
-      }}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 999,
-          background:
-            status === "Active" ? "rgba(52,199,89,0.9)" : status === "Trial" ? "rgba(10,132,255,0.9)" : "rgba(255,149,0,0.9)",
-        }}
-      />
-      {status}
-    </span>
-  )
+  if (s === "active") {
+    bg = "rgba(52,199,89,0.12)"
+    border = "rgba(52,199,89,0.22)"
+    color = "rgba(14,87,32,0.95)"
+  } else if (s === "trial") {
+    bg = "rgba(10,132,255,0.12)"
+    border = "rgba(10,132,255,0.22)"
+    color = "rgba(0,60,120,0.95)"
+  } else if (s === "inactive") {
+    bg = "rgba(255,59,48,0.10)"
+    border = "rgba(255,59,48,0.18)"
+    color = "rgba(120,15,15,0.95)"
+  }
+
+  return {
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: `1px solid ${border}`,
+    background: bg,
+    color,
+    fontSize: 12,
+    fontWeight: 600,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+  }
 }
 
 /** Styles */
-const page: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 1100,
+const wrap: React.CSSProperties = { display: "grid", gap: 16 }
+const topRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  flexWrap: "wrap",
 }
-
-const hero: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "1.4fr 0.9fr",
-  gap: 16,
-  alignItems: "stretch",
-  marginBottom: 16,
-}
-
-const heroKicker: React.CSSProperties = {
+const pillRow: React.CSSProperties = { display: "flex", gap: 10, flexWrap: "wrap" }
+const pill: React.CSSProperties = {
+  padding: "8px 12px",
+  borderRadius: 999,
+  border: "1px solid rgba(15,23,42,0.10)",
+  background: "rgba(15,23,42,0.03)",
   fontSize: 13,
   fontWeight: 600,
-  color: "rgba(15,23,42,0.6)",
+  color: "rgba(15,23,42,0.75)",
 }
-
-const heroTitle: React.CSSProperties = {
-  fontSize: 32,
-  lineHeight: 1.15,
-  marginTop: 6,
-  letterSpacing: "-0.02em",
-  fontWeight: 750,
-  color: "rgba(15,23,42,0.92)",
-}
-
-const heroSub: React.CSSProperties = {
-  marginTop: 10,
-  fontSize: 14,
-  color: "rgba(15,23,42,0.65)",
-  maxWidth: 720,
-}
-
-const heroCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(10,132,255,0.10), rgba(255,255,255,0.9))",
-  border: "1px solid rgba(15,23,42,0.08)",
-  borderRadius: 18,
-  padding: 16,
-  boxShadow: "0 18px 40px rgba(15,23,42,0.06)",
-}
-
-const miniTitle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "rgba(15,23,42,0.70)" }
-const miniValue: React.CSSProperties = { fontSize: 26, fontWeight: 800, marginTop: 6, color: "rgba(15,23,42,0.92)" }
-const miniSub: React.CSSProperties = { fontSize: 13, marginTop: 4, color: "rgba(15,23,42,0.62)" }
-
-const sparkWrap: React.CSSProperties = {
-  display: "flex",
-  gap: 8,
-  alignItems: "flex-end",
-  height: 56,
-  marginTop: 14,
-  padding: 12,
-  borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.08)",
-  background: "rgba(255,255,255,0.65)",
-}
-
-const sparkBar: React.CSSProperties = {
-  width: 10,
-  borderRadius: 999,
-  background: "rgba(10,132,255,0.55)",
-}
-
-const mutedSmall: React.CSSProperties = { marginTop: 10, fontSize: 12, color: "rgba(15,23,42,0.55)" }
-
-const grid: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
-  gap: 14,
-  marginBottom: 16,
-}
-
-const kpiCard: React.CSSProperties = {
-  background: "#fff",
-  border: "1px solid rgba(15,23,42,0.08)",
-  borderRadius: 18,
-  padding: 14,
-  boxShadow: "0 14px 30px rgba(15,23,42,0.05)",
-}
-
-const kpiTop: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }
-const kpiLabel: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "rgba(15,23,42,0.65)" }
-const kpiValue: React.CSSProperties = { fontSize: 22, fontWeight: 800, marginTop: 8, color: "rgba(15,23,42,0.92)" }
-const kpiHint: React.CSSProperties = { fontSize: 12, marginTop: 6, color: "rgba(15,23,42,0.55)" }
-
-const panel: React.CSSProperties = {
-  background: "#fff",
-  border: "1px solid rgba(15,23,42,0.08)",
-  borderRadius: 18,
-  padding: 14,
-  boxShadow: "0 18px 40px rgba(15,23,42,0.06)",
-}
-
-const panelTop: React.CSSProperties = { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }
-const panelTitle: React.CSSProperties = { fontSize: 16, fontWeight: 800, color: "rgba(15,23,42,0.92)" }
-const panelSub: React.CSSProperties = { marginTop: 4, fontSize: 13, color: "rgba(15,23,42,0.60)" }
-
-const tableWrap: React.CSSProperties = { marginTop: 12, overflowX: "auto" }
-const table: React.CSSProperties = { width: "100%", borderCollapse: "separate", borderSpacing: 0 }
-const th: React.CSSProperties = { textAlign: "left", fontSize: 12, color: "rgba(15,23,42,0.55)", padding: "10px 10px" }
-const thRight: React.CSSProperties = { ...th, textAlign: "right" }
-const tr: React.CSSProperties = { borderTop: "1px solid rgba(15,23,42,0.06)" }
-const td: React.CSSProperties = { padding: "12px 10px", fontSize: 13, color: "rgba(15,23,42,0.72)" }
-const tdStrong: React.CSSProperties = { ...td, fontWeight: 750, color: "rgba(15,23,42,0.90)" }
-const tdRight: React.CSSProperties = { ...td, textAlign: "right" }
-
-const panelBottom: React.CSSProperties = {
-  display: "flex",
-  gap: 12,
-  justifyContent: "flex-end",
-  marginTop: 10,
-}
-
-const primaryBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 16px",
-  borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.22)",
-  background: "rgba(10,132,255,0.14)",
-  fontWeight: 800,
-  color: "rgba(15,23,42,0.92)",
-  cursor: "pointer",
-}
-
-const secondaryBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 16px",
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "rgba(255,255,255,0.9)",
-  fontWeight: 700,
-  color: "rgba(15,23,42,0.82)",
-  cursor: "pointer",
-}
-
-const ghostBtn: React.CSSProperties = {
-  height: 38,
+const btn: React.CSSProperties = {
+  height: 40,
   padding: "0 14px",
   borderRadius: 12,
   border: "1px solid rgba(15,23,42,0.12)",
-  background: "rgba(255,255,255,0.9)",
-  fontWeight: 700,
+  background: "#fff",
   cursor: "pointer",
+  fontWeight: 600,
+}
+const grid4: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+  gap: 12,
+}
+const kpi: React.CSSProperties = {
+  background: "#fff",
+  border: "1px solid rgba(15,23,42,0.10)",
+  borderRadius: 16,
+  padding: 14,
+  boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+  minHeight: 92,
+}
+const kpiTop: React.CSSProperties = { display: "grid", gap: 4 }
+const kpiTitle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "rgba(15,23,42,0.70)" }
+const kpiHint: React.CSSProperties = { fontSize: 12, color: "rgba(15,23,42,0.55)" }
+const kpiValue: React.CSSProperties = { marginTop: 10, fontSize: 28, fontWeight: 700, letterSpacing: -0.2 }
+
+const card: React.CSSProperties = {
+  background: "#fff",
+  border: "1px solid rgba(15,23,42,0.10)",
+  borderRadius: 18,
+  padding: 16,
+  boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+}
+const cardHead: React.CSSProperties = { display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }
+const cardTitle: React.CSSProperties = { fontSize: 16, fontWeight: 700 }
+const cardSub: React.CSSProperties = { fontSize: 13, color: "rgba(15,23,42,0.60)", marginTop: 4 }
+const smallMuted: React.CSSProperties = { fontSize: 12, color: "rgba(15,23,42,0.55)" }
+
+const table: React.CSSProperties = { width: "100%", borderCollapse: "separate", borderSpacing: 0, marginTop: 12 }
+const th: React.CSSProperties = {
+  textAlign: "left",
+  fontSize: 12,
+  color: "rgba(15,23,42,0.60)",
+  padding: "10px 10px",
+  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  fontWeight: 700,
+}
+const tr: React.CSSProperties = { borderBottom: "1px solid rgba(15,23,42,0.06)" }
+const td: React.CSSProperties = { padding: "10px 10px", fontSize: 13, color: "rgba(15,23,42,0.85)" }
+const tdMono: React.CSSProperties = { ...td, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }
+
+const errorBox: React.CSSProperties = {
+  padding: 12,
+  borderRadius: 12,
+  background: "rgba(255,59,48,0.08)",
+  border: "1px solid rgba(255,59,48,0.18)",
+  color: "rgba(120,15,15,0.95)",
 }
 
-const linkBtn: React.CSSProperties = {
-  height: 38,
-  padding: "0 12px",
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.10)",
-  background: "rgba(15,23,42,0.03)",
-  fontWeight: 750,
-  cursor: "pointer",
+const noteCard: React.CSSProperties = {
+  background: "rgba(15,23,42,0.02)",
+  border: "1px solid rgba(15,23,42,0.08)",
+  borderRadius: 18,
+  padding: 16,
+}
+const noteTitle: React.CSSProperties = { fontSize: 14, fontWeight: 700, marginBottom: 8 }
+const list: React.CSSProperties = { margin: 0, paddingLeft: 18, color: "rgba(15,23,42,0.75)" }
+
+// Simple responsive tweak (optional): if you want, move to CSS later
+if (typeof window !== "undefined") {
+  const w = window.innerWidth
+  if (w < 900) grid4.gridTemplateColumns = "repeat(2, minmax(0, 1fr))"
+  if (w < 520) grid4.gridTemplateColumns = "repeat(1, minmax(0, 1fr))"
 }
