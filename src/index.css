@@ -1,22 +1,22 @@
-/* Prevent grid children from overflowing (classic fix) */
+/* --- Apple-ish defaults --- */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Make grid columns truly shrinkable */
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+/* Kill link underlines everywhere */
+a,
+a:visited {
+  text-decoration: none;
+  color: inherit;
 }
 
-/* Critical: allow inputs to shrink inside grid cells */
-.grid-2 > * {
-  min-width: 0;
+a:hover {
+  color: #0a84ff;
 }
 
+/* Softer form fields (no harsh borders) */
 input,
 select,
 textarea {
@@ -24,4 +24,22 @@ textarea {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+
+  background: #f5f5f7;          /* Apple-like light fill */
+  border: 1px solid transparent; /* remove harsh line */
+  border-radius: 12px;
+  padding: 12px 14px;
+
+  color: #111827;
+  font-size: 14px;
+  transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: rgba(10, 132, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.14);
 }
