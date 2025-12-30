@@ -1,330 +1,220 @@
-// src/pages/admin/AdminHome.tsx
+import AppShell from "../../layout/AppShell"
+import { Link } from "react-router-dom"
 
-import { useNavigate } from "react-router-dom"
+const wrap: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1.6fr 1fr",
+  gap: 16,
+  alignItems: "start",
+}
+
+const hero: React.CSSProperties = {
+  padding: 18,
+  borderRadius: 16,
+  border: "1px solid var(--border)",
+  background: "rgba(255,255,255,0.03)",
+}
+
+const h1: React.CSSProperties = {
+  fontSize: 34,
+  lineHeight: 1.05,
+  fontWeight: 950,
+  letterSpacing: -0.8,
+  margin: 0,
+}
+
+const sub: React.CSSProperties = {
+  marginTop: 10,
+  fontSize: 14,
+  color: "var(--muted)",
+  maxWidth: 720,
+}
+
+const grid: React.CSSProperties = {
+  marginTop: 16,
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gap: 12,
+}
+
+const card: React.CSSProperties = {
+  borderRadius: 16,
+  border: "1px solid var(--border)",
+  background: "rgba(255,255,255,0.03)",
+  padding: 14,
+  minHeight: 120,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+}
+
+const cardTitle: React.CSSProperties = {
+  fontSize: 14,
+  fontWeight: 850,
+  margin: 0,
+}
+
+const cardDesc: React.CSSProperties = {
+  marginTop: 6,
+  fontSize: 12,
+  color: "var(--muted)",
+  lineHeight: 1.4,
+}
+
+const ctaRow: React.CSSProperties = {
+  display: "flex",
+  gap: 10,
+  marginTop: 12,
+  alignItems: "center",
+}
+
+const primaryLink: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "10px 12px",
+  borderRadius: 12,
+  background: "var(--accent)",
+  color: "#001018",
+  fontSize: 13,
+  fontWeight: 850,
+  textDecoration: "none",
+  border: "1px solid rgba(42,161,255,0.35)",
+}
+
+const ghostLink: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "10px 12px",
+  borderRadius: 12,
+  background: "rgba(255,255,255,0.03)",
+  color: "var(--text)",
+  fontSize: 13,
+  fontWeight: 800,
+  textDecoration: "none",
+  border: "1px solid var(--border)",
+}
+
+const sideCard: React.CSSProperties = {
+  borderRadius: 16,
+  border: "1px solid var(--border)",
+  background: "rgba(255,255,255,0.03)",
+  padding: 16,
+  position: "sticky",
+  top: 18,
+}
+
+const sideTitle: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 900,
+  letterSpacing: 0.8,
+  textTransform: "uppercase",
+  opacity: 0.7,
+  margin: 0,
+}
+
+const bullet: React.CSSProperties = {
+  marginTop: 10,
+  paddingLeft: 18,
+  color: "var(--muted)",
+  fontSize: 13,
+  lineHeight: 1.7,
+}
+
+const hr: React.CSSProperties = {
+  height: 1,
+  background: "var(--border)",
+  border: 0,
+  margin: "14px 0",
+}
 
 export default function AdminHome() {
-  const nav = useNavigate()
-
-  const page: React.CSSProperties = {
-    minHeight: "calc(100vh - 40px)",
-    padding: "56px 28px",
-    background:
-      "radial-gradient(1200px 700px at 20% -10%, rgba(0,0,0,0.04), transparent 55%)," +
-      "radial-gradient(1200px 700px at 80% 0%, rgba(0,0,0,0.035), transparent 55%)," +
-      "linear-gradient(#fbfbfd, #f5f5f7)",
-    color: "#1d1d1f",
-  }
-
-  const container: React.CSSProperties = {
-    maxWidth: 1100,
-    margin: "0 auto",
-  }
-
-  const hero: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1.25fr 0.75fr",
-    gap: 22,
-    alignItems: "start",
-  }
-
-  const h1: React.CSSProperties = {
-    fontSize: 56,
-    lineHeight: 1.05,
-    letterSpacing: -1.2,
-    margin: 0,
-    fontWeight: 800,
-  }
-
-  const lead: React.CSSProperties = {
-    marginTop: 14,
-    fontSize: 18,
-    lineHeight: 1.55,
-    color: "rgba(29,29,31,0.72)",
-    maxWidth: 700,
-  }
-
-  const chipsRow: React.CSSProperties = {
-    marginTop: 18,
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 10,
-  }
-
-  const chip: React.CSSProperties = {
-    padding: "8px 12px",
-    borderRadius: 999,
-    border: "1px solid rgba(29,29,31,0.10)",
-    background: "rgba(255,255,255,0.7)",
-    fontSize: 13,
-    color: "rgba(29,29,31,0.8)",
-    backdropFilter: "blur(10px)",
-  }
-
-  const rightCard: React.CSSProperties = {
-    borderRadius: 24,
-    padding: 18,
-    border: "1px solid rgba(29,29,31,0.08)",
-    background: "rgba(255,255,255,0.75)",
-    backdropFilter: "blur(18px)",
-    boxShadow: "0 18px 45px rgba(0,0,0,0.08)",
-  }
-
-  const smallTitle: React.CSSProperties = {
-    fontSize: 13,
-    letterSpacing: 0.2,
-    fontWeight: 800,
-    color: "rgba(29,29,31,0.70)",
-    textTransform: "uppercase",
-    margin: 0,
-  }
-
-  const kpi: React.CSSProperties = {
-    marginTop: 12,
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 12,
-  }
-
-  const kpiBox: React.CSSProperties = {
-    borderRadius: 18,
-    padding: 14,
-    border: "1px solid rgba(29,29,31,0.08)",
-    background: "rgba(255,255,255,0.85)",
-  }
-
-  const kpiNum: React.CSSProperties = {
-    fontSize: 22,
-    fontWeight: 900,
-    letterSpacing: -0.4,
-    margin: 0,
-  }
-
-  const kpiLbl: React.CSSProperties = {
-    marginTop: 6,
-    fontSize: 12,
-    color: "rgba(29,29,31,0.65)",
-  }
-
-  const section: React.CSSProperties = {
-    marginTop: 34,
-  }
-
-  const sectionTitle: React.CSSProperties = {
-    margin: 0,
-    fontSize: 18,
-    fontWeight: 900,
-    letterSpacing: -0.2,
-  }
-
-  const grid: React.CSSProperties = {
-    marginTop: 14,
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 16,
-  }
-
-  const card: React.CSSProperties = {
-    borderRadius: 26,
-    padding: 22,
-    border: "1px solid rgba(29,29,31,0.08)",
-    background: "rgba(255,255,255,0.8)",
-    backdropFilter: "blur(16px)",
-    boxShadow: "0 12px 35px rgba(0,0,0,0.06)",
-    transition: "transform 180ms ease, box-shadow 180ms ease",
-  }
-
-  const cardTitle: React.CSSProperties = {
-    margin: 0,
-    fontSize: 20,
-    fontWeight: 900,
-    letterSpacing: -0.2,
-  }
-
-  const cardText: React.CSSProperties = {
-    marginTop: 10,
-    color: "rgba(29,29,31,0.68)",
-    lineHeight: 1.6,
-    fontSize: 14,
-    maxWidth: 520,
-  }
-
-  const actions: React.CSSProperties = {
-    marginTop: 16,
-    display: "flex",
-    gap: 10,
-    alignItems: "center",
-    flexWrap: "wrap",
-  }
-
-  const btnPrimary: React.CSSProperties = {
-    padding: "10px 14px",
-    borderRadius: 999,
-    border: "1px solid rgba(0,0,0,0.08)",
-    background: "#0071e3",
-    color: "white",
-    fontWeight: 800,
-    cursor: "pointer",
-  }
-
-  const btnGhost: React.CSSProperties = {
-    padding: "10px 14px",
-    borderRadius: 999,
-    border: "1px solid rgba(29,29,31,0.12)",
-    background: "rgba(255,255,255,0.75)",
-    color: "#1d1d1f",
-    fontWeight: 800,
-    cursor: "pointer",
-  }
-
-  const note: React.CSSProperties = {
-    marginTop: 10,
-    fontSize: 12,
-    color: "rgba(29,29,31,0.55)",
-  }
-
-  const divider: React.CSSProperties = {
-    marginTop: 26,
-    height: 1,
-    background: "rgba(29,29,31,0.08)",
-  }
-
   return (
-    <div style={page}>
-      <div style={container}>
-        {/* HERO */}
-        <div style={hero}>
-          <div>
+    <AppShell title="Platform Admin">
+      <div style={wrap}>
+        {/* LEFT */}
+        <div>
+          <div style={hero}>
             <h1 style={h1}>Platform Admin</h1>
-            <div style={lead}>
-              Onboard vendors (tenants), assign vendor admins, and control platform access — with a clean,
+            <div style={sub}>
+              Onboard tenants, assign admins, and verify integrations — with a clean,
               audit-friendly setup.
             </div>
 
-            <div style={chipsRow}>
-              <div style={chip}>Tenants</div>
-              <div style={chip}>Organizations</div>
-              <div style={chip}>Users</div>
-              <div style={chip}>Integrations</div>
-              <div style={chip}>Audit logs</div>
-            </div>
+            <div style={grid}>
+              <div style={card}>
+                <div>
+                  <p style={cardTitle}>Tenants</p>
+                  <div style={cardDesc}>Create and manage tenant records.</div>
+                </div>
+                <div style={ctaRow}>
+                  <Link to="/admin/vendors" style={ghostLink}>
+                    View
+                  </Link>
+                  <Link to="/admin/vendor-new" style={primaryLink}>
+                    + Create
+                  </Link>
+                </div>
+              </div>
 
-            <div style={actions}>
-              <button style={btnPrimary} onClick={() => nav("/admin/vendors")}>
-                Manage Tenants
-              </button>
-              <button style={btnGhost} onClick={() => nav("/admin/vendors/new")}>
-                Onboard New Tenant
-              </button>
-              <button style={btnGhost} onClick={() => nav("/admin/settings")}>
-                Settings
-              </button>
-            </div>
+              <div style={card}>
+                <div>
+                  <p style={cardTitle}>Users</p>
+                  <div style={cardDesc}>Invite users and assign roles (next).</div>
+                </div>
+                <div style={ctaRow}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Coming soon</span>
+                </div>
+              </div>
 
-            <div style={note}>
-              Tip: Use <b>Onboard New Tenant</b> to push the vendor profile into your Google Sheet (Tenants tab).
+              <div style={card}>
+                <div>
+                  <p style={cardTitle}>Sheets</p>
+                  <div style={cardDesc}>Confirm the integration is active.</div>
+                </div>
+                <div style={ctaRow}>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                    Google Apps Script
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT SUMMARY */}
-          <div style={rightCard}>
-            <p style={smallTitle}>Quick overview</p>
-            <div style={{ marginTop: 10, color: "rgba(29,29,31,0.68)", fontSize: 13, lineHeight: 1.5 }}>
-              Keep it simple: create a tenant, verify admin email, and confirm the sheet row is appended.
-            </div>
-
-            <div style={kpi}>
-              <div style={kpiBox}>
-                <p style={kpiNum}>Tenants</p>
-                <div style={kpiLbl}>Create / view / update</div>
-              </div>
-              <div style={kpiBox}>
-                <p style={kpiNum}>Users</p>
-                <div style={kpiLbl}>Coming next</div>
-              </div>
-              <div style={kpiBox}>
-                <p style={kpiNum}>Sheets</p>
-                <div style={kpiLbl}>Integration active</div>
-              </div>
-              <div style={kpiBox}>
-                <p style={kpiNum}>Roles</p>
-                <div style={kpiLbl}>Platform admin</div>
-              </div>
-            </div>
-
-            <div style={divider} />
-
-            <div style={{ marginTop: 14 }}>
-              <p style={{ margin: 0, fontWeight: 900, letterSpacing: -0.2 }}>Next steps</p>
-              <ul style={{ marginTop: 10, paddingLeft: 18, color: "rgba(29,29,31,0.70)", lineHeight: 1.6 }}>
-                <li>Onboard tenant → verify row in Tenants sheet</li>
-                <li>Confirm VAT & National Address fields</li>
-                <li>Add Organizations mapping (next)</li>
-              </ul>
+          {/* Optional: a small section below, not huge */}
+          <div style={{ marginTop: 14, padding: 16, borderRadius: 16, border: "1px solid var(--border)", background: "rgba(255,255,255,0.02)" }}>
+            <div style={{ fontSize: 13, fontWeight: 850 }}>Administration</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
+              Keep this page lightweight — the main work happens in Tenants.
             </div>
           </div>
         </div>
 
-        {/* CARDS */}
-        <div style={section}>
-          <div style={sectionTitle}>Administration</div>
+        {/* RIGHT */}
+        <div style={sideCard}>
+          <p style={sideTitle}>Next steps</p>
+          <ul style={bullet}>
+            <li>Onboard tenant → verify row in Tenants sheet</li>
+            <li>Confirm VAT & National Address fields</li>
+            <li>Add Organizations mapping (next)</li>
+          </ul>
 
-          <div style={grid}>
-            <div
-              style={card}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"
-                ;(e.currentTarget as HTMLDivElement).style.boxShadow = "0 18px 55px rgba(0,0,0,0.09)"
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLDivElement).style.transform = "translateY(0px)"
-                ;(e.currentTarget as HTMLDivElement).style.boxShadow = "0 12px 35px rgba(0,0,0,0.06)"
-              }}
-            >
-              <h3 style={cardTitle}>Vendors (Tenants)</h3>
-              <div style={cardText}>
-                Create and manage vendor tenants. This is your onboarding entry point (writes to the Tenants
-                sheet).
-              </div>
-              <div style={actions}>
-                <button style={btnPrimary} onClick={() => nav("/admin/vendors")}>
-                  Open
-                </button>
-                <button style={btnGhost} onClick={() => nav("/admin/vendors/new")}>
-                  Add new
-                </button>
-              </div>
+          <hr style={hr} />
+
+          <p style={sideTitle}>Health</p>
+          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+              <span style={{ color: "var(--muted)" }}>Integration</span>
+              <span style={{ fontWeight: 850 }}>Active</span>
             </div>
-
-            <div
-              style={card}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"
-                ;(e.currentTarget as HTMLDivElement).style.boxShadow = "0 18px 55px rgba(0,0,0,0.09)"
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLDivElement).style.transform = "translateY(0px)"
-                ;(e.currentTarget as HTMLDivElement).style.boxShadow = "0 12px 35px rgba(0,0,0,0.06)"
-              }}
-            >
-              <h3 style={cardTitle}>Users</h3>
-              <div style={cardText}>
-                Platform-level user access (later). Next we can add “Create User” and map to the Users sheet.
-              </div>
-              <div style={actions}>
-                <button style={btnGhost} onClick={() => alert("Users module is coming next.")}>
-                  Coming soon
-                </button>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+              <span style={{ color: "var(--muted)" }}>Role</span>
+              <span style={{ fontWeight: 850 }}>Platform admin</span>
             </div>
           </div>
-        </div>
-
-        {/* Responsive fallback */}
-        <div style={{ marginTop: 24, color: "rgba(29,29,31,0.55)", fontSize: 12 }}>
-          If you want this in full Apple-style, the next step is to also update the left sidebar to a lighter
-          “frosted” look (like macOS / apple.com).
         </div>
       </div>
-    </div>
+    </AppShell>
   )
 }
