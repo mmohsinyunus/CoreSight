@@ -1,73 +1,62 @@
+// src/layout/AppShell.tsx
 import { NavLink } from "react-router-dom"
 import type { ReactNode, CSSProperties } from "react"
 
-type AppShellProps = {
+export type AppShellProps = {
   title: string
   subtitle?: string
+  actions?: ReactNode
   children: ReactNode
 }
 
-export default function AppShell({ title, subtitle, children }: AppShellProps) {
+export default function AppShell({ title, subtitle, actions, children }: AppShellProps) {
   return (
-    <div style={root}>
-      {/* Sidebar */}
+    <div style={shell}>
       <aside style={sidebar}>
         <div style={brand}>
-          <div style={brandTitle}>CoreSight</div>
-          <div style={brandSub}>Clean admin experience — Apple-style UI</div>
-
-          <div style={envRow}>
+          <div style={brandRow}>
+            <div style={brandName}>CoreSight</div>
             <span style={pill}>Prototype</span>
-            <span style={pill}>PROD · KSA</span>
           </div>
+          <div style={brandSub}>Clean admin experience — Apple-style UI</div>
         </div>
 
-        <nav style={nav}>
-          <Section label="CORE" />
-          <SideLink to="/home" label="Home" icon="🏠" />
-          <SideLink to="/dashboard" label="Dashboard" icon="📊" />
-          <SideLink to="/reports" label="Reports" icon="📄" />
-          <SideLink to="/analytics" label="Analytics Dashboard" icon="📈" />
+        <div style={navSectionTitle}>NAVIGATION</div>
 
-          <Section label="SUBSCRIPTIONS" />
-          <SideLink to="/subscriptions" label="Subscriptions List" icon="🧾" />
-          <SideLink to="/subscriptions/detail" label="Subscription Detail" icon="🔎" />
+        <SideLink to="/home" label="Home" emoji="🏠" />
+        <SideLink to="/dashboard" label="Dashboard" emoji="📊" />
+        <SideLink to="/reports" label="Reports" emoji="📄" />
+        <SideLink to="/analytics" label="Analytics Dashboard" emoji="📈" />
 
-          <Section label="RENEWALS" />
-          <SideLink to="/renewals" label="Renewals Dashboard" icon="🔁" />
-          <SideLink to="/renewals/detail" label="Renewal Detail" icon="🗂️" />
+        <div style={divider} />
 
-          <Section label="OPS" />
-          <SideLink to="/approvals" label="Approval Center" icon="✅" />
-          <SideLink to="/audit-log" label="Audit Log" icon="🧷" />
+        <div style={navSectionTitle}>ADMIN SHORTCUTS</div>
+        <SideLink to="/admin/vendors" label="Tenants" emoji="🏢" />
+        <SideLink to="/admin/vendor-new" label="Onboard Tenant" emoji="➕" />
+        <SideLink to="/admin/settings" label="Settings" emoji="🧩" />
 
-          <Section label="VENDOR ONBOARDING" />
-          <SideLink to="/admin/vendors" label="Tenants" icon="🏢" />
-          <SideLink to="/admin/vendor-new" label="Onboard Tenant" icon="➕" />
-
-          <Section label="ADMIN" />
-          <SideLink to="/admin/settings" label="Settings" icon="⚙️" />
-          <SideLink to="/tenant-settings" label="Tenant Settings" icon="🛠️" />
-          <SideLink to="/policies" label="Policies" icon="🛡️" />
-        </nav>
-
-        <div style={tipBox}>
-          <b>Quick tip</b>
-          <div style={{ marginTop: 6 }}>
-            If GitHub Pages shows blank again, it’s usually a base path or build issue.
-            Your current hash routes are correct.
+        <div style={tipCard}>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Quick tip</div>
+          <div style={{ color: "rgba(15, 23, 42, 0.72)", lineHeight: 1.45 }}>
+            If GitHub Pages shows blank again, it’s usually a <b>base path</b> or{" "}
+            <b>build</b> issue. Your current hash routes are correct for Pages.
           </div>
         </div>
       </aside>
 
-      {/* Main */}
       <main style={main}>
-        <header style={header}>
-          <div>
-            <h1 style={h1}>{title}</h1>
-            {subtitle && <div style={subtitleStyle}>{subtitle}</div>}
+        <div style={topBar}>
+          <div style={{ minWidth: 0 }}>
+            <div style={pageTitle}>{title}</div>
+            {subtitle ? <div style={pageSubtitle}>{subtitle}</div> : null}
           </div>
-        </header>
+
+          <div style={topRight}>
+            {actions ? <div style={actionsWrap}>{actions}</div> : null}
+            <span style={chip}>Env: PROD</span>
+            <span style={chip}>KSA</span>
+          </div>
+        </div>
 
         <div style={content}>{children}</div>
       </main>
@@ -75,140 +64,142 @@ export default function AppShell({ title, subtitle, children }: AppShellProps) {
   )
 }
 
-/* ---------- Helpers ---------- */
-
-function Section({ label }: { label: string }) {
-  return <div style={sectionTitle}>{label}</div>
-}
-
-function SideLink({
-  to,
-  label,
-  icon,
-}: {
-  to: string
-  label: string
-  icon?: string
-}) {
+function SideLink({ to, label, emoji }: { to: string; label: string; emoji: string }) {
   return (
     <NavLink
       to={to}
       style={({ isActive }) => ({
         ...navItem,
-        background: isActive ? "rgba(10,132,255,0.12)" : "transparent",
-        color: isActive ? "#0a84ff" : "rgba(15,23,42,0.85)",
+        background: isActive ? "rgba(10,132,255,0.10)" : "transparent",
+        borderColor: isActive ? "rgba(10,132,255,0.25)" : "rgba(15, 23, 42, 0.10)",
+        color: isActive ? "rgba(15,23,42,0.95)" : "rgba(15,23,42,0.80)",
       })}
     >
-      <span style={{ width: 22 }}>{icon}</span>
-      {label}
+      <span style={navEmoji}>{emoji}</span>
+      <span>{label}</span>
     </NavLink>
   )
 }
 
-/* ---------- Styles ---------- */
-
-const root: CSSProperties = {
-  display: "flex",
+/* Styles */
+const shell: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "320px 1fr",
   minHeight: "100vh",
-  background: "#f5f6f8",
+  background: "linear-gradient(180deg, rgba(15,23,42,0.04), rgba(15,23,42,0.02))",
 }
 
 const sidebar: CSSProperties = {
-  width: 280,
-  background: "#ffffff",
-  borderRight: "1px solid rgba(15,23,42,0.08)",
   padding: 18,
-  display: "flex",
-  flexDirection: "column",
+  borderRight: "1px solid rgba(15, 23, 42, 0.10)",
+  background: "rgba(255,255,255,0.85)",
+  backdropFilter: "blur(10px)",
+}
+
+const main: CSSProperties = {
+  padding: 18,
 }
 
 const brand: CSSProperties = {
-  marginBottom: 24,
+  padding: 14,
+  borderRadius: 18,
+  border: "1px solid rgba(15, 23, 42, 0.10)",
+  background: "#fff",
+  boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
+  marginBottom: 14,
 }
 
-const brandTitle: CSSProperties = {
-  fontSize: 22,
-  fontWeight: 900,
-}
-
-const brandSub: CSSProperties = {
-  fontSize: 13,
-  color: "rgba(15,23,42,0.6)",
-  marginTop: 4,
-}
-
-const envRow: CSSProperties = {
+const brandRow: CSSProperties = {
   display: "flex",
-  gap: 8,
-  marginTop: 12,
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 10,
 }
+
+const brandName: CSSProperties = { fontSize: 24, fontWeight: 800, letterSpacing: -0.2 }
+const brandSub: CSSProperties = { marginTop: 6, color: "rgba(15,23,42,0.65)" }
 
 const pill: CSSProperties = {
   padding: "6px 10px",
   borderRadius: 999,
+  border: "1px solid rgba(15, 23, 42, 0.10)",
+  background: "rgba(15, 23, 42, 0.04)",
   fontSize: 12,
   fontWeight: 700,
-  background: "rgba(15,23,42,0.06)",
+  color: "rgba(15,23,42,0.70)",
 }
 
-const nav: CSSProperties = {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-}
-
-const sectionTitle: CSSProperties = {
-  marginTop: 18,
-  marginBottom: 10,
-  paddingLeft: 10,
+const navSectionTitle: CSSProperties = {
+  padding: "10px 10px 8px",
   fontSize: 12,
+  fontWeight: 800,
   letterSpacing: 0.8,
   color: "rgba(15,23,42,0.45)",
-  fontWeight: 800,
 }
 
 const navItem: CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 10,
-  padding: "10px 12px",
-  borderRadius: 12,
-  textDecoration: "none",
-  fontWeight: 600,
-}
-
-const tipBox: CSSProperties = {
-  marginTop: 16,
-  padding: 14,
+  padding: "12px 12px",
   borderRadius: 14,
-  background: "rgba(10,132,255,0.08)",
-  border: "1px solid rgba(10,132,255,0.2)",
-  fontSize: 13,
+  border: "1px solid rgba(15, 23, 42, 0.10)",
+  textDecoration: "none",
+  marginBottom: 10,
+  background: "transparent",
 }
 
-const main: CSSProperties = {
-  flex: 1,
+const navEmoji: CSSProperties = { width: 22, textAlign: "center" }
+
+const divider: CSSProperties = {
+  margin: "10px 0 6px",
+  height: 1,
+  background: "rgba(15, 23, 42, 0.08)",
+  borderRadius: 999,
+}
+
+const topBar: CSSProperties = {
   display: "flex",
-  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 14,
+  padding: 18,
+  borderRadius: 18,
+  background: "rgba(255,255,255,0.85)",
+  border: "1px solid rgba(15, 23, 42, 0.10)",
+  boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
+  backdropFilter: "blur(10px)",
 }
 
-const header: CSSProperties = {
-  padding: "22px 32px",
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
-  background: "#ffffff",
+const pageTitle: CSSProperties = { fontSize: 34, fontWeight: 900, letterSpacing: -0.6 }
+const pageSubtitle: CSSProperties = { marginTop: 6, color: "rgba(15,23,42,0.65)" }
+
+const topRight: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  flexWrap: "wrap",
+  justifyContent: "flex-end",
 }
 
-const h1: CSSProperties = {
-  margin: 0,
-  fontSize: 32,
-  fontWeight: 900,
+const actionsWrap: CSSProperties = { display: "flex", alignItems: "center", gap: 10 }
+
+const chip: CSSProperties = {
+  padding: "10px 12px",
+  borderRadius: 999,
+  border: "1px solid rgba(15, 23, 42, 0.12)",
+  background: "rgba(15, 23, 42, 0.04)",
+  fontWeight: 800,
+  fontSize: 12,
+  color: "rgba(15,23,42,0.75)",
 }
 
-const subtitleStyle: CSSProperties = {
-  marginTop: 6,
-  color: "rgba(15,23,42,0.6)",
-}
+const content: CSSProperties = { marginTop: 16 }
 
-const content: CSSProperties = {
-  padding: 32,
+const tipCard: CSSProperties = {
+  marginTop: 14,
+  padding: 14,
+  borderRadius: 18,
+  border: "1px solid rgba(10,132,255,0.18)",
+  background: "rgba(10,132,255,0.06)",
 }
