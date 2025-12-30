@@ -1,22 +1,17 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { addVendor } from "../../data/vendors"
 
+// ✅ Google Apps Script Web App URL (/exec)
 const SHEET_URL =
   "https://script.google.com/macros/s/AKfycbyveLMQjQxGC12KkQhgcRSbNJ1ynWZIxqc9PFRznb-QU3imkQ2_DWFAIeMoiqRFxTdgBg/exec"
 
-  function uuid() {
-  // browser-safe UUID
-  if ("crypto" in window && "randomUUID" in crypto) return crypto.randomUUID()
-  // fallback
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    const v = c === "x" ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
-}
-
 export default function VendorNew() {
   const nav = useNavigate()
+
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
   // Identity
   const [tenant_code, setTenantCode] = useState("")
@@ -34,251 +29,329 @@ export default function VendorNew() {
   const [subscription_status, setSubscriptionStatus] = useState("Trial")
   const [subscription_start_date, setSubscriptionStartDate] = useState("")
   const [subscription_end_date, setSubscriptionEndDate] = useState("")
-  const [max_users, setMaxUsers] = useState(10)
-  const [max_organizations, setMaxOrganizations] = useState(1)
-
-  // Status / governance
+  const [max_users, setMaxUsers] = useState("10")
+  const [max_organizations, setMaxOrganizations] = useState("1")
   const [tenant_status, setTenantStatus] = useState("Active")
   const [is_demo_tenant, setIsDemoTenant] = useState(false)
-  const [data_retention_policy, setDataRetentionPolicy] = useState("3 years")
+
+  // Governance / compliance
+  const [data_retention_policy, setDataRetentionPolicy] = useState("1 year")
   const [compliance_flag, setComplianceFlag] = useState("Internal Policy")
 
-  // Admin
+  // ✅ Added (you asked)
+  const [vat_registration_number, setVatRegistrationNumber] = useState("")
+  const [national_address, setNationalAddress] = useState("")
+
+  // Primary admin
   const [primary_admin_name, setPrimaryAdminName] = useState("")
   const [primary_admin_email, setPrimaryAdminEmail] = useState("")
 
-  // Features
+  // Flags
   const [ai_insights_enabled, setAiInsightsEnabled] = useState(true)
   const [cost_optimization_enabled, setCostOptimizationEnabled] = useState(true)
   const [usage_analytics_enabled, setUsageAnalyticsEnabled] = useState(true)
 
-  // Notes / extra
+  // Notes
   const [notes, setNotes] = useState("")
-  const [vat_registration_number, setVatRegistrationNumber] = useState("")
-  const [national_address, setNationalAddress] = useState("")
 
-  // UI
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  function makeTenantId() {
+    // simple unique id for now (later replace with backend-generated)
+    return "t_" + Date.now().toString(36)
+  }
 
   async function handleCreate() {
-    setError(null)
-    setSuccess(null)
+    setError("")
+    setSuccess("")
+    setSaving(true)
 
-    // basic validation
-    if (!tenant_code.trim()) return setError("Tenant code is required.")
-    if (!tenant_name.trim()) return setError("Tenant name is required.")
-    if (!primary_admin_email.trim()) return setError("Primary admin email is required.")
-
-    setLoading(true)
-    try {
-      const tenant_id = uuid()
-
-      const payload = {
-        tenant_id,
-        tenant_code: tenant_code.trim(),
-        tenant_name: tenant_name.trim(),
-        legal_name: legal_name.trim(),
-        tenant_type,
-
-        primary_country,
-        primary_timezone,
-        default_currency,
-
-        plan_type,
-        subscription_status,
-        subscription_start_date,
-        subscription_end_date,
-        max_users,
-        max_organizations,
-
-        tenant_status,
-        is_demo_tenant,
-        data_retention_policy,
-        compliance_flag,
-
-        primary_admin_name: primary_admin_name.trim(),
-        primary_admin_email: primary_admin_email.trim(),
-
-        // placeholders for later (kept to match schema)
-        created_by_user_id: "system",
-        primary_admin_user_id: "",
-
-        ai_insights_enabled,
-        cost_optimization_enabled,
-        usage_analytics_enabled,
-
-        // timestamps (Apps Script will default if missing)
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        last_active_at: "",
-
-        notes: notes.trim(),
-
-        // added by you
-        vat_registration_number: vat_registration_number.trim(),
-        national_address: national_address.trim(),
-      }
-
-      const res = await fetch(SHEET_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-
-      const json = await res.json().catch(() => null)
-
-      if (!res.ok || !json || json.ok !== true) {
-        const msg =
-          (json && (json.error || json.message)) ||
-          `Failed to save. HTTP ${res.status}`
-        throw new Error(msg)
-      }
-
-      setSuccess(`Vendor created (tenant_id: ${json.tenant_id}). Row: ${json.row}`)
-      // redirect after a short delay so user sees success
-      setTimeout(() => nav("/admin/vendors"), 800)
-    } catch (e: any) {
-      setError(e?.message || "Something went wrong.")
-    } finally {
-      setLoading(false)
+    // minimal validations
+    if (!tenant_code.trim()) {
+      setError("tenant_code is required")
+      setSaving(false)
+      return
     }
+    if (!tenant_name.trim()) {
+      setError("tenant_name is required")
+      setSaving(false)
+      return
+    }
+    if (!legal_name.trim()) {
+      setError("legal_name is required")
+      setSaving(false)
+      return
+    }
+    if (!primary_admin_email.trim()) {
+      setError("primary_admin_email is required")
+      setSaving(false)
+      return
+    }
+
+    const payload: Record<string, any> = {
+      tenant_id: makeTenantId(),
+      tenant_code: tenant_code.trim(),
+      tenant_name: tenant_name.trim(),
+      legal_name: legal_name.trim(),
+      tenant_type,
+
+      primary_country,
+      primary_timezone,
+      default_currency,
+
+      plan_type,
+      subscription_status,
+      subscription_start_date,
+      subscription_end_date,
+      max_users,
+      max_organizations,
+
+      tenant_status,
+      is_demo_tenant,
+
+      data_retention_policy,
+      compliance_flag,
+
+      // ✅ Added fields
+      vat_registration_number: vat_registration_number.trim(),
+      national_address: national_address.trim(),
+
+      primary_admin_name: primary_admin_name.trim(),
+      primary_admin_email: primary_admin_email.trim(),
+
+      created_by_user_id: "platform_admin_mock",
+
+      ai_insights_enabled,
+      cost_optimization_enabled,
+      usage_analytics_enabled,
+
+      notes: notes.trim(),
+    }
+
+    // ✅ JSONP callback to bypass CORS on GitHub Pages
+    const callbackName = "coresight_cb_" + Date.now()
+
+    // @ts-ignore
+    window[callbackName] = (resp: any) => {
+      try {
+        if (!resp?.ok) {
+          setError(resp?.message || "Failed to onboard vendor")
+          return
+        }
+
+        // store locally (demo)
+        addVendor(payload as any)
+
+        setSuccess("Vendor onboarded successfully ✅")
+        setTimeout(() => nav("/admin/vendors"), 600)
+      } finally {
+        // cleanup
+        // @ts-ignore
+        delete window[callbackName]
+        const tag = document.getElementById(callbackName)
+        if (tag) tag.remove()
+        setSaving(false)
+      }
+    }
+
+    const params = new URLSearchParams({
+      action: "append",
+      callback: callbackName,
+    })
+
+    Object.entries(payload).forEach(([k, v]) => {
+      if (v === undefined || v === null) return
+      params.set(k, String(v))
+    })
+
+    const url = `${SHEET_URL}?${params.toString()}`
+
+    const script = document.createElement("script")
+    script.src = url
+    script.id = callbackName
+    script.onerror = () => {
+      setError(
+        "Failed to fetch (blocked). Check Apps Script deployment: Who has access = Anyone, and use the /exec URL."
+      )
+      setSaving(false)
+      // @ts-ignore
+      delete window[callbackName]
+      script.remove()
+    }
+
+    document.body.appendChild(script)
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 980 }}>
-      <h1 style={{ margin: 0 }}>Onboard Vendor (Tenant)</h1>
-      <p style={{ opacity: 0.8, marginTop: 8 }}>
-        This will create a tenant record in the <b>Tenants</b> Google Sheet.
+    <div style={{ padding: 28, maxWidth: 920 }}>
+      <h1 style={{ fontSize: 46, margin: "8px 0 10px" }}>Onboard Vendor (Tenant)</h1>
+      <p style={{ opacity: 0.75, marginTop: 0 }}>
+        This form will create a tenant row in Google Sheets and (for now) store it locally for UI demo.
       </p>
 
       {error && (
-        <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: "rgba(255,0,0,0.12)" }}>
-          <b>Error:</b> {error}
+        <div
+          style={{
+            background: "#5b0b0b",
+            border: "1px solid #a33",
+            padding: 12,
+            borderRadius: 10,
+            margin: "14px 0",
+          }}
+        >
+          {error}
         </div>
       )}
 
       {success && (
-        <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: "rgba(0,255,120,0.10)" }}>
+        <div
+          style={{
+            background: "#0b3b17",
+            border: "1px solid #2e8b57",
+            padding: 12,
+            borderRadius: 10,
+            margin: "14px 0",
+          }}
+        >
           {success}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18 }}>
-        <Field label="Tenant Code *" value={tenant_code} onChange={setTenantCode} placeholder="e.g. TAMER" />
-        <Field label="Tenant Name *" value={tenant_name} onChange={setTenantName} placeholder="Display name" />
+      <Section title="Identity">
+        <Field label="Tenant Name" value={tenant_name} onChange={setTenantName} placeholder="Tamer Group" />
+        <Field label="Tenant Code" value={tenant_code} onChange={setTenantCode} placeholder="TAMER" />
+        <Field label="Legal Name" value={legal_name} onChange={setLegalName} placeholder="Tamer Trading Company Ltd." />
 
-        <Field label="Legal Name" value={legal_name} onChange={setLegalName} placeholder="Registered legal entity" />
-        <Select
+        <SelectField
           label="Tenant Type"
           value={tenant_type}
           onChange={setTenantType}
-          options={["Single Company", "Holding Group", "Enterprise Group"]}
+          options={["Holding Group", "Single Company", "Enterprise Group"]}
         />
+      </Section>
 
-        <Field label="Primary Country" value={primary_country} onChange={setPrimaryCountry} />
-        <Field label="Primary Timezone" value={primary_timezone} onChange={setPrimaryTimezone} />
+      <Section title="Location / Defaults">
+        <Field label="Primary Country" value={primary_country} onChange={setPrimaryCountry} placeholder="Saudi Arabia" />
+        <Field label="Primary Timezone" value={primary_timezone} onChange={setPrimaryTimezone} placeholder="Asia/Riyadh" />
+        <Field label="Default Currency" value={default_currency} onChange={setDefaultCurrency} placeholder="SAR" />
+      </Section>
 
-        <Field label="Default Currency" value={default_currency} onChange={setDefaultCurrency} />
-        <Select
-          label="Plan Type"
-          value={plan_type}
-          onChange={setPlanType}
-          options={["Free", "Trial", "Pro", "Enterprise"]}
-        />
-
-        <Select
+      <Section title="Plan / Subscription">
+        <SelectField label="Plan Type" value={plan_type} onChange={setPlanType} options={["Free", "Trial", "Pro", "Enterprise"]} />
+        <SelectField
           label="Subscription Status"
           value={subscription_status}
           onChange={setSubscriptionStatus}
           options={["Trial", "Active", "Suspended", "Expired"]}
         />
-        <Select
-          label="Tenant Status"
-          value={tenant_status}
-          onChange={setTenantStatus}
-          options={["Active", "Inactive", "Archived"]}
-        />
-
         <Field label="Subscription Start Date" value={subscription_start_date} onChange={setSubscriptionStartDate} placeholder="YYYY-MM-DD" />
         <Field label="Subscription End Date" value={subscription_end_date} onChange={setSubscriptionEndDate} placeholder="YYYY-MM-DD" />
+        <Field label="Max Users" value={max_users} onChange={setMaxUsers} placeholder="10" />
+        <Field label="Max Organizations" value={max_organizations} onChange={setMaxOrganizations} placeholder="1" />
 
-        <NumberField label="Max Users" value={max_users} onChange={setMaxUsers} />
-        <NumberField label="Max Organizations" value={max_organizations} onChange={setMaxOrganizations} />
+        <SelectField label="Tenant Status" value={tenant_status} onChange={setTenantStatus} options={["Active", "Inactive", "Archived"]} />
 
-        <Field label="Primary Admin Name" value={primary_admin_name} onChange={setPrimaryAdminName} />
-        <Field label="Primary Admin Email *" value={primary_admin_email} onChange={setPrimaryAdminEmail} placeholder="name@company.com" />
+        <Checkbox label="Demo Tenant" checked={is_demo_tenant} onChange={setIsDemoTenant} />
+      </Section>
 
-        <Field label="VAT Registration Number" value={vat_registration_number} onChange={setVatRegistrationNumber} />
-        <Field label="National Address" value={national_address} onChange={setNationalAddress} placeholder="Short address or full national address text" />
+      <Section title="Compliance / Governance">
+        <Field label="Data Retention Policy" value={data_retention_policy} onChange={setDataRetentionPolicy} placeholder="1 year / 3 years" />
+        <Field label="Compliance Flag" value={compliance_flag} onChange={setComplianceFlag} placeholder="GDPR / PDPL / Internal Policy" />
 
-        <Field label="Data Retention Policy" value={data_retention_policy} onChange={setDataRetentionPolicy} />
-        <Field label="Compliance Flag" value={compliance_flag} onChange={setComplianceFlag} />
+        {/* ✅ Added */}
+        <Field
+          label="VAT Registration Number"
+          value={vat_registration_number}
+          onChange={setVatRegistrationNumber}
+          placeholder="300xxxxxxxxx"
+        />
+        <Field
+          label="National Address"
+          value={national_address}
+          onChange={setNationalAddress}
+          placeholder="Building, Street, District, City, Postal Code"
+        />
+      </Section>
 
-        <Checkbox label="Demo tenant" checked={is_demo_tenant} onChange={setIsDemoTenant} />
-        <div />
+      <Section title="Primary Admin">
+        <Field label="Admin Name" value={primary_admin_name} onChange={setPrimaryAdminName} placeholder="Ahmed Ali" />
+        <Field label="Admin Email" value={primary_admin_email} onChange={setPrimaryAdminEmail} placeholder="admin@vendor.com" />
+      </Section>
 
-        <Checkbox label="AI Insights enabled" checked={ai_insights_enabled} onChange={setAiInsightsEnabled} />
-        <Checkbox label="Cost Optimization enabled" checked={cost_optimization_enabled} onChange={setCostOptimizationEnabled} />
-        <Checkbox label="Usage Analytics enabled" checked={usage_analytics_enabled} onChange={setUsageAnalyticsEnabled} />
+      <Section title="Feature Flags">
+        <Checkbox label="AI Insights Enabled" checked={ai_insights_enabled} onChange={setAiInsightsEnabled} />
+        <Checkbox label="Cost Optimization Enabled" checked={cost_optimization_enabled} onChange={setCostOptimizationEnabled} />
+        <Checkbox label="Usage Analytics Enabled" checked={usage_analytics_enabled} onChange={setUsageAnalyticsEnabled} />
+      </Section>
 
-        <div style={{ gridColumn: "1 / -1" }}>
-          <label style={{ display: "block", marginBottom: 6, opacity: 0.85 }}>Notes</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            style={{
-              width: "100%",
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(0,0,0,0.25)",
-              color: "white",
-              outline: "none",
-            }}
-          />
-        </div>
-      </div>
+      <Section title="Notes">
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={4}
+          style={{
+            width: "100%",
+            padding: 12,
+            borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.15)",
+            background: "rgba(0,0,0,0.25)",
+            color: "white",
+            outline: "none",
+          }}
+          placeholder="Internal notes (optional)"
+        />
+      </Section>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+      <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
         <button
           onClick={() => nav("/admin/vendors")}
-          style={btn("secondary")}
-          disabled={loading}
+          style={{
+            padding: "12px 16px",
+            borderRadius: 12,
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            color: "white",
+            cursor: "pointer",
+          }}
         >
           Cancel
         </button>
 
         <button
           onClick={handleCreate}
-          style={btn("primary")}
-          disabled={loading}
+          disabled={saving}
+          style={{
+            padding: "12px 16px",
+            borderRadius: 12,
+            background: saving ? "rgba(0,140,255,0.35)" : "rgba(0,140,255,0.75)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            color: "white",
+            cursor: saving ? "not-allowed" : "pointer",
+            fontWeight: 700,
+          }}
         >
-          {loading ? "Creating..." : "Create Vendor"}
+          {saving ? "Creating..." : "Create Vendor"}
         </button>
       </div>
     </div>
   )
 }
 
-function btn(kind: "primary" | "secondary") {
-  const base = {
-    padding: "10px 14px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    cursor: "pointer",
-    fontWeight: 600,
-  } as const
+/* ---------- small UI helpers (no external deps) ---------- */
 
-  if (kind === "primary") {
-    return { ...base, background: "rgba(90,140,255,0.35)", color: "white" }
-  }
-  return { ...base, background: "rgba(255,255,255,0.06)", color: "white" }
+function Section({ title, children }: { title: string; children: any }) {
+  return (
+    <div style={{ marginTop: 22 }}>
+      <h3 style={{ margin: "0 0 10px", fontSize: 20 }}>{title}</h3>
+      <div style={{ display: "grid", gap: 12 }}>{children}</div>
+    </div>
+  )
 }
 
-function Field(props: {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
   label: string
   value: string
   onChange: (v: string) => void
@@ -286,16 +359,16 @@ function Field(props: {
 }) {
   return (
     <div>
-      <label style={{ display: "block", marginBottom: 6, opacity: 0.85 }}>{props.label}</label>
+      <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 6 }}>{label}</div>
       <input
-        value={props.value}
-        onChange={(e) => props.onChange(e.target.value)}
-        placeholder={props.placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
         style={{
           width: "100%",
-          padding: 10,
+          padding: 12,
           borderRadius: 10,
-          border: "1px solid rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.15)",
           background: "rgba(0,0,0,0.25)",
           color: "white",
           outline: "none",
@@ -305,33 +378,12 @@ function Field(props: {
   )
 }
 
-function NumberField(props: {
-  label: string
-  value: number
-  onChange: (v: number) => void
-}) {
-  return (
-    <div>
-      <label style={{ display: "block", marginBottom: 6, opacity: 0.85 }}>{props.label}</label>
-      <input
-        type="number"
-        value={props.value}
-        onChange={(e) => props.onChange(Number(e.target.value))}
-        style={{
-          width: "100%",
-          padding: 10,
-          borderRadius: 10,
-          border: "1px solid rgba(255,255,255,0.12)",
-          background: "rgba(0,0,0,0.25)",
-          color: "white",
-          outline: "none",
-        }}
-      />
-    </div>
-  )
-}
-
-function Select(props: {
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
   label: string
   value: string
   onChange: (v: string) => void
@@ -339,21 +391,21 @@ function Select(props: {
 }) {
   return (
     <div>
-      <label style={{ display: "block", marginBottom: 6, opacity: 0.85 }}>{props.label}</label>
+      <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 6 }}>{label}</div>
       <select
-        value={props.value}
-        onChange={(e) => props.onChange(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         style={{
           width: "100%",
-          padding: 10,
+          padding: 12,
           borderRadius: 10,
-          border: "1px solid rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.15)",
           background: "rgba(0,0,0,0.25)",
           color: "white",
           outline: "none",
         }}
       >
-        {props.options.map((o) => (
+        {options.map((o) => (
           <option key={o} value={o} style={{ color: "black" }}>
             {o}
           </option>
@@ -363,20 +415,19 @@ function Select(props: {
   )
 }
 
-function Checkbox(props: {
+function Checkbox({
+  label,
+  checked,
+  onChange,
+}: {
   label: string
   checked: boolean
   onChange: (v: boolean) => void
 }) {
   return (
-    <label style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 8 }}>
-      <input
-        type="checkbox"
-        checked={props.checked}
-        onChange={(e) => props.onChange(e.target.checked)}
-        style={{ transform: "scale(1.1)" }}
-      />
-      <span style={{ opacity: 0.9 }}>{props.label}</span>
+    <label style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span style={{ opacity: 0.9 }}>{label}</span>
     </label>
   )
 }
