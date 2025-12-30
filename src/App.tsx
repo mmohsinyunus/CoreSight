@@ -6,6 +6,10 @@ import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 import Reports from "./pages/Reports"
 
+// NEW real subscription pages
+import Subscriptions from "./pages/Subscriptions"
+import SubscriptionDetail from "./pages/SubscriptionDetail"
+
 // Existing admin pages
 import Vendors from "./pages/admin/Vendors"
 import VendorNew from "./pages/admin/VendorNew"
@@ -83,31 +87,18 @@ export default function App() {
           }
         />
 
-        {/* Subscriptions */}
+        {/* Subscriptions (REAL PAGES) */}
         <Route
           path="/subscriptions"
-          element={
-            <PlaceholderPage
-              title="Subscriptions List"
-              subtitle="Plans, seats, renewals, and actions"
-            />
-          }
+          element={<Subscriptions />}
         />
         <Route
           path="/subscriptions/detail"
-          element={
-            <PlaceholderPage
-              title="Subscription Detail"
-              subtitle="Reclaim, edit, audit trail"
-            />
-          }
+          element={<SubscriptionDetail />}
         />
 
         {/* Users / identity */}
-        <Route
-          path="/users"
-          element={<PlaceholderPage title="Users List" />}
-        />
+        <Route path="/users" element={<PlaceholderPage title="Users List" />} />
         <Route
           path="/users/profile"
           element={<PlaceholderPage title="User Profile" />}
