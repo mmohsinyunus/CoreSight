@@ -1,36 +1,100 @@
-/* --- Apple-ish defaults --- */
+/* src/index.css */
+
+:root {
+  --bg: #f3f4f6;            /* page background */
+  --surface: #ffffff;       /* cards */
+  --surface-2: #f7f7f9;     /* inputs */
+  --text: #111827;
+  --muted: #6b7280;
+  --border: rgba(17, 24, 39, 0.12);
+
+  --primary: #0a84ff;
+  --primary-600: #0066cc;
+
+  --shadow-sm: 0 2px 10px rgba(17, 24, 39, 0.06);
+  --shadow: 0 10px 30px rgba(17, 24, 39, 0.10);
+
+  --radius-lg: 18px;
+  --radius: 14px;
+
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Kill link underlines everywhere */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(10,132,255,0.10), transparent 60%),
+              radial-gradient(900px 500px at 100% 10%, rgba(34,197,94,0.06), transparent 55%),
+              var(--bg);
+  color: var(--text);
+}
+
+#root {
+  height: 100%;
+}
+
+/* Links: never underlined, Apple-blue on hover */
 a,
 a:visited {
   text-decoration: none;
   color: inherit;
 }
-
 a:hover {
-  color: #0a84ff;
+  color: var(--primary);
 }
 
-/* Softer form fields (no harsh borders) */
+/* Card surfaces */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+/* Soft section titles */
+.h1 {
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.6px;
+  margin: 0;
+}
+.h2 {
+  font-size: 16px;
+  font-weight: 650;
+  margin: 0;
+}
+.muted {
+  color: var(--muted);
+}
+
+/* Inputs: soft fill, clean focus ring */
 input,
 select,
 textarea {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  box-sizing: border-box;
 
-  background: #f5f5f7;          /* Apple-like light fill */
-  border: 1px solid transparent; /* remove harsh line */
+  background: var(--surface-2);
+  border: 1px solid transparent;
   border-radius: 12px;
   padding: 12px 14px;
 
-  color: #111827;
+  color: var(--text);
   font-size: 14px;
   transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -39,7 +103,101 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  background: #ffffff;
+  background: #fff;
   border-color: rgba(10, 132, 255, 0.55);
   box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.14);
+}
+
+/* Buttons */
+button {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.06s ease, background 0.2s ease;
+}
+button:hover {
+  background: #f7f7f9;
+}
+button:active {
+  transform: translateY(1px);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: rgba(10,132,255,0.5);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--primary-600);
+}
+
+/* Layout helpers */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.grid-2 > * {
+  min-width: 0;
+}
+
+/* Step pills */
+.stepbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.step {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.06);
+  color: rgba(17, 24, 39, 0.75);
+  font-weight: 600;
+  font-size: 13px;
+}
+.step.active {
+  background: rgba(10,132,255,0.14);
+  color: var(--primary);
+}
+
+/* Sidebar links */
+.navlink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  color: rgba(17,24,39,0.85);
+  font-weight: 600;
+}
+.navlink:hover {
+  background: rgba(17, 24, 39, 0.05);
+}
+.navlink.active {
+  background: rgba(10,132,255,0.12);
+  border-color: rgba(10,132,255,0.18);
+  color: var(--primary);
+}
+
+/* Small icon pill */
+.ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(17, 24, 39, 0.06);
+}
+.navlink.active .ico {
+  background: rgba(10,132,255,0.16);
 }

@@ -9,74 +9,83 @@ export default function AppShell({
   children: ReactNode
 }) {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "280px 1fr",
-        background: "var(--bg)",
-      }}
-    >
+    <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "300px 1fr" }}>
       {/* Sidebar */}
       <aside
+        className="card"
         style={{
-          padding: 18,
-          borderRight: "1px solid var(--border)",
-          background: "linear-gradient(180deg, #ffffff, #f7f8fa)",
+          margin: 18,
+          padding: 16,
+          borderRadius: 22,
+          boxShadow: "var(--shadow-sm)",
+          alignSelf: "start",
+          position: "sticky",
+          top: 18,
+          height: "calc(100vh - 36px)",
+          overflow: "auto",
         }}
       >
-        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: -0.2 }}>
-          CoreSight
-        </div>
-        <div style={{ marginTop: 6, fontSize: 12, color: "var(--muted)" }}>
-          Clean admin experience — Apple-style UI
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 750, letterSpacing: -0.4 }}>
+              CoreSight
+            </div>
+            <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+              Clean admin experience — Apple-style UI
+            </div>
+          </div>
+          <span
+            style={{
+              fontSize: 12,
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: "rgba(10,132,255,0.12)",
+              color: "var(--primary)",
+              fontWeight: 700,
+            }}
+          >
+            Prototype
+          </span>
         </div>
 
-        <div style={{ marginTop: 18, fontSize: 11, color: "var(--muted)" }}>
-          PLATFORM
-        </div>
-        <nav style={{ marginTop: 8, display: "grid", gap: 8 }}>
-          <SideLink to="/home" label="Home" />
-          <SideLink to="/dashboard" label="Dashboard" />
-          <SideLink to="/reports" label="Reports" />
-        </nav>
+        <Section title="PLATFORM">
+          <SideLink to="/home" label="Home" icon="🏠" />
+          <SideLink to="/dashboard" label="Dashboard" icon="📊" />
+          <SideLink to="/reports" label="Reports" icon="🧾" />
+        </Section>
 
-        <div style={{ marginTop: 18, fontSize: 11, color: "var(--muted)" }}>
-          VENDOR ONBOARDING
-        </div>
-        <nav style={{ marginTop: 8, display: "grid", gap: 8 }}>
-          <SideLink to="/admin/vendors" label="Tenants" />
-          <SideLink to="/admin/vendor-new" label="Onboard Tenant" />
-        </nav>
+        <Section title="VENDOR ONBOARDING">
+          <SideLink to="/admin/vendors" label="Tenants" icon="🏢" />
+          <SideLink to="/admin/vendor-new" label="Onboard Tenant" icon="➕" />
+        </Section>
 
-        <div style={{ marginTop: 18, fontSize: 11, color: "var(--muted)" }}>
-          ADMIN
-        </div>
-        <nav style={{ marginTop: 8, display: "grid", gap: 8 }}>
-          <SideLink to="/admin/settings" label="Settings" />
-        </nav>
+        <Section title="ADMIN">
+          <SideLink to="/admin/settings" label="Settings" icon="⚙️" />
+        </Section>
 
         <div
           style={{
-            marginTop: 18,
+            marginTop: 14,
             padding: 12,
-            borderRadius: 16,
-            border: "1px solid var(--border)",
-            background: "rgba(10,132,255,0.06)",
+            borderRadius: 18,
+            border: "1px solid rgba(10,132,255,0.18)",
+            background: "rgba(10,132,255,0.08)",
             fontSize: 12,
-            color: "var(--muted)",
+            color: "rgba(17,24,39,0.75)",
           }}
         >
-          Tip: Use <b>Onboard Tenant</b> to append rows into your Google Sheet.
+          <b>Tip:</b> Use <b>Onboard Tenant</b> to append rows into your Google Sheet.
         </div>
       </aside>
 
       {/* Main */}
-      <main style={{ padding: 22 }}>
+      <main style={{ padding: 18 }}>
         <div
           className="card"
           style={{
             padding: 18,
+            borderRadius: 22,
+            boxShadow: "var(--shadow-sm)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -84,13 +93,29 @@ export default function AppShell({
           }}
         >
           <div>
-            <div style={{ fontSize: 20, fontWeight: 600 }}>{title}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+            <h1 className="h1">{title}</h1>
+            <div className="muted" style={{ fontSize: 13, marginTop: 6 }}>
               Enterprise Intelligence Platform
             </div>
           </div>
 
-          <div style={{ fontSize: 12, color: "var(--muted)" }}>PROD • KSA</div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <span
+              style={{
+                fontSize: 12,
+                padding: "6px 10px",
+                borderRadius: 999,
+                background: "rgba(34,197,94,0.12)",
+                color: "#15803d",
+                fontWeight: 700,
+              }}
+            >
+              Integration: Active
+            </span>
+            <span className="muted" style={{ fontSize: 12 }}>
+              PROD • KSA
+            </span>
+          </div>
         </div>
 
         {children}
@@ -99,19 +124,25 @@ export default function AppShell({
   )
 }
 
-function SideLink({ to, label }: { to: string; label: string }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div className="muted" style={{ fontSize: 11, letterSpacing: 0.6 }}>
+        {title}
+      </div>
+      <div style={{ marginTop: 10, display: "grid", gap: 8 }}>{children}</div>
+    </div>
+  )
+}
+
+function SideLink({ to, label, icon }: { to: string; label: string; icon: string }) {
   return (
     <NavLink
       to={to}
-      style={({ isActive }) => ({
-        padding: "10px 12px",
-        borderRadius: 14,
-        border: "1px solid var(--border)",
-        background: isActive ? "rgba(10,132,255,0.12)" : "transparent",
-        fontWeight: 500,
-      })}
+      className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
     >
-      {label}
+      <span className="ico">{icon}</span>
+      <span>{label}</span>
     </NavLink>
   )
 }
