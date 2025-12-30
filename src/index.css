@@ -1,103 +1,27 @@
-/* src/index.css */
-
-:root {
-  --bg: #f5f6f8;
-  --surface: #ffffff;
-  --surface-2: #f7f8fa;
-  --text: #111827;
-  --muted: #6b7280;
-  --border: rgba(17, 24, 39, 0.12);
-  --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-
-  --primary: #0a84ff;
-  --primary-600: #0066cc;
-  --success: #22c55e;
-  --danger: #ef4444;
-
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
-    "Apple Color Emoji", "Segoe UI Emoji";
-  font-weight: 400;
-  color: var(--text);
-  background: var(--bg);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Prevent grid children from overflowing (classic fix) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
+/* Make grid columns truly shrinkable */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-#root {
-  height: 100%;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+/* Critical: allow inputs to shrink inside grid cells */
+.grid-2 > * {
+  min-width: 0;
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 12px;
-  background: #fff;
-  color: var(--text);
-  outline: none;
-  font-size: 14px;
-}
-
-textarea {
-  resize: vertical;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: rgba(10, 132, 255, 0.45);
-  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.12);
-}
-
-button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-size: 14px;
-  font-weight: 500; /* less bold */
-  cursor: pointer;
-}
-
-button:hover {
-  background: var(--surface-2);
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: var(--primary);
-  border-color: rgba(10, 132, 255, 0.5);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: var(--primary-600);
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
