@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route } from "react-router-dom"
 import AppLayout from "./layout/AppLayout"
 import VendorNew from "./pages/admin/VendorNew"
+import Settings from "./pages/admin/Settings"
 
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
@@ -38,6 +39,14 @@ export default function App() {
   element={
     <RequireRole user={user} allow={["platform_admin"]}>
       <VendorNew />
+    </RequireRole>
+  }
+/>
+<Route
+  path="/admin/settings"
+  element={
+    <RequireRole user={user} allow={["platform_admin"]}>
+      <Settings />
     </RequireRole>
   }
 />
