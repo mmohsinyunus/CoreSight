@@ -1,5 +1,7 @@
+// src/pages/admin/VendorNew.tsx
 import { useMemo, useState } from "react"
 import AppShell from "../../layout/AppShell"
+import type { Vendor } from "../../data/vendors"
 import {
   TENANT_TYPE_OPTIONS,
   PLAN_TYPE_OPTIONS,
@@ -22,10 +24,14 @@ export default function VendorNew() {
   const [tenant_code, setTenantCode] = useState("")
   const [tenant_name, setTenantName] = useState("")
   const [legal_name, setLegalName] = useState("")
-  const [tenant_type, setTenantType] = useState<string>(TENANT_TYPE_OPTIONS[0] || "Enterprise")
+  const [tenant_type, setTenantType] = useState<string>(
+    TENANT_TYPE_OPTIONS[0] || "Enterprise"
+  )
 
   // Subscription
-  const [plan_type, setPlanType] = useState<string>(PLAN_TYPE_OPTIONS[1] || "Standard")
+  const [plan_type, setPlanType] = useState<string>(
+    PLAN_TYPE_OPTIONS[1] || "Standard"
+  )
   const [subscription_status, setSubscriptionStatus] = useState<string>(
     SUBSCRIPTION_STATUS_OPTIONS[0] || "Active"
   )
@@ -60,12 +66,22 @@ export default function VendorNew() {
     if (step === 2) return plan_type.trim() && subscription_status.trim()
     if (step === 3) return primary_admin_name.trim() && primary_admin_email.trim()
     return true
-  }, [step, tenant_code, tenant_name, tenant_type, plan_type, subscription_status, primary_admin_name, primary_admin_email])
+  }, [
+    step,
+    tenant_code,
+    tenant_name,
+    tenant_type,
+    plan_type,
+    subscription_status,
+    primary_admin_name,
+    primary_admin_email,
+  ])
 
   function next() {
     if (!canNext) return
     setStep((s) => (Math.min(4, s + 1) as Step))
   }
+
   function back() {
     setStep((s) => (Math.max(1, s - 1) as Step))
   }
@@ -78,11 +94,12 @@ export default function VendorNew() {
     try {
       const nowIso = new Date().toISOString()
 
-      const payload = {
+      const payload: Vendor = {
         tenant_id: makeTenantId(),
-        tenant_code,
-        tenant_name,
-        legal_name,
+        tenant_code: tenant_code.trim(),
+        tenant_name: tenant_name.trim(),
+        legal_name: legal_name.trim() || undefined,
+
         tenant_type,
 
         primary_country,
@@ -94,8 +111,8 @@ export default function VendorNew() {
         subscription_start_date: subscription_start_date || "",
         subscription_end_date: subscription_end_date || "",
 
-        max_users: Number.isFinite(max_users) ? max_users : "",
-        max_organizations: Number.isFinite(max_organizations) ? max_organizations : "",
+        max_users: Number.isFinite(max_users) ? max_users : undefined,
+        max_organizations: Number.isFinite(max_organizations) ? max_organizations : undefined,
 
         tenant_status,
         is_demo_tenant,
@@ -103,8 +120,8 @@ export default function VendorNew() {
         data_retention_policy,
         compliance_flag,
 
-        primary_admin_name,
-        primary_admin_email,
+        primary_admin_name: primary_admin_name.trim(),
+        primary_admin_email: primary_admin_email.trim(),
 
         created_by_user_id,
 
@@ -117,25 +134,34 @@ export default function VendorNew() {
         last_active_at: "",
 
         primary_admin_user_id: "",
-        notes,
-        vat_registration_number,
-        national_address,
+        notes: notes || "",
+        vat_registration_number: vat_registration_number || "",
+        national_address: national_address || "",
       }
 
       const res = await fetch(SHEET_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          // IMPORTANT: avoids preflight on GitHub Pages in many cases
+          "Content-Type": "text/plain;charset=utf-8",
+        },
         body: JSON.stringify(payload),
       })
 
-      const json = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      if (!json?.ok) throw new Error(json?.error || "Create failed")
+      // Read body ONCE
+      const json: any = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(json?.error || `HTTP ${res.status}`)
+      }
+      if (!json?.ok) {
+        throw new Error(json?.error || "Create failed")
+      }
 
       setSuccess("✅ Tenant created and appended to Google Sheet.")
       setStep(1)
 
-      // Optional: clear some fields
+      // Clear key fields
       setTenantCode("")
       setTenantName("")
       setLegalName("")
@@ -163,18 +189,40 @@ export default function VendorNew() {
             <>
               <h2 style={h2}>Tenant</h2>
               <p style={muted}>Basic tenant identity</p>
+
               <div style={grid2}>
                 <Field label="Tenant Code">
-                  <input style={input} value={tenant_code} onChange={(e) => setTenantCode(e.target.value)} placeholder="e.g. CKSA" />
+                  <input
+                    style={input}
+                    value={tenant_code}
+                    onChange={(e) => setTenantCode(e.target.value)}
+                    placeholder="e.g. CKSA"
+                  />
                 </Field>
+
                 <Field label="Tenant Name">
-                  <input style={input} value={tenant_name} onChange={(e) => setTenantName(e.target.value)} placeholder="e.g. Canon Saudi Arabia" />
+                  <input
+                    style={input}
+                    value={tenant_name}
+                    onChange={(e) => setTenantName(e.target.value)}
+                    placeholder="e.g. Canon Saudi Arabia"
+                  />
                 </Field>
+
                 <Field label="Legal Name (optional)">
-                  <input style={input} value={legal_name} onChange={(e) => setLegalName(e.target.value)} />
+                  <input
+                    style={input}
+                    value={legal_name}
+                    onChange={(e) => setLegalName(e.target.value)}
+                  />
                 </Field>
+
                 <Field label="Tenant Type">
-                  <select style={input} value={tenant_type} onChange={(e) => setTenantType(e.target.value)}>
+                  <select
+                    style={input}
+                    value={tenant_type}
+                    onChange={(e) => setTenantType(e.target.value)}
+                  >
                     {TENANT_TYPE_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -203,7 +251,11 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Subscription Status">
-                  <select style={input} value={subscription_status} onChange={(e) => setSubscriptionStatus(e.target.value)}>
+                  <select
+                    style={input}
+                    value={subscription_status}
+                    onChange={(e) => setSubscriptionStatus(e.target.value)}
+                  >
                     {SUBSCRIPTION_STATUS_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -212,32 +264,20 @@ export default function VendorNew() {
                   </select>
                 </Field>
 
-                <Field label="Subscription Start Date (calendar)">
+                <Field label="Subscription Start Date">
                   <input style={input} type="date" value={subscription_start_date} onChange={(e) => setStartDate(e.target.value)} />
                 </Field>
 
-                <Field label="Subscription End Date (calendar)">
+                <Field label="Subscription End Date">
                   <input style={input} type="date" value={subscription_end_date} onChange={(e) => setEndDate(e.target.value)} />
                 </Field>
 
                 <Field label="Max Users">
-                  <input
-                    style={input}
-                    type="number"
-                    min={0}
-                    value={max_users}
-                    onChange={(e) => setMaxUsers(Number(e.target.value))}
-                  />
+                  <input style={input} type="number" min={0} value={max_users} onChange={(e) => setMaxUsers(Number(e.target.value))} />
                 </Field>
 
                 <Field label="Max Organizations">
-                  <input
-                    style={input}
-                    type="number"
-                    min={0}
-                    value={max_organizations}
-                    onChange={(e) => setMaxOrgs(Number(e.target.value))}
-                  />
+                  <input style={input} type="number" min={0} value={max_organizations} onChange={(e) => setMaxOrgs(Number(e.target.value))} />
                 </Field>
 
                 <Field label="Tenant Status">
@@ -249,9 +289,9 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Demo tenant">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, height: 44 }}>
+                  <div style={checkRow}>
                     <input type="checkbox" checked={is_demo_tenant} onChange={(e) => setIsDemoTenant(e.target.checked)} />
-                    <span style={muted}>Mark as demo</span>
+                    <span style={mutedSmall}>Mark as demo</span>
                   </div>
                 </Field>
               </div>
@@ -267,6 +307,7 @@ export default function VendorNew() {
                 <Field label="Admin Name">
                   <input style={input} value={primary_admin_name} onChange={(e) => setAdminName(e.target.value)} />
                 </Field>
+
                 <Field label="Admin Email">
                   <input style={input} value={primary_admin_email} onChange={(e) => setAdminEmail(e.target.value)} />
                 </Field>
@@ -300,30 +341,30 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Compliance Flag">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, height: 44 }}>
+                  <div style={checkRow}>
                     <input type="checkbox" checked={compliance_flag} onChange={(e) => setComplianceFlag(e.target.checked)} />
-                    <span style={muted}>Requires compliance review</span>
+                    <span style={mutedSmall}>Requires compliance review</span>
                   </div>
                 </Field>
 
                 <Field label="AI Insights Enabled">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, height: 44 }}>
+                  <div style={checkRow}>
                     <input type="checkbox" checked={ai_insights_enabled} onChange={(e) => setAI(e.target.checked)} />
-                    <span style={muted}>Enable</span>
+                    <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Cost Optimization Enabled">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, height: 44 }}>
+                  <div style={checkRow}>
                     <input type="checkbox" checked={cost_optimization_enabled} onChange={(e) => setCost(e.target.checked)} />
-                    <span style={muted}>Enable</span>
+                    <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Usage Analytics Enabled">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, height: 44 }}>
+                  <div style={checkRow}>
                     <input type="checkbox" checked={usage_analytics_enabled} onChange={(e) => setAnalytics(e.target.checked)} />
-                    <span style={muted}>Enable</span>
+                    <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
@@ -332,7 +373,7 @@ export default function VendorNew() {
                 </Field>
               </div>
 
-              <div style={{ marginTop: 8, ...muted }}>
+              <div style={{ marginTop: 8, color: "rgba(15, 23, 42, 0.65)", fontSize: 13 }}>
                 Created By User ID: <b>{created_by_user_id}</b>
               </div>
             </>
@@ -351,10 +392,6 @@ export default function VendorNew() {
                 <div><b>Status:</b> {subscription_status || "-"}</div>
                 <div><b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})</div>
               </div>
-
-              <button style={primaryBtn} onClick={createTenant} disabled={loading}>
-                {loading ? "Creating..." : "Create Tenant"}
-              </button>
             </>
           )}
 
@@ -369,7 +406,7 @@ export default function VendorNew() {
               </button>
             ) : (
               <button style={primaryBtnSmall} onClick={createTenant} disabled={loading}>
-                {loading ? "Creating..." : "Create"}
+                {loading ? "Creating..." : "Create Tenant"}
               </button>
             )}
           </div>
@@ -384,7 +421,7 @@ export default function VendorNew() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
       <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
       {children}
     </div>
@@ -423,11 +460,12 @@ const card: React.CSSProperties = {
 const stepRow: React.CSSProperties = { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }
 const grid2: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
   gap: 16,
 }
 const h2: React.CSSProperties = { margin: "6px 0 0", fontSize: 18 }
 const muted: React.CSSProperties = { margin: "6px 0 14px", color: "rgba(15, 23, 42, 0.65)" }
+const mutedSmall: React.CSSProperties = { color: "rgba(15, 23, 42, 0.65)", fontSize: 13 }
 const input: React.CSSProperties = {
   height: 44,
   borderRadius: 12,
@@ -435,7 +473,10 @@ const input: React.CSSProperties = {
   padding: "0 12px",
   outline: "none",
   background: "rgba(15, 23, 42, 0.03)",
+  width: "100%",
+  boxSizing: "border-box",
 }
+const checkRow: React.CSSProperties = { display: "flex", alignItems: "center", gap: 10, height: 44 }
 const navRow: React.CSSProperties = { display: "flex", justifyContent: "space-between", marginTop: 18 }
 const ghostBtn: React.CSSProperties = {
   height: 42,
@@ -451,16 +492,6 @@ const primaryBtnSmall: React.CSSProperties = {
   border: "1px solid rgba(10,132,255,0.25)",
   background: "rgba(10,132,255,0.12)",
   fontWeight: 700,
-}
-const primaryBtn: React.CSSProperties = {
-  height: 46,
-  width: "fit-content",
-  padding: "0 18px",
-  borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
-  fontWeight: 800,
-  marginTop: 12,
 }
 const errorBox: React.CSSProperties = {
   marginTop: 14,
