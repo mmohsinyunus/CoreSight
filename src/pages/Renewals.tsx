@@ -1,26 +1,12 @@
 // src/pages/Renewals.tsx
-import { useEffect, useMemo, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import { fetchSheetData } from "../data/api"
+import type { CSSProperties } from "react"
+import { useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import AppShell from "../layout/AppShell"
 
 type RenewalStatus = "Due" | "In review" | "Approved" | "Rejected"
 
-export interface RenewalRow {
-  renewal_id: string
-  vendor_id: string
-  renewal_due_date: string
-  renewal_status: string
-  previous_price: number
-  renewed_price: number
-  currency: string
-  price_change_percentage: number
-  auto_renew_flag: string
-  budget_status: string
-  record_status: string
-}
-
-type UiRenewalRow = {
+type RenewalRow = {
   id: string
   vendor: string
   subscription: string
@@ -31,118 +17,108 @@ type UiRenewalRow = {
   risk: "Low" | "Medium" | "High"
 }
 
-function normalizeStatus(raw?: string): RenewalStatus {
-  const value = raw?.toLowerCase() || ""
+const DEMO_ROWS: RenewalRow[] = [
+  {
+    id: "ren_001",
+    vendor: "Okta",
+    subscription: "SSO Enterprise",
+    owner: "IT Security",
+    dueDate: "2026-01-18",
+    amount: 148000,
+    status: "In review",
+    risk: "High",
+  },
+  {
+    id: "ren_002",
+    vendor: "Google Workspace",
+    subscription: "Business Plus",
+    owner: "IT Ops",
+    dueDate: "2026-02-05",
+    amount: 92000,
+    status: "Due",
+    risk: "Medium",
+  },
+  {
+    id: "ren_003",
+    vendor: "Salesforce",
+    subscription: "Sales Cloud",
+    owner: "Sales Ops",
+    dueDate: "2026-03-01",
+    amount: 315000,
+    status: "Approved",
+    risk: "Low",
+  },
+  {
+    id: "ren_004",
+    vendor: "Zoom",
+    subscription: "Enterprise",
+    owner: "IT Ops",
+    dueDate: "2026-01-25",
+    amount: 56000,
+    status: "Rejected",
+    risk: "Medium",
+  },
+]
 
-  if (value.includes("approve")) return "Approved"
-  if (value.includes("reject")) return "Rejected"
-  if (value.includes("review")) return "In review"
-  return "Due"
-}
-
-function deriveRisk(row: RenewalRow): "Low" | "Medium" | "High" {
-  const budget = row.budget_status?.toLowerCase?.() || ""
-  if (budget.includes("over")) return "High"
-  if (budget.includes("risk")) return "High"
-
-  const pct = Number(row.price_change_percentage)
-  if (Number.isFinite(pct)) {
-    if (pct >= 15) return "High"
-    if (pct >= 5) return "Medium"
-  }
-
-  const autoRenew = `${row.auto_renew_flag || ""}`.toLowerCase()
-  if (autoRenew === "no" || autoRenew === "false") return "Medium"
-
-  return "Low"
-}
-
-function toUiRow(row: RenewalRow): UiRenewalRow {
-  const amountValue = Number(row.renewed_price ?? row.previous_price ?? 0)
-
-  return {
-    id: row.renewal_id || "unknown", // fallback id to avoid crashes
-    vendor: row.vendor_id || "Unknown vendor",
-    subscription: row.record_status || "—",
-    owner: row.budget_status || "—",
-    dueDate: row.renewal_due_date || "—",
-    amount: Number.isFinite(amountValue) ? amountValue : 0,
-    status: normalizeStatus(row.renewal_status),
-    risk: deriveRisk(row),
-  }
-}
-
-function fmtMoney(n: number) {
+function fmtMoney(amount: number, currency = "SAR") {
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",
-      currency: "SAR",
+      currency,
       maximumFractionDigits: 0,
-    }).format(n)
+    }).format(amount)
   } catch {
-    return `SAR ${Math.round(n).toLocaleString()}`
+    return `${currency} ${Math.round(amount).toLocaleString()}`
   }
+}
+
+function daysUntil(dueDate: string) {
+  const s = dueDate?.slice(0, 10)
+  if (!s || s.length !== 10) return null
+  const dt = new Date(`${s}T00:00:00`)
+  if (Number.isNaN(dt.getTime())) return null
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const ms = dt.getTime() - today.getTime()
+  return Math.round(ms / (1000 * 60 * 60 * 24))
 }
 
 export default function Renewals() {
   const nav = useNavigate()
-  const location = useLocation()
-  const initialQuery = useMemo(() => {
-    const stateSearch = (location.state as { search?: string } | undefined)?.search || ""
-    const params = new URLSearchParams(location.search)
-    return params.get("search") || stateSearch || ""
-  }, [location.search, location.state])
 
-  const [q, setQ] = useState(initialQuery)
+  const [q, setQ] = useState("")
   const [status, setStatus] = useState<"All" | RenewalStatus>("All")
   const [risk, setRisk] = useState<"All" | "Low" | "Medium" | "High">("All")
-  const [rows, setRows] = useState<UiRenewalRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    setQ(initialQuery)
-  }, [initialQuery])
+  // Demo-only (keeps UI consistent with "Refresh" button)
+  const [loading, setLoading] = useState(false)
+  const rows = DEMO_ROWS
 
-  useEffect(() => {
-    let active = true
+  async function load() {
+    setLoading(true)
+    // Demo stub: mimic fetch latency without breaking build
+    await new Promise((r) => setTimeout(r, 250))
+    setLoading(false)
+  }
 
-    const load = async () => {
-      if (!active) return
+  function openDetail(id: string) {
+    // ✅ id param routing (works even if your detail route is /renewals/detail)
+    // Prefer /renewals/detail/:id, but this still allows you to read params later.
+    nav(`/renewals/detail?id=${encodeURIComponent(id)}`)
+  }
 
-      setLoading(true)
-      setError(null)
-
-      try {
-        const data = await fetchSheetData<RenewalRow[]>("Renewals")
-        if (!active || !Array.isArray(data)) return
-
-        setRows(data.map(toUiRow))
-      } catch (err) {
-        console.error("Failed to load renewals", err)
-        if (!active) return
-
-        setRows([])
-        setError("Failed to load renewals. Please try again.")
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void load()
-
-    return () => {
-      active = false
-    }
-  }, [])
+  const distinctStatuses = useMemo(() => {
+    const set = new Set<RenewalStatus>()
+    rows.forEach((r) => set.add(r.status))
+    return Array.from(set)
+  }, [rows])
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
     return rows.filter((r) => {
       const matchQ =
         !query ||
+        r.id.toLowerCase().includes(query) ||
         r.vendor.toLowerCase().includes(query) ||
         r.subscription.toLowerCase().includes(query) ||
         r.owner.toLowerCase().includes(query)
@@ -152,75 +128,69 @@ export default function Renewals() {
 
       return matchQ && matchStatus && matchRisk
     })
-  }, [q, rows, status, risk])
+  }, [q, status, risk, rows])
 
   const totalValue = useMemo(() => {
     return filtered.reduce((sum, r) => sum + r.amount, 0)
   }, [filtered])
 
-  function openDetail(id: string) {
-    nav(`/renewals/detail?id=${encodeURIComponent(id)}`)
-  }
+  const dueSoonCount = useMemo(() => {
+    return filtered.filter((r) => {
+      const d = daysUntil(r.dueDate)
+      return d !== null && d >= 0 && d <= 30
+    }).length
+  }, [filtered])
+
+  const overdueCount = useMemo(() => {
+    return filtered.filter((r) => {
+      const d = daysUntil(r.dueDate)
+      return d !== null && d < 0
+    }).length
+  }, [filtered])
 
   return (
     <AppShell
       title="Renewals"
-      subtitle="Track renewals, risk, and approvals — demo dashboard"
+      subtitle="Renewals queue (demo rows for now)"
       actions={
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            style={ghostBtn}
-            onClick={() => {
-              setQ("")
-              setStatus("All")
-              setRisk("All")
-            }}
-          >
-            Reset
+          <button className="cs-btn" onClick={load} disabled={loading}>
+            {loading ? "Refreshing…" : "Refresh"}
           </button>
-          <button style={primaryBtn} onClick={() => nav("/approvals")} title="Go to approvals queue">
+          <button className="cs-btn cs-btn-primary" onClick={() => nav("/approvals")}>
             Open Approval Center
           </button>
         </div>
       }
     >
-      <div style={stack}>
-        {/* KPI strip */}
-        <div style={kpiGrid}>
-          <Kpi title="Items" value={filtered.length.toString()} />
+      <div style={{ display: "grid", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+          <Kpi title="Items" value={String(filtered.length)} />
           <Kpi title="Total value" value={fmtMoney(totalValue)} />
-          <Kpi title="High risk" value={filtered.filter((x) => x.risk === "High").length.toString()} />
+          <Kpi title="Due ≤ 30 days" value={String(dueSoonCount)} />
+          <Kpi title="Overdue" value={String(overdueCount)} />
         </div>
 
-        {/* Action bar */}
-        <div style={bar}>
-          <div style={barLeft}>
+        <div className="cs-card" style={{ padding: 12, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <input
-              style={search}
+              className="cs-input"
+              style={{ width: 360, maxWidth: "72vw" }}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search vendor, subscription, owner…"
+              placeholder="Search id, vendor, owner, subscription…"
             />
 
-            <select
-              style={select}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as RenewalStatus | "All")}
-              title="Status"
-            >
+            <select style={select} value={status} onChange={(e) => setStatus(e.target.value as any)} title="Status">
               <option value="All">All statuses</option>
-              <option value="Due">Due</option>
-              <option value="In review">In review</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
+              {distinctStatuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
 
-            <select
-              style={select}
-              value={risk}
-              onChange={(e) => setRisk(e.target.value as "All" | "Low" | "Medium" | "High")}
-              title="Risk"
-            >
+            <select style={select} value={risk} onChange={(e) => setRisk(e.target.value as any)} title="Risk">
               <option value="All">All risk</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -228,18 +198,15 @@ export default function Renewals() {
             </select>
           </div>
 
-          <div style={barRight}>
-            <button style={ghostBtn} onClick={() => nav("/subscriptions")} title="Jump back to subscriptions">
-              Back to Subscriptions
-            </button>
-          </div>
+          <button className="cs-btn" onClick={() => nav("/subscriptions")}>
+            Back to Subscriptions
+          </button>
         </div>
 
-        {/* Table */}
-        <div style={card}>
-          <div style={cardHead}>
-            <div style={{ fontWeight: 700 }}>Renewals list</div>
-            <div style={muted}>Click a row to open detail (next screen).</div>
+        <div className="cs-card" style={{ overflow: "hidden" }}>
+          <div style={{ padding: 14, borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ fontWeight: 900 }}>Renewals list</div>
+            <div style={{ color: "var(--muted)", fontSize: 13 }}>{loading ? "Loading…" : `${filtered.length} rows`}</div>
           </div>
 
           <div style={{ overflowX: "auto" }}>
@@ -256,62 +223,45 @@ export default function Renewals() {
                 </tr>
               </thead>
               <tbody>
-                {loading && (
-                  <tr>
-                    <td style={tdEmpty} colSpan={7}>
-                      Loading renewals…
+                {filtered.map((r) => (
+                  <tr
+                    key={r.id}
+                    style={tr}
+                    onClick={() => openDetail(r.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") openDetail(r.id)
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    title="Open renewal detail"
+                  >
+                    <td style={tdStrong}>{r.vendor}</td>
+                    <td style={td}>{r.subscription}</td>
+                    <td style={td}>{r.owner}</td>
+                    <td style={tdMono}>{r.dueDate}</td>
+                    <td style={tdRight}>{fmtMoney(r.amount)}</td>
+                    <td style={td}>
+                      <Badge tone={r.risk === "High" ? "danger" : r.risk === "Medium" ? "warn" : "ok"}>{r.risk}</Badge>
+                    </td>
+                    <td style={td}>
+                      <Badge
+                        tone={
+                          r.status === "Approved"
+                            ? "ok"
+                            : r.status === "Rejected"
+                              ? "danger"
+                              : r.status === "Due"
+                                ? "warn"
+                                : "info"
+                        }
+                      >
+                        {r.status}
+                      </Badge>
                     </td>
                   </tr>
-                )}
+                ))}
 
-                {!loading && error && (
-                  <tr>
-                    <td style={tdEmpty} colSpan={7}>
-                      {error}
-                    </td>
-                  </tr>
-                )}
-
-                {!loading && !error &&
-                  filtered.map((r) => (
-                    <tr
-                      key={r.id}
-                      style={tr}
-                      onClick={() => openDetail(r.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") openDetail(r.id)
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      title="Open renewal detail"
-                    >
-                      <td style={tdStrong}>{r.vendor}</td>
-                      <td style={td}>{r.subscription}</td>
-                      <td style={td}>{r.owner}</td>
-                      <td style={tdMono}>{r.dueDate}</td>
-                      <td style={tdRight}>{fmtMoney(r.amount)}</td>
-                      <td style={td}>
-                        <Badge tone={r.risk === "High" ? "danger" : r.risk === "Medium" ? "warn" : "ok"}>{r.risk}</Badge>
-                      </td>
-                      <td style={td}>
-                        <Badge
-                          tone={
-                            r.status === "Approved"
-                              ? "ok"
-                              : r.status === "Rejected"
-                                ? "danger"
-                                : r.status === "Due"
-                                  ? "warn"
-                                  : "info"
-                          }
-                        >
-                          {r.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-
-                {!loading && !error && filtered.length === 0 && (
+                {filtered.length === 0 && (
                   <tr>
                     <td style={tdEmpty} colSpan={7}>
                       No matching renewals.
@@ -329,210 +279,75 @@ export default function Renewals() {
 
 function Kpi({ title, value }: { title: string; value: string }) {
   return (
-    <div style={kpi}>
-      <div style={kpiTitle}>{title}</div>
-      <div style={kpiValue}>{value}</div>
+    <div className="cs-card" style={{ padding: 16 }}>
+      <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 900 }}>{title}</div>
+      <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900 }}>{value}</div>
     </div>
   )
 }
 
 function Badge({ children, tone }: { children: React.ReactNode; tone: "ok" | "warn" | "danger" | "info" }) {
   const bg =
-    tone === "ok"
-      ? "rgba(52,199,89,0.12)"
-      : tone === "warn"
-        ? "rgba(255,159,10,0.14)"
-        : tone === "danger"
-          ? "rgba(255,59,48,0.12)"
-          : "rgba(10,132,255,0.12)"
+    tone === "ok" ? "rgba(52,199,89,0.12)"
+    : tone === "warn" ? "rgba(255,159,10,0.14)"
+    : tone === "danger" ? "rgba(255,59,48,0.12)"
+    : "rgba(10,132,255,0.12)"
 
   const border =
-    tone === "ok"
-      ? "rgba(52,199,89,0.25)"
-      : tone === "warn"
-        ? "rgba(255,159,10,0.28)"
-        : tone === "danger"
-          ? "rgba(255,59,48,0.25)"
-          : "rgba(10,132,255,0.22)"
+    tone === "ok" ? "rgba(52,199,89,0.25)"
+    : tone === "warn" ? "rgba(255,159,10,0.28)"
+    : tone === "danger" ? "rgba(255,59,48,0.25)"
+    : "rgba(10,132,255,0.22)"
 
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "6px 10px",
-        borderRadius: 999,
-        background: bg,
-        border: `1px solid ${border}`,
-        fontSize: 12,
-        fontWeight: 700,
-        whiteSpace: "nowrap",
-      }}
-    >
+    <span style={{ display: "inline-flex", alignItems: "center", padding: "6px 10px", borderRadius: 999, background: bg, border: `1px solid ${border}`, fontSize: 12, fontWeight: 900 }}>
       {children}
     </span>
   )
 }
 
-/* Styles */
-const stack: React.CSSProperties = { display: "grid", gap: 14 }
-
-const kpiGrid: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-  gap: 12,
-}
-
-const kpi: React.CSSProperties = {
-  background: "var(--surface)",
-  borderRadius: 16,
-  padding: 16,
-  border: "1px solid var(--border)",
-  boxShadow: "var(--shadow-sm)",
-}
-
-const kpiTitle: React.CSSProperties = {
-  fontSize: 12,
-  color: "var(--muted)",
-  fontWeight: 700,
-}
-
-const kpiValue: React.CSSProperties = {
-  marginTop: 6,
-  fontSize: 20,
-  fontWeight: 800,
-}
-
-const bar: React.CSSProperties = {
-  background: "var(--surface-elevated)",
-  borderRadius: 16,
-  padding: 12,
-  border: "1px solid var(--border)",
-  display: "flex",
-  gap: 12,
-  alignItems: "center",
-  justifyContent: "space-between",
-  flexWrap: "wrap",
-  boxShadow: "var(--shadow-sm)",
-}
-
-const barLeft: React.CSSProperties = {
-  display: "flex",
-  gap: 10,
-  alignItems: "center",
-  flexWrap: "wrap",
-}
-
-const barRight: React.CSSProperties = {
-  display: "flex",
-  gap: 10,
-  alignItems: "center",
-}
-
-const search: React.CSSProperties = {
+/* styles */
+const select: CSSProperties = {
   height: 42,
   borderRadius: 12,
-  border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.04)",
-  padding: "0 12px",
-  outline: "none",
-  width: 320,
-  maxWidth: "72vw",
-  color: "var(--text)",
-}
-
-const select: React.CSSProperties = {
-  height: 42,
-  borderRadius: 12,
-  border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(15,23,42,0.12)",
+  background: "rgba(15,23,42,0.03)",
   padding: "0 10px",
   outline: "none",
-  color: "var(--text)",
 }
 
-const card: React.CSSProperties = {
-  background: "var(--surface)",
-  borderRadius: 16,
-  border: "1px solid var(--border)",
-  overflow: "hidden",
-  boxShadow: "var(--shadow-sm)",
-}
+const table: CSSProperties = { width: "100%", borderCollapse: "collapse" }
 
-const cardHead: React.CSSProperties = {
-  padding: 14,
-  borderBottom: "1px solid var(--border)",
-  display: "flex",
-  alignItems: "baseline",
-  justifyContent: "space-between",
-  gap: 10,
-  flexWrap: "wrap",
-  background: "var(--surface-elevated)",
-}
-
-const muted: React.CSSProperties = {
-  color: "var(--muted)",
-  fontSize: 13,
-}
-
-const table: React.CSSProperties = {
-  width: "100%",
-  borderCollapse: "collapse",
-}
-
-const th: React.CSSProperties = {
+const th: CSSProperties = {
   textAlign: "left",
   fontSize: 12,
-  color: "var(--muted)",
+  color: "rgba(15,23,42,0.6)",
   padding: "12px 14px",
-  borderBottom: "1px solid var(--border)",
+  borderBottom: "1px solid rgba(15,23,42,0.08)",
   fontWeight: 800,
   whiteSpace: "nowrap",
-  background: "var(--surface-elevated)",
 }
+const thRight: CSSProperties = { ...th, textAlign: "right" }
 
-const thRight: React.CSSProperties = { ...th, textAlign: "right" }
+const tr: CSSProperties = { cursor: "pointer" }
 
-// ✅ Row hover highlight (main “update”)
-const tr: React.CSSProperties = {
-  cursor: "pointer",
-  transition: "background 160ms ease, transform 160ms ease",
-}
-
-const td: React.CSSProperties = {
+const td: CSSProperties = {
   padding: "12px 14px",
-  borderBottom: "1px solid var(--border)",
+  borderBottom: "1px solid rgba(15,23,42,0.06)",
   fontSize: 14,
   whiteSpace: "nowrap",
 }
 
-const tdStrong: React.CSSProperties = { ...td, fontWeight: 800 }
+const tdStrong: CSSProperties = { ...td, fontWeight: 800 }
 
-const tdMono: React.CSSProperties = {
+const tdMono: CSSProperties = {
   ...td,
   fontFamily:
     "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   fontSize: 13,
-  color: "var(--text)",
+  color: "rgba(15,23,42,0.8)",
 }
 
-const tdRight: React.CSSProperties = { ...td, textAlign: "right", fontWeight: 700 }
+const tdRight: CSSProperties = { ...td, textAlign: "right", fontWeight: 700 }
 
-const tdEmpty: React.CSSProperties = {
-  padding: 18,
-  textAlign: "center",
-  color: "var(--muted)",
-}
-
-const ghostBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 14px",
-  borderRadius: 12,
-}
-
-const primaryBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 14px",
-  borderRadius: 12,
-  fontWeight: 800,
-}
+const tdEmpty: CSSProperties = { padding: 18, textAlign: "center", color: "rgba(15,23,42,0.6)" }
