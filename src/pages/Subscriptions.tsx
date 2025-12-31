@@ -1,38 +1,31 @@
 // src/pages/Subscriptions.tsx
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { getSubscriptions } from "../data/subscriptions"
-import type { SubscriptionRecord } from "../data/subscriptions"
+import { getEntitlements } from "../data/entitlements"
+import type { EntitlementRecord } from "../data/entitlements"
 import AppShell from "../layout/AppShell"
 
-function fmtMoney(amount?: number, currency = "USD") {
-  if (typeof amount !== "number" || Number.isNaN(amount)) return "—"
-
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  } catch {
-    return `${currency} ${Math.round(amount).toLocaleString()}`
-  }
-}
-
-function isDueSoon(endDate?: string) {
+function isDueIn60Days(endDate?: string) {
   if (!endDate) return false
   const date = new Date(endDate)
   if (Number.isNaN(date.getTime())) return false
 
   const now = new Date()
-  const diff = date.getTime() - now.getTime()
-  const days = diff / (1000 * 60 * 60 * 24)
-  return days >= 0 && days <= 60
+  const diffDays = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  return diffDays >= 0 && diffDays <= 60
+}
+
+function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
+  const value = status?.toLowerCase() || ""
+  if (value === "active") return "ok"
+  if (value.includes("pending") || value.includes("trial")) return "warn"
+  if (value.includes("expired") || value.includes("cancel")) return "danger"
+  return "info"
 }
 
 export default function Subscriptions() {
   const nav = useNavigate()
-  const [rows, setRows] = useState<SubscriptionRecord[]>([])
+  const [rows, setRows] = useState<EntitlementRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState("")
@@ -46,14 +39,14 @@ export default function Subscriptions() {
       setLoading(true)
       setError(null)
       try {
-        const data = await getSubscriptions()
+        const data = await getEntitlements()
         if (!active) return
         setRows(data)
       } catch (err) {
-        console.error("Failed to load subscriptions", err)
+        console.error("Failed to load entitlements", err)
         if (!active) return
-        setError("Failed to load subscriptions. Please try again.")
         setRows([])
+        setError("Failed to load subscriptions. Please try again.")
       } finally {
         if (active) setLoading(false)
       }
@@ -67,107 +60,103 @@ export default function Subscriptions() {
   }, [])
 
   const statusOptions = useMemo(() => {
-    const unique = new Set<string>()
+    const set = new Set<string>()
     rows.forEach((r) => {
       const val = r.status?.trim()
-      if (val) unique.add(val)
+      if (val) set.add(val)
     })
-    return Array.from(unique)
+    return Array.from(set)
   }, [rows])
 
   const tenantOptions = useMemo(() => {
-    const unique = new Set<string>()
+    const set = new Set<string>()
     rows.forEach((r) => {
       const val = r.tenantId?.trim()
-      if (val) unique.add(val)
+      if (val) set.add(val)
     })
-    unique.delete("—")
-    return Array.from(unique)
+    return Array.from(set)
   }, [rows])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-
-    return rows.filter((r) => {
-      const matchesQuery =
+    return rows.filter((row) => {
+      const matchQuery =
         !q ||
-        r.vendor.toLowerCase().includes(q) ||
-        r.name.toLowerCase().includes(q) ||
-        r.id.toLowerCase().includes(q)
+        row.entitlementId.toLowerCase().includes(q) ||
+        row.vendorId.toLowerCase().includes(q) ||
+        row.productName.toLowerCase().includes(q) ||
+        row.planName.toLowerCase().includes(q)
 
-      const matchesStatus =
-        statusFilter === "All" || r.status.toLowerCase() === statusFilter.toLowerCase()
+      const matchStatus =
+        statusFilter === "All" || row.status.toLowerCase() === statusFilter.toLowerCase()
 
-      const matchesTenant = tenantFilter === "All" || r.tenantId === tenantFilter
+      const matchTenant = tenantFilter === "All" || row.tenantId === tenantFilter
 
-      return matchesQuery && matchesStatus && matchesTenant
+      return matchQuery && matchStatus && matchTenant
     })
   }, [rows, query, statusFilter, tenantFilter])
 
-  const totalSubscriptions = filtered.length
-  const activeCount = filtered.filter((r) => r.status.toLowerCase().includes("active")).length
-  const dueSoonCount = filtered.filter((r) => isDueSoon(r.endDate)).length
+  const totalRows = filtered.length
+  const activeCount = filtered.filter((r) => r.status.toLowerCase() === "active").length
+  const dueSoonCount = filtered.filter((r) => isDueIn60Days(r.endDate)).length
 
   return (
     <AppShell
       title="Subscriptions"
       subtitle="Plans, seats, renewals, and actions"
       actions={
-        <button style={primaryBtn} onClick={() => nav("/renewals")}>
+        <button className="cs-btn cs-btn-primary" onClick={() => nav("/renewals")}>
           View Renewals
         </button>
       }
     >
       <div style={stack}>
-        {/* KPI strip */}
         <div style={kpiGrid}>
-          <Kpi title="Total subscriptions" value={totalSubscriptions.toString()} />
+          <Kpi title="Total subscriptions" value={totalRows.toString()} />
           <Kpi title="Active" value={activeCount.toString()} />
-          <Kpi title="Due for renewal" value={dueSoonCount.toString()} />
+          <Kpi title="Due in 60 days" value={dueSoonCount.toString()} />
         </div>
 
-        {/* Action bar */}
         <div style={bar}>
           <div style={barLeft}>
             <input
-              style={search}
+              className="cs-input"
+              style={{ width: 280 }}
+              placeholder="Search entitlement, vendor, product, or plan"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search vendor, subscription, or ID"
             />
 
             <select
-              style={select}
+              className="cs-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="All">All statuses</option>
               {statusOptions.map((s) => (
                 <option key={s} value={s}>
-                  {s || "(empty)"}
+                  {s}
                 </option>
               ))}
             </select>
 
-            {tenantOptions.length > 0 && (
-              <select
-                style={select}
-                value={tenantFilter}
-                onChange={(e) => setTenantFilter(e.target.value)}
-              >
-                <option value="All">All tenants</option>
-                {tenantOptions.map((t) => (
-                  <option key={t} value={t}>
-                    {t || "(empty)"}
-                  </option>
-                ))}
-              </select>
-            )}
+            <select
+              className="cs-select"
+              value={tenantFilter}
+              onChange={(e) => setTenantFilter(e.target.value)}
+            >
+              <option value="All">All tenants</option>
+              {tenantOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div style={barRight}>
             <button
-              style={ghostBtn}
+              className="cs-btn"
               onClick={() => {
                 setQuery("")
                 setStatusFilter("All")
@@ -179,31 +168,31 @@ export default function Subscriptions() {
           </div>
         </div>
 
-        {/* Table */}
         <div style={card}>
           <div style={cardHead}>
-            <div style={{ fontWeight: 700 }}>Subscriptions list</div>
-            <div style={muted}>Click a row to open detail.</div>
+            <div>
+              <div style={{ fontWeight: 800 }}>Subscriptions list</div>
+              <div style={muted}>Click a row to open detail.</div>
+            </div>
           </div>
 
           <div style={{ overflowX: "auto" }}>
             <table style={table}>
               <thead>
                 <tr>
-                  <th style={th}>Subscription ID</th>
+                  <th style={th}>Entitlement ID</th>
                   <th style={th}>Vendor</th>
-                  <th style={th}>Name</th>
-                  <th style={th}>Tenant</th>
+                  <th style={th}>Product</th>
+                  <th style={th}>Plan</th>
                   <th style={th}>Status</th>
-                  <th style={th}>Start</th>
-                  <th style={th}>End</th>
-                  <th style={thRight}>Amount</th>
+                  <th style={th}>End Date</th>
+                  <th style={thRight}>Quantity</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td style={tdEmpty} colSpan={8}>
+                    <td style={tdEmpty} colSpan={7}>
                       Loading subscriptions…
                     </td>
                   </tr>
@@ -211,44 +200,42 @@ export default function Subscriptions() {
 
                 {!loading && error && (
                   <tr>
-                    <td style={tdEmpty} colSpan={8}>
+                    <td style={tdEmpty} colSpan={7}>
                       {error}
                     </td>
                   </tr>
                 )}
 
                 {!loading && !error &&
-                  filtered.map((r) => (
+                  filtered.map((row) => (
                     <tr
-                      key={r.id}
+                      key={row.entitlementId}
                       style={tr}
-                      onClick={() => nav(`/subscriptions/detail?id=${encodeURIComponent(r.id)}`)}
+                      onClick={() => nav(`/subscriptions/detail?id=${encodeURIComponent(row.entitlementId)}`)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ")
-                          nav(`/subscriptions/detail?id=${encodeURIComponent(r.id)}`)
+                        if (e.key === "Enter" || e.key === " ") {
+                          nav(`/subscriptions/detail?id=${encodeURIComponent(row.entitlementId)}`)
+                        }
                       }}
                       role="button"
                       tabIndex={0}
                       title="Open subscription detail"
                     >
-                      <td style={tdMono}>{r.id}</td>
-                      <td style={tdStrong}>{r.vendor}</td>
-                      <td style={td}>{r.name}</td>
-                      <td style={td}>{r.tenantId}</td>
+                      <td style={tdMono}>{row.entitlementId}</td>
+                      <td style={tdStrong}>{row.vendorId}</td>
+                      <td style={td}>{row.productName}</td>
+                      <td style={td}>{row.planName}</td>
                       <td style={td}>
-                        <Badge tone={r.status.toLowerCase().includes("active") ? "ok" : "info"}>
-                          {r.status}
-                        </Badge>
+                        <Badge tone={deriveTone(row.status)}>{row.status || "Unknown"}</Badge>
                       </td>
-                      <td style={tdMono}>{r.startDate || "-"}</td>
-                      <td style={tdMono}>{r.endDate || "-"}</td>
-                      <td style={tdRight}>{fmtMoney(r.amount, r.currency)}</td>
+                      <td style={tdMono}>{row.endDate || "—"}</td>
+                      <td style={tdRight}>{row.quantity ?? "—"}</td>
                     </tr>
                   ))}
 
                 {!loading && !error && filtered.length === 0 && (
                   <tr>
-                    <td style={tdEmpty} colSpan={8}>
+                    <td style={tdEmpty} colSpan={7}>
                       No subscriptions found.
                     </td>
                   </tr>
@@ -314,7 +301,7 @@ const stack: React.CSSProperties = { display: "grid", gap: 14 }
 
 const kpiGrid: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
   gap: 12,
 }
 
@@ -362,26 +349,6 @@ const barRight: React.CSSProperties = {
   alignItems: "center",
 }
 
-const search: React.CSSProperties = {
-  height: 42,
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "rgba(15,23,42,0.03)",
-  padding: "0 12px",
-  outline: "none",
-  width: 320,
-  maxWidth: "72vw",
-}
-
-const select: React.CSSProperties = {
-  height: 42,
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "rgba(15,23,42,0.03)",
-  padding: "0 10px",
-  outline: "none",
-}
-
 const card: React.CSSProperties = {
   background: "#fff",
   borderRadius: 16,
@@ -392,11 +359,6 @@ const card: React.CSSProperties = {
 const cardHead: React.CSSProperties = {
   padding: 14,
   borderBottom: "1px solid rgba(15,23,42,0.08)",
-  display: "flex",
-  alignItems: "baseline",
-  justifyContent: "space-between",
-  gap: 10,
-  flexWrap: "wrap",
 }
 
 const muted: React.CSSProperties = {
@@ -449,22 +411,4 @@ const tdEmpty: React.CSSProperties = {
   padding: 18,
   textAlign: "center",
   color: "rgba(15,23,42,0.6)",
-}
-
-const ghostBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 14px",
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "#fff",
-  fontWeight: 700,
-}
-
-const primaryBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 14px",
-  borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
-  fontWeight: 800,
 }

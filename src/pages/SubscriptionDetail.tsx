@@ -1,32 +1,26 @@
 // src/pages/SubscriptionDetail.tsx
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { getSubscriptions } from "../data/subscriptions"
-import type { SubscriptionRecord } from "../data/subscriptions"
+import { getEntitlements } from "../data/entitlements"
+import type { EntitlementRecord } from "../data/entitlements"
 import AppShell from "../layout/AppShell"
 
-function fmtMoney(amount?: number, currency = "USD") {
-  if (typeof amount !== "number" || Number.isNaN(amount)) return "—"
-
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount)
-  } catch {
-    return `${currency} ${Math.round(amount).toLocaleString()}`
-  }
+function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
+  const value = status?.toLowerCase() || ""
+  if (value === "active") return "ok"
+  if (value.includes("pending") || value.includes("trial")) return "warn"
+  if (value.includes("expired") || value.includes("cancel")) return "danger"
+  return "info"
 }
 
 export default function SubscriptionDetail() {
   const [params] = useSearchParams()
   const nav = useNavigate()
-  const [rows, setRows] = useState<SubscriptionRecord[]>([])
+  const [rows, setRows] = useState<EntitlementRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const id = params.get("id")?.trim() || ""
+  const entitlementId = params.get("id")?.trim() || ""
 
   useEffect(() => {
     let active = true
@@ -35,14 +29,14 @@ export default function SubscriptionDetail() {
       setLoading(true)
       setError(null)
       try {
-        const data = await getSubscriptions()
+        const data = await getEntitlements()
         if (!active) return
         setRows(data)
       } catch (err) {
-        console.error("Failed to load subscriptions", err)
+        console.error("Failed to load entitlements", err)
         if (!active) return
-        setError("Failed to load subscription. Please try again.")
         setRows([])
+        setError("Failed to load subscription. Please try again.")
       } finally {
         if (active) setLoading(false)
       }
@@ -56,68 +50,91 @@ export default function SubscriptionDetail() {
   }, [])
 
   const match = useMemo(() => {
-    if (!id) return null
-    const needle = id.toLowerCase()
+    if (!entitlementId) return null
+    const needle = entitlementId.toLowerCase()
 
     return (
-      rows.find((r) =>
-        [r.id, r.raw.entitlement_id, r.raw.id]
-          .filter(Boolean)
-          .some((candidate) => candidate?.toLowerCase() === needle),
-      ) || null
+      rows.find((row) => row.entitlementId.toLowerCase() === needle) ||
+      rows.find((row) => row.raw.entitlement_id?.toLowerCase?.() === needle) ||
+      rows.find((row) => row.raw.Entitlement_ID?.toLowerCase?.() === needle) ||
+      null
     )
-  }, [id, rows])
+  }, [entitlementId, rows])
 
-  const primaryVendorOrName = match?.vendor || match?.name || id
+  const statusTone = deriveTone(match?.status)
+  const primaryId = match?.entitlementId || entitlementId || "Subscription"
 
   const actions = (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-      <button style={primaryBtn}>Reclaim Seats</button>
+      <button className="cs-btn cs-btn-primary">Reclaim seats</button>
       <button
-        style={ghostBtn}
-        onClick={() =>
-          nav(`/renewals?search=${encodeURIComponent(primaryVendorOrName)}`, {
-            state: { search: primaryVendorOrName },
-          })
-        }
+        className="cs-btn"
+        onClick={() => {
+          const q = match?.entitlementId || entitlementId
+          nav(`/renewals?search=${encodeURIComponent(q)}`, { state: { search: q } })
+        }}
       >
-        View Renewals
+        View renewals
       </button>
     </div>
   )
 
+  const detailFields = useMemo(
+    () => [
+      { label: "Entitlement ID", value: match?.entitlementId, mono: true },
+      { label: "Vendor ID", value: match?.vendorId },
+      { label: "Product Name", value: match?.productName },
+      { label: "Plan Name", value: match?.planName },
+      { label: "SKU Code", value: match?.skuCode, mono: true },
+      { label: "Status", value: match?.status },
+      { label: "Start Date", value: match?.startDate },
+      { label: "End Date", value: match?.endDate },
+      { label: "Auto Renew", value: match?.autoRenew },
+      { label: "Billing Cycle", value: match?.billingCycle },
+      { label: "Quantity", value: match?.quantity?.toString() },
+      { label: "External Subscription ID", value: match?.externalSubscriptionId, mono: true },
+      { label: "Subscription Group ID", value: match?.subscriptionGroupId, mono: true },
+      { label: "Data Quality Flag", value: match?.dataQualityFlag },
+      { label: "Source System", value: match?.sourceSystem },
+      { label: "Tenant ID", value: match?.tenantId },
+      { label: "Created At", value: match?.createdAt },
+      { label: "Updated At", value: match?.updatedAt },
+    ],
+    [match],
+  )
+
   return (
-    <AppShell title="Subscription Detail" subtitle="Reclaim, edit, and audit trail" actions={actions}>
+    <AppShell
+      title="Subscription Detail"
+      subtitle="Reclaim, view lifecycle, and act on entitlements"
+      actions={actions}
+    >
       <div style={stack}>
         <div style={card}>
           <div style={cardHead}>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{match?.name || "Subscription"}</div>
-              <div style={muted}>ID: {match?.id || id || "(missing)"}</div>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>{match?.productName || primaryId}</div>
+              <div style={muted}>Entitlement ID: {primaryId}</div>
             </div>
-            <Badge tone={match?.status.toLowerCase().includes("active") ? "ok" : "info"}>
-              {match?.status || "Unknown"}
-            </Badge>
-          </div>
-
-          <div style={detailGrid}>
-            <DetailField label="Vendor" value={match?.vendor || "-"} />
-            <DetailField label="Tenant" value={match?.tenantId || "-"} />
-            <DetailField label="Start date" value={match?.startDate || "-"} />
-            <DetailField label="End date" value={match?.endDate || "-"} />
-            <DetailField label="Amount" value={fmtMoney(match?.amount, match?.currency)} />
-            <DetailField label="Currency" value={match?.currency || "-"} />
-            <DetailField label="Subscription ID" value={match?.id || "-"} mono />
-            <DetailField label="Entitlement ID" value={match?.raw.entitlement_id || "-"} mono />
-            <DetailField label="Raw status" value={match?.raw.status || "-"} />
+            <Badge tone={statusTone}>{match?.status || "Unknown"}</Badge>
           </div>
 
           {loading && <div style={muted}>Loading subscription…</div>}
           {!loading && error && <div style={errorText}>{error}</div>}
-          {!loading && !error && !match && id && (
-            <div style={errorText}>Subscription not found for ID: {id}</div>
+          {!loading && !error && !entitlementId && (
+            <div style={errorText}>Missing subscription id.</div>
           )}
-          {!id && <div style={errorText}>Missing subscription id.</div>}
+          {!loading && !error && entitlementId && !match && (
+            <div style={errorText}>Subscription not found for ID: {entitlementId}</div>
+          )}
+
+          {!loading && !error && match && (
+            <div style={detailGrid}>
+              {detailFields.map((field) => (
+                <DetailField key={field.label} label={field.label} value={field.value} mono={field.mono} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AppShell>
@@ -130,7 +147,7 @@ function DetailField({
   mono,
 }: {
   label: string
-  value: string
+  value?: string | number | null
   mono?: boolean
 }) {
   return (
@@ -240,22 +257,4 @@ const errorText: React.CSSProperties = {
   color: "rgba(255,59,48,0.9)",
   padding: "0 14px 14px",
   fontWeight: 700,
-}
-
-const ghostBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 14px",
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "#fff",
-  fontWeight: 700,
-}
-
-const primaryBtn: React.CSSProperties = {
-  height: 42,
-  padding: "0 14px",
-  borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
-  fontWeight: 800,
 }
