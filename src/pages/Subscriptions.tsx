@@ -1,8 +1,7 @@
 // src/pages/Subscriptions.tsx
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { getEntitlements } from "../data/entitlements"
-import type { EntitlementRecord } from "../data/entitlements"
+import { fetchEntitlements, type Entitlement } from "../data/api"
 import AppShell from "../layout/AppShell"
 
 function isDueIn60Days(endDate?: string) {
@@ -25,7 +24,7 @@ function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
 
 export default function Subscriptions() {
   const nav = useNavigate()
-  const [rows, setRows] = useState<EntitlementRecord[]>([])
+  const [rows, setRows] = useState<Entitlement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState("")
@@ -39,7 +38,7 @@ export default function Subscriptions() {
       setLoading(true)
       setError(null)
       try {
-        const data = await getEntitlements()
+        const data = await fetchEntitlements()
         if (!active) return
         setRows(data)
       } catch (err) {
@@ -71,7 +70,7 @@ export default function Subscriptions() {
   const tenantOptions = useMemo(() => {
     const set = new Set<string>()
     rows.forEach((r) => {
-      const val = r.tenantId?.trim()
+      const val = r.tenant_id?.trim()
       if (val) set.add(val)
     })
     return Array.from(set)
@@ -82,23 +81,23 @@ export default function Subscriptions() {
     return rows.filter((row) => {
       const matchQuery =
         !q ||
-        row.entitlementId.toLowerCase().includes(q) ||
-        row.vendorId.toLowerCase().includes(q) ||
-        row.productName.toLowerCase().includes(q) ||
-        row.planName.toLowerCase().includes(q)
+        row.entitlement_id.toLowerCase().includes(q) ||
+        (row.vendor_id || "").toLowerCase().includes(q) ||
+        (row.product_name || "").toLowerCase().includes(q) ||
+        (row.plan_name || "").toLowerCase().includes(q)
 
       const matchStatus =
-        statusFilter === "All" || row.status.toLowerCase() === statusFilter.toLowerCase()
+        statusFilter === "All" || (row.status || "").toLowerCase() === statusFilter.toLowerCase()
 
-      const matchTenant = tenantFilter === "All" || row.tenantId === tenantFilter
+      const matchTenant = tenantFilter === "All" || row.tenant_id === tenantFilter
 
       return matchQuery && matchStatus && matchTenant
     })
   }, [rows, query, statusFilter, tenantFilter])
 
   const totalRows = filtered.length
-  const activeCount = filtered.filter((r) => r.status.toLowerCase() === "active").length
-  const dueSoonCount = filtered.filter((r) => isDueIn60Days(r.endDate)).length
+  const activeCount = filtered.filter((r) => (r.status || "").toLowerCase() === "active").length
+  const dueSoonCount = filtered.filter((r) => isDueIn60Days(r.end_date)).length
 
   return (
     <AppShell
@@ -181,7 +180,6 @@ export default function Subscriptions() {
               <thead>
                 <tr>
                   <th style={th}>Entitlement ID</th>
-                  <th style={th}>Vendor</th>
                   <th style={th}>Product</th>
                   <th style={th}>Plan</th>
                   <th style={th}>Status</th>
@@ -192,7 +190,7 @@ export default function Subscriptions() {
               <tbody>
                 {loading && (
                   <tr>
-                    <td style={tdEmpty} colSpan={7}>
+                    <td style={tdEmpty} colSpan={6}>
                       Loading subscriptions…
                     </td>
                   </tr>
@@ -200,7 +198,7 @@ export default function Subscriptions() {
 
                 {!loading && error && (
                   <tr>
-                    <td style={tdEmpty} colSpan={7}>
+                    <td style={tdEmpty} colSpan={6}>
                       {error}
                     </td>
                   </tr>
@@ -208,13 +206,11 @@ export default function Subscriptions() {
 
                 {!loading && !error &&
                   filtered.map((row) => {
-                    const detailId = encodeURIComponent(
-                      row.externalSubscriptionId || row.entitlementId,
-                    )
+                    const detailId = encodeURIComponent(row.entitlement_id)
 
                     return (
                       <tr
-                        key={row.entitlementId}
+                        key={row.entitlement_id}
                         style={tr}
                         onClick={() => nav(`/subscriptions/detail?id=${detailId}`)}
                         onKeyDown={(e) => {
@@ -226,14 +222,13 @@ export default function Subscriptions() {
                         tabIndex={0}
                         title="Open subscription detail"
                       >
-                        <td style={tdMono}>{row.entitlementId}</td>
-                        <td style={tdStrong}>{row.vendorId}</td>
-                        <td style={td}>{row.productName}</td>
-                        <td style={td}>{row.planName}</td>
+                        <td style={tdMono}>{row.entitlement_id}</td>
+                        <td style={td}>{row.product_name || "Unknown product"}</td>
+                        <td style={td}>{row.plan_name || "—"}</td>
                         <td style={td}>
                           <Badge tone={deriveTone(row.status)}>{row.status || "Unknown"}</Badge>
                         </td>
-                        <td style={tdMono}>{row.endDate || "—"}</td>
+                        <td style={tdMono}>{row.end_date || "—"}</td>
                         <td style={tdRight}>{row.quantity ?? "—"}</td>
                       </tr>
                     )
@@ -241,7 +236,7 @@ export default function Subscriptions() {
 
                 {!loading && !error && filtered.length === 0 && (
                   <tr>
-                    <td style={tdEmpty} colSpan={7}>
+                    <td style={tdEmpty} colSpan={6}>
                       No subscriptions found.
                     </td>
                   </tr>
@@ -400,8 +395,6 @@ const td: React.CSSProperties = {
   fontSize: 14,
   whiteSpace: "nowrap",
 }
-
-const tdStrong: React.CSSProperties = { ...td, fontWeight: 800 }
 
 const tdMono: React.CSSProperties = {
   ...td,
