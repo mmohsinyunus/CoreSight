@@ -1,6 +1,6 @@
 // src/pages/Renewals.tsx
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { fetchSheetData } from "../data/api"
 import AppShell from "../layout/AppShell"
 
@@ -86,12 +86,23 @@ function fmtMoney(n: number) {
 
 export default function Renewals() {
   const nav = useNavigate()
-  const [q, setQ] = useState("")
+  const location = useLocation()
+  const initialQuery = useMemo(() => {
+    const stateSearch = (location.state as { search?: string } | undefined)?.search || ""
+    const params = new URLSearchParams(location.search)
+    return params.get("search") || stateSearch || ""
+  }, [location.search, location.state])
+
+  const [q, setQ] = useState(initialQuery)
   const [status, setStatus] = useState<"All" | RenewalStatus>("All")
   const [risk, setRisk] = useState<"All" | "Low" | "Medium" | "High">("All")
   const [rows, setRows] = useState<UiRenewalRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setQ(initialQuery)
+  }, [initialQuery])
 
   useEffect(() => {
     let active = true
