@@ -207,31 +207,37 @@ export default function Subscriptions() {
                 )}
 
                 {!loading && !error &&
-                  filtered.map((row) => (
-                    <tr
-                      key={row.entitlementId}
-                      style={tr}
-                      onClick={() => nav(`/subscriptions/detail?id=${encodeURIComponent(row.entitlementId)}`)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          nav(`/subscriptions/detail?id=${encodeURIComponent(row.entitlementId)}`)
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      title="Open subscription detail"
-                    >
-                      <td style={tdMono}>{row.entitlementId}</td>
-                      <td style={tdStrong}>{row.vendorId}</td>
-                      <td style={td}>{row.productName}</td>
-                      <td style={td}>{row.planName}</td>
-                      <td style={td}>
-                        <Badge tone={deriveTone(row.status)}>{row.status || "Unknown"}</Badge>
-                      </td>
-                      <td style={tdMono}>{row.endDate || "—"}</td>
-                      <td style={tdRight}>{row.quantity ?? "—"}</td>
-                    </tr>
-                  ))}
+                  filtered.map((row) => {
+                    const detailId = encodeURIComponent(
+                      row.externalSubscriptionId || row.entitlementId,
+                    )
+
+                    return (
+                      <tr
+                        key={row.entitlementId}
+                        style={tr}
+                        onClick={() => nav(`/subscriptions/detail?id=${detailId}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            nav(`/subscriptions/detail?id=${detailId}`)
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        title="Open subscription detail"
+                      >
+                        <td style={tdMono}>{row.entitlementId}</td>
+                        <td style={tdStrong}>{row.vendorId}</td>
+                        <td style={td}>{row.productName}</td>
+                        <td style={td}>{row.planName}</td>
+                        <td style={td}>
+                          <Badge tone={deriveTone(row.status)}>{row.status || "Unknown"}</Badge>
+                        </td>
+                        <td style={tdMono}>{row.endDate || "—"}</td>
+                        <td style={tdRight}>{row.quantity ?? "—"}</td>
+                      </tr>
+                    )
+                  })}
 
                 {!loading && !error && filtered.length === 0 && (
                   <tr>
