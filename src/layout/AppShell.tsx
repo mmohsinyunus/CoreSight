@@ -21,8 +21,8 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
           <div style={brandSub}>Clean admin experience — Apple-style UI</div>
         </div>
 
+        {/* NAVIGATION */}
         <div style={navSectionTitle}>NAVIGATION</div>
-
         <SideLink to="/home" label="Home" emoji="🏠" />
         <SideLink to="/dashboard" label="Dashboard" emoji="📊" />
         <SideLink to="/reports" label="Reports" emoji="📄" />
@@ -30,6 +30,31 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
 
         <div style={divider} />
 
+        {/* SUBSCRIPTIONS */}
+        <div style={navSectionTitle}>SUBSCRIPTIONS</div>
+        <SideLink to="/subscriptions" label="Subscriptions List" emoji="🧾" />
+        <SideLink to="/subscriptions/detail" label="Subscription Detail" emoji="🔎" />
+        <SideLink to="/renewals" label="Renewals Dashboard" emoji="♻️" />
+        <SideLink to="/renewals/detail" label="Renewal Detail" emoji="📌" />
+
+        <div style={divider} />
+
+        {/* WORKFLOWS */}
+        <div style={navSectionTitle}>WORKFLOWS</div>
+        <SideLink to="/approvals" label="Approval Center" emoji="✅" />
+        <SideLink to="/identity-queue" label="Identity Queue" emoji="🧩" />
+        <SideLink to="/audit-log" label="Audit Log" emoji="🧾" />
+
+        <div style={divider} />
+
+        {/* SETTINGS */}
+        <div style={navSectionTitle}>SETTINGS</div>
+        <SideLink to="/tenant-settings" label="Tenant Settings" emoji="⚙️" />
+        <SideLink to="/policies" label="Policies" emoji="🔐" />
+
+        <div style={divider} />
+
+        {/* ADMIN SHORTCUTS */}
         <div style={navSectionTitle}>ADMIN SHORTCUTS</div>
         <SideLink to="/admin/vendors" label="Tenants" emoji="🏢" />
         <SideLink to="/admin/vendor-new" label="Onboard Tenant" emoji="➕" />
@@ -38,8 +63,8 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
         <div style={tipCard}>
           <div style={{ fontWeight: 700, marginBottom: 6 }}>Quick tip</div>
           <div style={{ color: "rgba(15, 23, 42, 0.72)", lineHeight: 1.45 }}>
-            If GitHub Pages shows blank again, it’s usually a <b>base path</b> or{" "}
-            <b>build</b> issue. Your current hash routes are correct for Pages.
+            If GitHub Pages shows blank again, it’s usually a <b>base path</b> or <b>build</b> issue.
+            Your current hash routes are correct for Pages.
           </div>
         </div>
       </aside>
@@ -94,6 +119,9 @@ const sidebar: CSSProperties = {
   borderRight: "1px solid rgba(15, 23, 42, 0.10)",
   background: "rgba(255,255,255,0.85)",
   backdropFilter: "blur(10px)",
+  // ensure full nav visible on smaller screens
+  height: "100vh",
+  overflowY: "auto",
 }
 
 const main: CSSProperties = {
