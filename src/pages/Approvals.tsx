@@ -148,14 +148,24 @@ export default function Approvals() {
               placeholder="Search vendor, subscription, request by…"
             />
 
-            <select className="cs-select" style={{ width: 180 }} value={status} onChange={(e) => setStatus(e.target.value as any)}>
+            <select
+              className="cs-select"
+              style={{ width: 180 }}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as ApprovalStatus | "All")}
+            >
               <option value="All">All status</option>
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
             </select>
 
-            <select className="cs-select" style={{ width: 160 }} value={risk} onChange={(e) => setRisk(e.target.value as any)}>
+            <select
+              className="cs-select"
+              style={{ width: 160 }}
+              value={risk}
+              onChange={(e) => setRisk(e.target.value as Risk | "All")}
+            >
               <option value="All">All risk</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>

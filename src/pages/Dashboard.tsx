@@ -38,8 +38,8 @@ export default function Dashboard() {
       if (!Array.isArray(arr)) throw new Error("Unexpected response shape")
 
       setRows(arr as TenantRow[])
-    } catch (e: any) {
-      setError(e?.message || "Failed to fetch")
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch")
     } finally {
       setLoading(false)
     }
@@ -47,7 +47,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const metrics = useMemo(() => {
