@@ -1,8 +1,7 @@
 // src/pages/SubscriptionDetail.tsx
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { getEntitlements } from "../data/entitlements"
-import type { EntitlementRecord } from "../data/entitlements"
+import { fetchEntitlementById, type Entitlement } from "../data/api"
 import AppShell from "../layout/AppShell"
 
 function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
@@ -16,7 +15,7 @@ function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
 export default function SubscriptionDetail() {
   const [params] = useSearchParams()
   const nav = useNavigate()
-  const [rows, setRows] = useState<EntitlementRecord[]>([])
+  const [match, setMatch] = useState<Entitlement | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,16 +25,22 @@ export default function SubscriptionDetail() {
     let active = true
 
     const load = async () => {
+      if (!subscriptionId) {
+        setMatch(null)
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       setError(null)
       try {
-        const data = await getEntitlements()
+        const data = await fetchEntitlementById(subscriptionId)
         if (!active) return
-        setRows(data)
+        setMatch(data)
       } catch (err) {
-        console.error("Failed to load entitlements", err)
+        console.error("Failed to load entitlement", err)
         if (!active) return
-        setRows([])
+        setMatch(null)
         setError("Failed to load subscription. Please try again.")
       } finally {
         if (active) setLoading(false)
@@ -47,23 +52,10 @@ export default function SubscriptionDetail() {
     return () => {
       active = false
     }
-  }, [])
-
-  const match = useMemo(() => {
-    if (!subscriptionId) return null
-    const needle = subscriptionId.toLowerCase()
-
-    return (
-      rows.find((row) => row.entitlementId.toLowerCase() === needle) ||
-      rows.find((row) => row.externalSubscriptionId?.toLowerCase() === needle) ||
-      rows.find((row) => row.raw.entitlement_id?.toLowerCase?.() === needle) ||
-      rows.find((row) => row.raw.Entitlement_ID?.toLowerCase?.() === needle) ||
-      null
-    )
-  }, [subscriptionId, rows])
+  }, [subscriptionId])
 
   const statusTone = deriveTone(match?.status)
-  const primaryId = subscriptionId || match?.entitlementId || "Subscription"
+  const primaryId = subscriptionId || match?.entitlement_id || "Subscription"
 
   const actions = (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -71,7 +63,7 @@ export default function SubscriptionDetail() {
       <button
         className="cs-btn"
         onClick={() => {
-          const q = match?.entitlementId || subscriptionId
+          const q = match?.entitlement_id || subscriptionId
           nav(`/renewals?search=${encodeURIComponent(q)}`, { state: { search: q } })
         }}
       >
@@ -82,24 +74,24 @@ export default function SubscriptionDetail() {
 
   const detailFields = useMemo(
     () => [
-      { label: "Entitlement ID", value: match?.entitlementId, mono: true },
-      { label: "Vendor ID", value: match?.vendorId },
-      { label: "Product Name", value: match?.productName },
-      { label: "Plan Name", value: match?.planName },
-      { label: "SKU Code", value: match?.skuCode, mono: true },
+      { label: "Entitlement ID", value: match?.entitlement_id, mono: true },
+      { label: "Vendor ID", value: match?.vendor_id },
+      { label: "Product Name", value: match?.product_name },
+      { label: "Plan Name", value: match?.plan_name },
+      { label: "SKU Code", value: match?.sku_code, mono: true },
       { label: "Status", value: match?.status },
-      { label: "Start Date", value: match?.startDate },
-      { label: "End Date", value: match?.endDate },
-      { label: "Auto Renew", value: match?.autoRenew },
-      { label: "Billing Cycle", value: match?.billingCycle },
+      { label: "Start Date", value: match?.start_date },
+      { label: "End Date", value: match?.end_date },
+      { label: "Auto Renew", value: match?.auto_renew },
+      { label: "Billing Cycle", value: match?.billing_cycle },
       { label: "Quantity", value: match?.quantity?.toString() },
-      { label: "External Subscription ID", value: match?.externalSubscriptionId, mono: true },
-      { label: "Subscription Group ID", value: match?.subscriptionGroupId, mono: true },
-      { label: "Data Quality Flag", value: match?.dataQualityFlag },
-      { label: "Source System", value: match?.sourceSystem },
-      { label: "Tenant ID", value: match?.tenantId },
-      { label: "Created At", value: match?.createdAt },
-      { label: "Updated At", value: match?.updatedAt },
+      { label: "External Subscription ID", value: match?.external_subscription_id, mono: true },
+      { label: "Subscription Group ID", value: match?.subscription_group_id, mono: true },
+      { label: "Data Quality Flag", value: match?.data_quality_flag },
+      { label: "Source System", value: match?.source_system },
+      { label: "Tenant ID", value: match?.tenant_id },
+      { label: "Created At", value: match?.created_at },
+      { label: "Updated At", value: match?.updated_at },
     ],
     [match],
   )
@@ -114,7 +106,7 @@ export default function SubscriptionDetail() {
         <div style={card}>
           <div style={cardHead}>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{match?.productName || primaryId}</div>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>{match?.product_name || primaryId}</div>
               <div style={muted}>Entitlement ID: {primaryId}</div>
             </div>
             <Badge tone={statusTone}>{match?.status || "Unknown"}</Badge>
@@ -123,10 +115,20 @@ export default function SubscriptionDetail() {
           {loading && <div style={muted}>Loading subscription…</div>}
           {!loading && error && <div style={errorText}>{error}</div>}
           {!loading && !error && !subscriptionId && (
-            <div style={errorText}>Missing subscription id.</div>
+            <div style={helperRow}>
+              <div style={errorText}>Missing subscription id.</div>
+              <button className="cs-btn" onClick={() => nav("/subscriptions")}>
+                Back to subscriptions
+              </button>
+            </div>
           )}
           {!loading && !error && subscriptionId && !match && (
-            <div style={errorText}>Subscription not found for ID: {subscriptionId}</div>
+            <div style={helperRow}>
+              <div style={errorText}>Subscription not found for ID: {subscriptionId}</div>
+              <button className="cs-btn" onClick={() => nav("/subscriptions")}>
+                Back to subscriptions
+              </button>
+            </div>
           )}
 
           {!loading && !error && match && (
@@ -258,4 +260,12 @@ const errorText: React.CSSProperties = {
   color: "rgba(255,59,48,0.9)",
   padding: "0 14px 14px",
   fontWeight: 700,
+}
+
+const helperRow: React.CSSProperties = {
+  padding: "0 14px 14px",
+  display: "flex",
+  gap: 10,
+  flexWrap: "wrap",
+  alignItems: "center",
 }
