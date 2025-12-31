@@ -20,7 +20,7 @@ export default function SubscriptionDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const entitlementId = params.get("id")?.trim() || ""
+  const subscriptionId = params.get("id")?.trim() || ""
 
   useEffect(() => {
     let active = true
@@ -50,19 +50,20 @@ export default function SubscriptionDetail() {
   }, [])
 
   const match = useMemo(() => {
-    if (!entitlementId) return null
-    const needle = entitlementId.toLowerCase()
+    if (!subscriptionId) return null
+    const needle = subscriptionId.toLowerCase()
 
     return (
       rows.find((row) => row.entitlementId.toLowerCase() === needle) ||
+      rows.find((row) => row.externalSubscriptionId?.toLowerCase() === needle) ||
       rows.find((row) => row.raw.entitlement_id?.toLowerCase?.() === needle) ||
       rows.find((row) => row.raw.Entitlement_ID?.toLowerCase?.() === needle) ||
       null
     )
-  }, [entitlementId, rows])
+  }, [subscriptionId, rows])
 
   const statusTone = deriveTone(match?.status)
-  const primaryId = match?.entitlementId || entitlementId || "Subscription"
+  const primaryId = subscriptionId || match?.entitlementId || "Subscription"
 
   const actions = (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -70,7 +71,7 @@ export default function SubscriptionDetail() {
       <button
         className="cs-btn"
         onClick={() => {
-          const q = match?.entitlementId || entitlementId
+          const q = match?.entitlementId || subscriptionId
           nav(`/renewals?search=${encodeURIComponent(q)}`, { state: { search: q } })
         }}
       >
@@ -121,11 +122,11 @@ export default function SubscriptionDetail() {
 
           {loading && <div style={muted}>Loading subscription…</div>}
           {!loading && error && <div style={errorText}>{error}</div>}
-          {!loading && !error && !entitlementId && (
+          {!loading && !error && !subscriptionId && (
             <div style={errorText}>Missing subscription id.</div>
           )}
-          {!loading && !error && entitlementId && !match && (
-            <div style={errorText}>Subscription not found for ID: {entitlementId}</div>
+          {!loading && !error && subscriptionId && !match && (
+            <div style={errorText}>Subscription not found for ID: {subscriptionId}</div>
           )}
 
           {!loading && !error && match && (
