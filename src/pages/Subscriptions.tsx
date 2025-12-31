@@ -1,7 +1,10 @@
 // src/pages/Subscriptions.tsx
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { fetchEntitlements, type Entitlement } from "../data/api"
+import {
+  fetchSubscriptionEntitlements,
+  type SubscriptionEntitlement,
+} from "../api/sheets"
 import AppShell from "../layout/AppShell"
 
 function isDueIn60Days(endDate?: string) {
@@ -24,7 +27,7 @@ function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
 
 export default function Subscriptions() {
   const nav = useNavigate()
-  const [rows, setRows] = useState<Entitlement[]>([])
+  const [rows, setRows] = useState<SubscriptionEntitlement[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState("")
@@ -38,7 +41,7 @@ export default function Subscriptions() {
       setLoading(true)
       setError(null)
       try {
-        const data = await fetchEntitlements()
+        const data = await fetchSubscriptionEntitlements()
         if (!active) return
         setRows(data)
       } catch (err) {
@@ -180,11 +183,11 @@ export default function Subscriptions() {
               <thead>
                 <tr>
                   <th style={th}>Entitlement ID</th>
+                  <th style={th}>Vendor ID</th>
                   <th style={th}>Product</th>
                   <th style={th}>Plan</th>
                   <th style={th}>Status</th>
                   <th style={th}>End Date</th>
-                  <th style={thRight}>Quantity</th>
                 </tr>
               </thead>
               <tbody>
@@ -212,10 +215,10 @@ export default function Subscriptions() {
                       <tr
                         key={row.entitlement_id}
                         style={tr}
-                        onClick={() => nav(`/subscriptions/detail?id=${detailId}`)}
+                        onClick={() => nav(`/subscriptions/detail?entitlement_id=${detailId}`)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
-                            nav(`/subscriptions/detail?id=${detailId}`)
+                            nav(`/subscriptions/detail?entitlement_id=${detailId}`)
                           }
                         }}
                         role="button"
@@ -223,13 +226,13 @@ export default function Subscriptions() {
                         title="Open subscription detail"
                       >
                         <td style={tdMono}>{row.entitlement_id}</td>
+                        <td style={td}>{row.vendor_id || "—"}</td>
                         <td style={td}>{row.product_name || "Unknown product"}</td>
                         <td style={td}>{row.plan_name || "—"}</td>
                         <td style={td}>
                           <Badge tone={deriveTone(row.status)}>{row.status || "Unknown"}</Badge>
                         </td>
                         <td style={tdMono}>{row.end_date || "—"}</td>
-                        <td style={tdRight}>{row.quantity ?? "—"}</td>
                       </tr>
                     )
                   })}
@@ -382,8 +385,6 @@ const th: React.CSSProperties = {
   whiteSpace: "nowrap",
 }
 
-const thRight: React.CSSProperties = { ...th, textAlign: "right" }
-
 const tr: React.CSSProperties = {
   cursor: "pointer",
   transition: "background 160ms ease, transform 160ms ease",
@@ -403,8 +404,6 @@ const tdMono: React.CSSProperties = {
   fontSize: 13,
   color: "rgba(15,23,42,0.8)",
 }
-
-const tdRight: React.CSSProperties = { ...td, textAlign: "right", fontWeight: 700 }
 
 const tdEmpty: React.CSSProperties = {
   padding: 18,
