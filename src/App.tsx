@@ -10,6 +10,8 @@ import Approvals from "./pages/Approvals"
 // Real pages
 import Renewals from "./pages/Renewals"
 import RenewalDetail from "./pages/RenewalDetail"
+import Subscriptions from "./pages/Subscriptions"
+import SubscriptionDetail from "./pages/SubscriptionDetail"
 
 // Existing admin pages
 import Vendors from "./pages/admin/Vendors"
@@ -68,19 +70,8 @@ export default function App() {
         />
 
         {/* Subscriptions */}
-        <Route
-          path="/subscriptions"
-          element={
-            <PlaceholderPage
-              title="Subscriptions List"
-              subtitle="Plans, seats, renewals, and actions"
-            />
-          }
-        />
-        <Route
-          path="/subscriptions/detail"
-          element={<PlaceholderPage title="Subscription Detail" subtitle="Reclaim, edit, audit trail" />}
-        />
+        <Route path="/subscriptions" element={<Subscriptions />} />
+        <Route path="/subscriptions/detail" element={<SubscriptionDetail />} />
 
         {/* Users / identity */}
         <Route path="/users" element={<PlaceholderPage title="Users List" />} />
