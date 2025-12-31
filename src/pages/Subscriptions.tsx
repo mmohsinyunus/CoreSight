@@ -208,19 +208,18 @@ export default function Subscriptions() {
 
                 {!loading && !error &&
                   filtered.map((row) => {
-                    const id = row.externalSubscriptionId?.trim() || row.entitlementId
-
-                    const goToDetail = () =>
-                      nav(`/subscriptions/detail?id=${encodeURIComponent(id)}`)
+                    const detailId = encodeURIComponent(
+                      row.externalSubscriptionId || row.entitlementId,
+                    )
 
                     return (
                       <tr
                         key={row.entitlementId}
                         style={tr}
-                        onClick={goToDetail}
+                        onClick={() => nav(`/subscriptions/detail?id=${detailId}`)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
-                            goToDetail()
+                            nav(`/subscriptions/detail?id=${detailId}`)
                           }
                         }}
                         role="button"
