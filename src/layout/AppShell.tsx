@@ -21,7 +21,6 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
           <div style={brandSub}>Clean admin experience — Apple-style UI</div>
         </div>
 
-        {/* NAVIGATION */}
         <div style={navSectionTitle}>NAVIGATION</div>
         <SideLink to="/home" label="Home" emoji="🏠" />
         <SideLink to="/dashboard" label="Dashboard" emoji="📊" />
@@ -30,7 +29,14 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
 
         <div style={divider} />
 
-        {/* SUBSCRIPTIONS */}
+        <div style={navSectionTitle}>SETUP</div>
+        <SideLink to="/company-setup" label="Company Setup" emoji="🏗️" />
+        <SideLink to="/department-setup" label="Department Setup" emoji="🧩" />
+        <SideLink to="/connect-sources" label="Connect Data Sources" emoji="🔌" />
+        <SideLink to="/sync-progress" label="Sync Progress" emoji="🔄" />
+
+        <div style={divider} />
+
         <div style={navSectionTitle}>SUBSCRIPTIONS</div>
         <SideLink to="/subscriptions" label="Subscriptions List" emoji="🧾" />
         <SideLink to="/subscriptions/detail" label="Subscription Detail" emoji="🔎" />
@@ -39,32 +45,32 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
 
         <div style={divider} />
 
-        {/* WORKFLOWS */}
-        <div style={navSectionTitle}>WORKFLOWS</div>
+        <div style={navSectionTitle}>USERS & IDENTITY</div>
+        <SideLink to="/users" label="Users List" emoji="👥" />
+        <SideLink to="/users/profile" label="User Profile" emoji="🪪" />
+        <SideLink to="/identity-queue" label="Identity Resolution Queue" emoji="🧠" />
+        <SideLink to="/departments" label="Departments Overview" emoji="🏬" />
+
+        <div style={divider} />
+
+        <div style={navSectionTitle}>GOVERNANCE</div>
         <SideLink to="/approvals" label="Approval Center" emoji="✅" />
-        <SideLink to="/identity-queue" label="Identity Queue" emoji="🧩" />
         <SideLink to="/audit-log" label="Audit Log" emoji="🧾" />
-
-        <div style={divider} />
-
-        {/* SETTINGS */}
-        <div style={navSectionTitle}>SETTINGS</div>
-        <SideLink to="/tenant-settings" label="Tenant Settings" emoji="⚙️" />
         <SideLink to="/policies" label="Policies" emoji="🔐" />
+        <SideLink to="/tenant-settings" label="Tenant Settings" emoji="⚙️" />
 
         <div style={divider} />
 
-        {/* ADMIN SHORTCUTS */}
         <div style={navSectionTitle}>ADMIN SHORTCUTS</div>
         <SideLink to="/admin/vendors" label="Tenants" emoji="🏢" />
         <SideLink to="/admin/vendor-new" label="Onboard Tenant" emoji="➕" />
         <SideLink to="/admin/settings" label="Settings" emoji="🧩" />
 
         <div style={tipCard}>
-          <div style={{ fontWeight: 700, marginBottom: 6 }}>Quick tip</div>
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>Quick tip</div>
           <div style={{ color: "rgba(15, 23, 42, 0.72)", lineHeight: 1.45 }}>
             If GitHub Pages shows blank again, it’s usually a <b>base path</b> or <b>build</b> issue.
-            Your current hash routes are correct for Pages.
+            Hash routes are correct for Pages.
           </div>
         </div>
       </aside>
@@ -119,14 +125,9 @@ const sidebar: CSSProperties = {
   borderRight: "1px solid rgba(15, 23, 42, 0.10)",
   background: "rgba(255,255,255,0.85)",
   backdropFilter: "blur(10px)",
-  // ensure full nav visible on smaller screens
-  height: "100vh",
-  overflowY: "auto",
 }
 
-const main: CSSProperties = {
-  padding: 18,
-}
+const main: CSSProperties = { padding: 18 }
 
 const brand: CSSProperties = {
   padding: 14,
@@ -144,7 +145,7 @@ const brandRow: CSSProperties = {
   gap: 10,
 }
 
-const brandName: CSSProperties = { fontSize: 24, fontWeight: 800, letterSpacing: -0.2 }
+const brandName: CSSProperties = { fontSize: 24, fontWeight: 900, letterSpacing: -0.2 }
 const brandSub: CSSProperties = { marginTop: 6, color: "rgba(15,23,42,0.65)" }
 
 const pill: CSSProperties = {
@@ -153,14 +154,14 @@ const pill: CSSProperties = {
   border: "1px solid rgba(15, 23, 42, 0.10)",
   background: "rgba(15, 23, 42, 0.04)",
   fontSize: 12,
-  fontWeight: 700,
+  fontWeight: 800,
   color: "rgba(15,23,42,0.70)",
 }
 
 const navSectionTitle: CSSProperties = {
-  padding: "10px 10px 8px",
+  padding: "12px 10px 8px",
   fontSize: 12,
-  fontWeight: 800,
+  fontWeight: 900,
   letterSpacing: 0.8,
   color: "rgba(15,23,42,0.45)",
 }
@@ -217,7 +218,7 @@ const chip: CSSProperties = {
   borderRadius: 999,
   border: "1px solid rgba(15, 23, 42, 0.12)",
   background: "rgba(15, 23, 42, 0.04)",
-  fontWeight: 800,
+  fontWeight: 900,
   fontSize: 12,
   color: "rgba(15,23,42,0.75)",
 }
