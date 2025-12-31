@@ -90,9 +90,14 @@ export default function Renewals() {
   const [status, setStatus] = useState<"All" | RenewalStatus>("All")
   const [risk, setRisk] = useState<"All" | "Low" | "Medium" | "High">("All")
   const [rows, setRows] = useState<UiRenewalRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
+
+    setLoading(true)
+    setError(null)
 
     fetchSheetData<RenewalRow[]>("Renewals")
       .then((data) => {
@@ -100,10 +105,18 @@ export default function Renewals() {
 
         const normalized = data.map(toUiRow)
         setRows(normalized)
+        setLoading(false)
       })
       .catch((err) => {
         console.error("Failed to load renewals", err)
+        if (!active) return
         setRows([])
+        setError("Failed to load renewals. Please try again.")
+        setLoading(false)
+      })
+      .finally(() => {
+        if (!active) return
+        setLoading(false)
       })
 
     return () => {
@@ -219,45 +232,62 @@ export default function Renewals() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => (
-                  <tr
-                    key={r.id}
-                    style={tr}
-                    onClick={() => openDetail(r.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") openDetail(r.id)
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    title="Open renewal detail"
-                  >
-                    <td style={tdStrong}>{r.vendor}</td>
-                    <td style={td}>{r.subscription}</td>
-                    <td style={td}>{r.owner}</td>
-                    <td style={tdMono}>{r.dueDate}</td>
-                    <td style={tdRight}>{fmtMoney(r.amount)}</td>
-                    <td style={td}>
-                      <Badge tone={r.risk === "High" ? "danger" : r.risk === "Medium" ? "warn" : "ok"}>{r.risk}</Badge>
-                    </td>
-                    <td style={td}>
-                      <Badge
-                        tone={
-                          r.status === "Approved"
-                            ? "ok"
-                            : r.status === "Rejected"
-                              ? "danger"
-                              : r.status === "Due"
-                                ? "warn"
-                                : "info"
-                        }
-                      >
-                        {r.status}
-                      </Badge>
+                {loading && (
+                  <tr>
+                    <td style={tdEmpty} colSpan={7}>
+                      Loading renewals…
                     </td>
                   </tr>
-                ))}
+                )}
 
-                {filtered.length === 0 && (
+                {!loading && error && (
+                  <tr>
+                    <td style={tdEmpty} colSpan={7}>
+                      {error}
+                    </td>
+                  </tr>
+                )}
+
+                {!loading && !error &&
+                  filtered.map((r) => (
+                    <tr
+                      key={r.id}
+                      style={tr}
+                      onClick={() => openDetail(r.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") openDetail(r.id)
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      title="Open renewal detail"
+                    >
+                      <td style={tdStrong}>{r.vendor}</td>
+                      <td style={td}>{r.subscription}</td>
+                      <td style={td}>{r.owner}</td>
+                      <td style={tdMono}>{r.dueDate}</td>
+                      <td style={tdRight}>{fmtMoney(r.amount)}</td>
+                      <td style={td}>
+                        <Badge tone={r.risk === "High" ? "danger" : r.risk === "Medium" ? "warn" : "ok"}>{r.risk}</Badge>
+                      </td>
+                      <td style={td}>
+                        <Badge
+                          tone={
+                            r.status === "Approved"
+                              ? "ok"
+                              : r.status === "Rejected"
+                                ? "danger"
+                                : r.status === "Due"
+                                  ? "warn"
+                                  : "info"
+                          }
+                        >
+                          {r.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+
+                {!loading && !error && filtered.length === 0 && (
                   <tr>
                     <td style={tdEmpty} colSpan={7}>
                       No matching renewals.
