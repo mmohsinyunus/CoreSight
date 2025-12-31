@@ -5,6 +5,7 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom"
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 import Reports from "./pages/Reports"
+import Approvals from "./pages/Approvals"
 
 // NEW real pages
 import Renewals from "./pages/Renewals"
@@ -139,3 +140,4 @@ export default function App() {
     </HashRouter>
   )
 }
+<Route path="/approvals" element={<Approvals />} />
