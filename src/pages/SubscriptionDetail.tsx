@@ -1,7 +1,10 @@
 // src/pages/SubscriptionDetail.tsx
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { fetchEntitlementById, type Entitlement } from "../data/api"
+import {
+  fetchSubscriptionEntitlementById,
+  type SubscriptionEntitlement,
+} from "../api/sheets"
 import AppShell from "../layout/AppShell"
 
 function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
@@ -15,17 +18,17 @@ function deriveTone(status?: string): "ok" | "warn" | "info" | "danger" {
 export default function SubscriptionDetail() {
   const [params] = useSearchParams()
   const nav = useNavigate()
-  const [match, setMatch] = useState<Entitlement | null>(null)
+  const [match, setMatch] = useState<SubscriptionEntitlement | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const subscriptionId = params.get("id")?.trim() || ""
+  const entitlementId = params.get("entitlement_id")?.trim() || ""
 
   useEffect(() => {
     let active = true
 
     const load = async () => {
-      if (!subscriptionId) {
+      if (!entitlementId) {
         setMatch(null)
         setLoading(false)
         return
@@ -34,7 +37,7 @@ export default function SubscriptionDetail() {
       setLoading(true)
       setError(null)
       try {
-        const data = await fetchEntitlementById(subscriptionId)
+        const data = await fetchSubscriptionEntitlementById(entitlementId)
         if (!active) return
         setMatch(data)
       } catch (err) {
@@ -52,10 +55,11 @@ export default function SubscriptionDetail() {
     return () => {
       active = false
     }
-  }, [subscriptionId])
+  }, [entitlementId])
 
   const statusTone = deriveTone(match?.status)
-  const primaryId = subscriptionId || match?.entitlement_id || "Subscription"
+  const subscriptionId = match?.external_subscription_id || match?.entitlement_id || "Subscription"
+  const entitlementLabel = entitlementId || match?.entitlement_id || "Entitlement"
 
   const actions = (
     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -63,8 +67,9 @@ export default function SubscriptionDetail() {
       <button
         className="cs-btn"
         onClick={() => {
-          const q = match?.entitlement_id || subscriptionId
-          nav(`/renewals?search=${encodeURIComponent(q)}`, { state: { search: q } })
+          const q = match?.entitlement_id || entitlementId
+          const target = q ? `/renewals?search=${encodeURIComponent(q)}` : "/renewals"
+          nav(target, q ? { state: { search: q } } : undefined)
         }}
       >
         View renewals
@@ -74,6 +79,7 @@ export default function SubscriptionDetail() {
 
   const detailFields = useMemo(
     () => [
+      { label: "Subscription ID", value: match?.external_subscription_id, mono: true },
       { label: "Entitlement ID", value: match?.entitlement_id, mono: true },
       { label: "Vendor ID", value: match?.vendor_id },
       { label: "Product Name", value: match?.product_name },
@@ -85,7 +91,6 @@ export default function SubscriptionDetail() {
       { label: "Auto Renew", value: match?.auto_renew },
       { label: "Billing Cycle", value: match?.billing_cycle },
       { label: "Quantity", value: match?.quantity?.toString() },
-      { label: "External Subscription ID", value: match?.external_subscription_id, mono: true },
       { label: "Subscription Group ID", value: match?.subscription_group_id, mono: true },
       { label: "Data Quality Flag", value: match?.data_quality_flag },
       { label: "Source System", value: match?.source_system },
@@ -106,25 +111,26 @@ export default function SubscriptionDetail() {
         <div style={card}>
           <div style={cardHead}>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{match?.product_name || primaryId}</div>
-              <div style={muted}>Entitlement ID: {primaryId}</div>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>{match?.product_name || subscriptionId}</div>
+              <div style={muted}>Subscription ID: {subscriptionId}</div>
+              <div style={muted}>Entitlement ID: {entitlementLabel}</div>
             </div>
             <Badge tone={statusTone}>{match?.status || "Unknown"}</Badge>
           </div>
 
           {loading && <div style={muted}>Loading subscription…</div>}
           {!loading && error && <div style={errorText}>{error}</div>}
-          {!loading && !error && !subscriptionId && (
+          {!loading && !error && !entitlementId && (
             <div style={helperRow}>
-              <div style={errorText}>Missing subscription id.</div>
+              <div style={errorText}>Missing entitlement id.</div>
               <button className="cs-btn" onClick={() => nav("/subscriptions")}>
                 Back to subscriptions
               </button>
             </div>
           )}
-          {!loading && !error && subscriptionId && !match && (
+          {!loading && !error && entitlementId && !match && (
             <div style={helperRow}>
-              <div style={errorText}>Subscription not found for ID: {subscriptionId}</div>
+              <div style={errorText}>Subscription not found for entitlement: {entitlementId}</div>
               <button className="cs-btn" onClick={() => nav("/subscriptions")}>
                 Back to subscriptions
               </button>
