@@ -7,7 +7,7 @@ import Dashboard from "./pages/Dashboard"
 import Reports from "./pages/Reports"
 import Approvals from "./pages/Approvals"
 
-// NEW real pages
+// Real pages
 import Renewals from "./pages/Renewals"
 import RenewalDetail from "./pages/RenewalDetail"
 
@@ -43,15 +43,11 @@ export default function App() {
         {/* Auth / selection */}
         <Route
           path="/login"
-          element={
-            <PlaceholderPage title="Login" subtitle="SSO + email login (demo stub)" />
-          }
+          element={<PlaceholderPage title="Login" subtitle="SSO + email login (demo stub)" />}
         />
         <Route
           path="/tenant-selection"
-          element={
-            <PlaceholderPage title="Tenant Selection" subtitle="Choose tenant and role" />
-          }
+          element={<PlaceholderPage title="Tenant Selection" subtitle="Choose tenant and role" />}
         />
 
         {/* Setup */}
@@ -68,9 +64,7 @@ export default function App() {
         />
         <Route
           path="/sync-progress"
-          element={
-            <PlaceholderPage title="Sync Progress" subtitle="Live progress + error handling" />
-          }
+          element={<PlaceholderPage title="Sync Progress" subtitle="Live progress + error handling" />}
         />
 
         {/* Subscriptions */}
@@ -85,9 +79,7 @@ export default function App() {
         />
         <Route
           path="/subscriptions/detail"
-          element={
-            <PlaceholderPage title="Subscription Detail" subtitle="Reclaim, edit, audit trail" />
-          }
+          element={<PlaceholderPage title="Subscription Detail" subtitle="Reclaim, edit, audit trail" />}
         />
 
         {/* Users / identity */}
@@ -109,19 +101,21 @@ export default function App() {
         <Route path="/admin/vendor-new" element={<VendorNew />} />
         <Route path="/admin/settings" element={<Settings />} />
 
-        {/* Renewals (REAL now) */}
+        {/* Renewals (REAL) */}
         <Route path="/renewals" element={<Renewals />} />
         <Route path="/renewals/detail" element={<RenewalDetail />} />
 
-        {/* Approvals / audit */}
-        <Route
-          path="/approvals"
-          element={<PlaceholderPage title="Approval Center" subtitle="Approvals, SLA, escalations" />}
-        />
+        {/* Approvals (REAL) */}
+        <Route path="/approvals" element={<Approvals />} />
+
+        {/* Audit log (stub for now) */}
         <Route
           path="/audit-log"
           element={
-            <PlaceholderPage title="Audit Log" subtitle="All actions are tracked here (demo log next)" />
+            <PlaceholderPage
+              title="Audit Log"
+              subtitle="All actions are tracked here (demo log next)"
+            />
           }
         />
 
@@ -129,9 +123,7 @@ export default function App() {
         <Route path="/tenant-settings" element={<PlaceholderPage title="Tenant Settings" />} />
         <Route
           path="/policies"
-          element={
-            <PlaceholderPage title="Policies" subtitle="Security + retention + data governance" />
-          }
+          element={<PlaceholderPage title="Policies" subtitle="Security + retention + data governance" />}
         />
 
         {/* Fallback */}
@@ -140,4 +132,3 @@ export default function App() {
     </HashRouter>
   )
 }
-<Route path="/approvals" element={<Approvals />} />
