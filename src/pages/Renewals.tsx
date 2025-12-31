@@ -93,9 +93,13 @@ export default function Renewals() {
     })
   }, [q, status, risk])
 
-  const totalDue = useMemo(() => {
+  const totalValue = useMemo(() => {
     return filtered.reduce((sum, r) => sum + r.amount, 0)
   }, [filtered])
+
+  function openDetail(id: string) {
+    nav(`/renewals/detail?id=${encodeURIComponent(id)}`)
+  }
 
   return (
     <AppShell
@@ -113,11 +117,7 @@ export default function Renewals() {
           >
             Reset
           </button>
-          <button
-            style={primaryBtn}
-            onClick={() => nav("/approvals")}
-            title="Go to approvals queue"
-          >
+          <button style={primaryBtn} onClick={() => nav("/approvals")} title="Go to approvals queue">
             Open Approval Center
           </button>
         </div>
@@ -127,11 +127,8 @@ export default function Renewals() {
         {/* KPI strip */}
         <div style={kpiGrid}>
           <Kpi title="Items" value={filtered.length.toString()} />
-          <Kpi title="Total value" value={fmtMoney(totalDue)} />
-          <Kpi
-            title="High risk"
-            value={filtered.filter((x) => x.risk === "High").length.toString()}
-          />
+          <Kpi title="Total value" value={fmtMoney(totalValue)} />
+          <Kpi title="High risk" value={filtered.filter((x) => x.risk === "High").length.toString()} />
         </div>
 
         {/* Action bar */}
@@ -144,12 +141,7 @@ export default function Renewals() {
               placeholder="Search vendor, subscription, owner…"
             />
 
-            <select
-              style={select}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-              title="Status"
-            >
+            <select style={select} value={status} onChange={(e) => setStatus(e.target.value as any)} title="Status">
               <option value="All">All statuses</option>
               <option value="Due">Due</option>
               <option value="In review">In review</option>
@@ -157,12 +149,7 @@ export default function Renewals() {
               <option value="Rejected">Rejected</option>
             </select>
 
-            <select
-              style={select}
-              value={risk}
-              onChange={(e) => setRisk(e.target.value as any)}
-              title="Risk"
-            >
+            <select style={select} value={risk} onChange={(e) => setRisk(e.target.value as any)} title="Risk">
               <option value="All">All risk</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -171,11 +158,7 @@ export default function Renewals() {
           </div>
 
           <div style={barRight}>
-            <button
-              style={ghostBtn}
-              onClick={() => nav("/subscriptions")}
-              title="Jump back to subscriptions"
-            >
+            <button style={ghostBtn} onClick={() => nav("/subscriptions")} title="Jump back to subscriptions">
               Back to Subscriptions
             </button>
           </div>
@@ -185,9 +168,7 @@ export default function Renewals() {
         <div style={card}>
           <div style={cardHead}>
             <div style={{ fontWeight: 700 }}>Renewals list</div>
-            <div style={muted}>
-              Click a row to open detail (next screen).
-            </div>
+            <div style={muted}>Click a row to open detail (next screen).</div>
           </div>
 
           <div style={{ overflowX: "auto" }}>
@@ -208,8 +189,13 @@ export default function Renewals() {
                   <tr
                     key={r.id}
                     style={tr}
-                    onClick={() => nav(`/renewals/detail?id=${encodeURIComponent(r.id)}`)}
+                    onClick={() => openDetail(r.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") openDetail(r.id)
+                    }}
                     role="button"
+                    tabIndex={0}
+                    title="Open renewal detail"
                   >
                     <td style={tdStrong}>{r.vendor}</td>
                     <td style={td}>{r.subscription}</td>
@@ -217,9 +203,7 @@ export default function Renewals() {
                     <td style={tdMono}>{r.dueDate}</td>
                     <td style={tdRight}>{fmtMoney(r.amount)}</td>
                     <td style={td}>
-                      <Badge tone={r.risk === "High" ? "danger" : r.risk === "Medium" ? "warn" : "ok"}>
-                        {r.risk}
-                      </Badge>
+                      <Badge tone={r.risk === "High" ? "danger" : r.risk === "Medium" ? "warn" : "ok"}>{r.risk}</Badge>
                     </td>
                     <td style={td}>
                       <Badge
@@ -264,13 +248,7 @@ function Kpi({ title, value }: { title: string; value: string }) {
   )
 }
 
-function Badge({
-  children,
-  tone,
-}: {
-  children: React.ReactNode
-  tone: "ok" | "warn" | "danger" | "info"
-}) {
+function Badge({ children, tone }: { children: React.ReactNode; tone: "ok" | "warn" | "danger" | "info" }) {
   const bg =
     tone === "ok"
       ? "rgba(52,199,89,0.12)"
@@ -420,9 +398,12 @@ const th: React.CSSProperties = {
 
 const thRight: React.CSSProperties = { ...th, textAlign: "right" }
 
+// ✅ Row hover highlight (main “update”)
 const tr: React.CSSProperties = {
   cursor: "pointer",
+  transition: "background 160ms ease, transform 160ms ease",
 }
+;(tr as any)[":hover"] = undefined // (keeps TS quiet if you accidentally paste into a CSS-in-JS lib)
 
 const td: React.CSSProperties = {
   padding: "12px 14px",
