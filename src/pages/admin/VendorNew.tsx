@@ -13,6 +13,7 @@ const SHEET_URL =
   "https://script.google.com/macros/s/AKfycbwxTAPJITLdR3AUQoseEs-TsUefbWfuPPmt2rrqsmgDBGXSfAL3xDeUG10VLKUrGhDb0w/exec"
 
 type Step = 1 | 2 | 3 | 4
+type CreateResponse = { ok?: boolean; error?: string }
 
 export default function VendorNew() {
   const [step, setStep] = useState<Step>(1)
@@ -149,7 +150,7 @@ export default function VendorNew() {
       })
 
       // Read body ONCE
-      const json: any = await res.json().catch(() => null)
+      const json = (await res.json().catch(() => null)) as CreateResponse | null
 
       if (!res.ok) {
         throw new Error(json?.error || `HTTP ${res.status}`)
@@ -167,8 +168,9 @@ export default function VendorNew() {
       setLegalName("")
       setAdminName("")
       setAdminEmail("")
-    } catch (e: any) {
-      setError(`Create failed: ${e?.message || "Failed to fetch"}`)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to fetch"
+      setError(`Create failed: ${message}`)
     } finally {
       setLoading(false)
     }

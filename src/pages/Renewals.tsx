@@ -96,28 +96,31 @@ export default function Renewals() {
   useEffect(() => {
     let active = true
 
-    setLoading(true)
-    setError(null)
+    const load = async () => {
+      if (!active) return
 
-    fetchSheetData<RenewalRow[]>("Renewals")
-      .then((data) => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const data = await fetchSheetData<RenewalRow[]>("Renewals")
         if (!active || !Array.isArray(data)) return
 
-        const normalized = data.map(toUiRow)
-        setRows(normalized)
-        setLoading(false)
-      })
-      .catch((err) => {
+        setRows(data.map(toUiRow))
+      } catch (err) {
         console.error("Failed to load renewals", err)
         if (!active) return
+
         setRows([])
         setError("Failed to load renewals. Please try again.")
-        setLoading(false)
-      })
-      .finally(() => {
-        if (!active) return
-        setLoading(false)
-      })
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void load()
 
     return () => {
       active = false
@@ -188,7 +191,12 @@ export default function Renewals() {
               placeholder="Search vendor, subscription, owner…"
             />
 
-            <select style={select} value={status} onChange={(e) => setStatus(e.target.value as any)} title="Status">
+            <select
+              style={select}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as RenewalStatus | "All")}
+              title="Status"
+            >
               <option value="All">All statuses</option>
               <option value="Due">Due</option>
               <option value="In review">In review</option>
@@ -196,7 +204,12 @@ export default function Renewals() {
               <option value="Rejected">Rejected</option>
             </select>
 
-            <select style={select} value={risk} onChange={(e) => setRisk(e.target.value as any)} title="Risk">
+            <select
+              style={select}
+              value={risk}
+              onChange={(e) => setRisk(e.target.value as "All" | "Low" | "Medium" | "High")}
+              title="Risk"
+            >
               <option value="All">All risk</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
@@ -467,7 +480,6 @@ const tr: React.CSSProperties = {
   cursor: "pointer",
   transition: "background 160ms ease, transform 160ms ease",
 }
-;(tr as any)[":hover"] = undefined // (keeps TS quiet if you accidentally paste into a CSS-in-JS lib)
 
 const td: React.CSSProperties = {
   padding: "12px 14px",
