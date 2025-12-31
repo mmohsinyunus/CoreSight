@@ -1,11 +1,26 @@
 // src/pages/Renewals.tsx
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { fetchSheetData } from "../data/api"
 import AppShell from "../layout/AppShell"
 
 type RenewalStatus = "Due" | "In review" | "Approved" | "Rejected"
 
-type RenewalRow = {
+export interface RenewalRow {
+  renewal_id: string
+  vendor_id: string
+  renewal_due_date: string
+  renewal_status: string
+  previous_price: number
+  renewed_price: number
+  currency: string
+  price_change_percentage: number
+  auto_renew_flag: string
+  budget_status: string
+  record_status: string
+}
+
+type UiRenewalRow = {
   id: string
   vendor: string
   subscription: string
@@ -16,48 +31,46 @@ type RenewalRow = {
   risk: "Low" | "Medium" | "High"
 }
 
-const DEMO_ROWS: RenewalRow[] = [
-  {
-    id: "ren_001",
-    vendor: "Okta",
-    subscription: "SSO Enterprise",
-    owner: "IT Security",
-    dueDate: "2026-01-18",
-    amount: 148000,
-    status: "In review",
-    risk: "High",
-  },
-  {
-    id: "ren_002",
-    vendor: "Google Workspace",
-    subscription: "Business Plus",
-    owner: "IT Ops",
-    dueDate: "2026-02-05",
-    amount: 92000,
-    status: "Due",
-    risk: "Medium",
-  },
-  {
-    id: "ren_003",
-    vendor: "Salesforce",
-    subscription: "Sales Cloud",
-    owner: "Sales Ops",
-    dueDate: "2026-03-01",
-    amount: 315000,
-    status: "Approved",
-    risk: "Low",
-  },
-  {
-    id: "ren_004",
-    vendor: "Zoom",
-    subscription: "Enterprise",
-    owner: "IT Ops",
-    dueDate: "2026-01-25",
-    amount: 56000,
-    status: "Rejected",
-    risk: "Medium",
-  },
-]
+function normalizeStatus(raw?: string): RenewalStatus {
+  const value = raw?.toLowerCase() || ""
+
+  if (value.includes("approve")) return "Approved"
+  if (value.includes("reject")) return "Rejected"
+  if (value.includes("review")) return "In review"
+  return "Due"
+}
+
+function deriveRisk(row: RenewalRow): "Low" | "Medium" | "High" {
+  const budget = row.budget_status?.toLowerCase?.() || ""
+  if (budget.includes("over")) return "High"
+  if (budget.includes("risk")) return "High"
+
+  const pct = Number(row.price_change_percentage)
+  if (Number.isFinite(pct)) {
+    if (pct >= 15) return "High"
+    if (pct >= 5) return "Medium"
+  }
+
+  const autoRenew = `${row.auto_renew_flag || ""}`.toLowerCase()
+  if (autoRenew === "no" || autoRenew === "false") return "Medium"
+
+  return "Low"
+}
+
+function toUiRow(row: RenewalRow): UiRenewalRow {
+  const amountValue = Number(row.renewed_price ?? row.previous_price ?? 0)
+
+  return {
+    id: row.renewal_id || "unknown", // fallback id to avoid crashes
+    vendor: row.vendor_id || "Unknown vendor",
+    subscription: row.record_status || "—",
+    owner: row.budget_status || "—",
+    dueDate: row.renewal_due_date || "—",
+    amount: Number.isFinite(amountValue) ? amountValue : 0,
+    status: normalizeStatus(row.renewal_status),
+    risk: deriveRisk(row),
+  }
+}
 
 function fmtMoney(n: number) {
   try {
@@ -76,10 +89,31 @@ export default function Renewals() {
   const [q, setQ] = useState("")
   const [status, setStatus] = useState<"All" | RenewalStatus>("All")
   const [risk, setRisk] = useState<"All" | "Low" | "Medium" | "High">("All")
+  const [rows, setRows] = useState<UiRenewalRow[]>([])
+
+  useEffect(() => {
+    let active = true
+
+    fetchSheetData<RenewalRow[]>("Renewals")
+      .then((data) => {
+        if (!active || !Array.isArray(data)) return
+
+        const normalized = data.map(toUiRow)
+        setRows(normalized)
+      })
+      .catch((err) => {
+        console.error("Failed to load renewals", err)
+        setRows([])
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase()
-    return DEMO_ROWS.filter((r) => {
+    return rows.filter((r) => {
       const matchQ =
         !query ||
         r.vendor.toLowerCase().includes(query) ||
@@ -91,7 +125,7 @@ export default function Renewals() {
 
       return matchQ && matchStatus && matchRisk
     })
-  }, [q, status, risk])
+  }, [q, rows, status, risk])
 
   const totalValue = useMemo(() => {
     return filtered.reduce((sum, r) => sum + r.amount, 0)
