@@ -22,6 +22,8 @@ export default function AdminTenantForm() {
     timezone: "",
     currency: "",
     subscription: "",
+    primary_admin_email: "",
+    primary_admin_name: "",
     status: "Active",
   })
   const [primaryEmail, setPrimaryEmail] = useState("")
@@ -73,7 +75,11 @@ export default function AdminTenantForm() {
   return (
     <AppShell
       title={editing ? "Edit tenant" : "Create tenant"}
-      subtitle="Admin controls for onboarding tenants"
+      subtitle={
+        editing
+          ? "Local mirror edit (does not auto-sync Google Sheet)"
+          : "Admin controls for onboarding tenants"
+      }
       navSections={adminNav}
       chips={[editing ? "Tenant" : "Create", "Admin"]}
     >
@@ -87,6 +93,8 @@ export default function AdminTenantForm() {
           {inputField("Timezone", "timezone", form.timezone ?? "", setForm)}
           {inputField("Currency", "currency", form.currency ?? "", setForm)}
           {inputField("Plan", "subscription", form.subscription ?? "", setForm)}
+          {inputField("Primary admin name", "primary_admin_name", form.primary_admin_name ?? "", setForm)}
+          {inputField("Primary admin email", "primary_admin_email", form.primary_admin_email ?? "", setForm)}
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

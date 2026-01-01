@@ -8,12 +8,15 @@ import AdminTenants from "./pages/admin/AdminTenants"
 import AdminTenantForm from "./pages/admin/AdminTenantForm"
 import AdminUsers from "./pages/admin/AdminUsers"
 import AdminSettings from "./pages/admin/AdminSettings"
+import VendorNew from "./pages/admin/VendorNew"
 import CustomerDashboard from "./pages/customer/Dashboard"
 import CustomerReports from "./pages/customer/Reports"
 import CustomerDepartments from "./pages/customer/Departments"
 import CustomerAnalytics from "./pages/customer/Analytics"
 import CustomerAIInsights from "./pages/customer/AIInsights"
 import CustomerSettings from "./pages/customer/Settings"
+import CustomerSubscriptions from "./pages/customer/Subscriptions"
+import CustomerRenewals from "./pages/customer/Renewals"
 import { useAdminAuth } from "./auth/AdminAuthContext"
 import { useCustomerAuth } from "./auth/CustomerAuthContext"
 
@@ -48,7 +51,7 @@ export default function App() {
           path="/admin/tenants/new"
           element={
             <AdminGuard>
-              <AdminTenantForm />
+              <VendorNew />
             </AdminGuard>
           }
         />
@@ -84,6 +87,22 @@ export default function App() {
           element={
             <CustomerGuard>
               <CustomerDashboard />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/subscriptions"
+          element={
+            <CustomerGuard>
+              <CustomerSubscriptions />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/renewals"
+          element={
+            <CustomerGuard>
+              <CustomerRenewals />
             </CustomerGuard>
           }
         />

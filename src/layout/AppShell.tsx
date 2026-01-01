@@ -1,7 +1,9 @@
 // src/layout/AppShell.tsx
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import { useMemo, useState } from "react"
 import type { ReactNode, CSSProperties } from "react"
+import { useAdminAuth } from "../auth/AdminAuthContext"
+import { useCustomerAuth } from "../auth/CustomerAuthContext"
 
 export type NavSection = {
   label?: string
@@ -20,6 +22,9 @@ export type AppShellProps = {
 export default function AppShell({ title, subtitle, actions, children, navSections, chips }: AppShellProps) {
   const [isPinned, setIsPinned] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const navigate = useNavigate()
+  const adminAuth = useAdminAuth()
+  const customerAuth = useCustomerAuth()
 
   const navItems = useMemo(() => navSections ?? defaultNav, [navSections])
 
@@ -103,6 +108,19 @@ export default function AppShell({ title, subtitle, actions, children, navSectio
                 {chipNode}
               </span>
             ))}
+            {(adminAuth.isAuthenticated || customerAuth.isAuthenticated) && (
+              <button
+                className="cs-btn"
+                style={{ height: 38, marginLeft: 8 }}
+                onClick={() => {
+                  if (adminAuth.isAuthenticated) adminAuth.logout()
+                  if (customerAuth.isAuthenticated) customerAuth.logout()
+                  navigate("/")
+                }}
+              >
+                Logout
+              </button>
+            )}
           </div>
         </div>
 
