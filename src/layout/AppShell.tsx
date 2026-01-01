@@ -3,51 +3,25 @@ import { NavLink } from "react-router-dom"
 import { useMemo, useState } from "react"
 import type { ReactNode, CSSProperties } from "react"
 
+export type NavSection = {
+  label?: string
+  items: { to: string; label: string; icon: string }[]
+}
+
 export type AppShellProps = {
   title: string
   subtitle?: string
   actions?: ReactNode
   children: ReactNode
+  navSections?: NavSection[]
+  chips?: ReactNode[]
 }
 
-export default function AppShell({ title, subtitle, actions, children }: AppShellProps) {
+export default function AppShell({ title, subtitle, actions, children, navSections, chips }: AppShellProps) {
   const [isPinned, setIsPinned] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
-  const navItems = useMemo(
-    () => [
-      {
-        label: "Core",
-        items: [
-          { to: "/dashboard", label: "Dashboard", icon: "📊" },
-          { to: "/subscriptions", label: "Subscriptions", icon: "💳" },
-          { to: "/users", label: "Users", icon: "👥" },
-          { to: "/departments", label: "Departments", icon: "🏢" },
-          { to: "/analytics", label: "Analytics", icon: "📈" },
-          { to: "/ai-insights", label: "AI Insights", icon: "✨" },
-        ],
-      },
-      {
-        label: "Operations",
-        items: [
-          { to: "/approvals", label: "Approvals", icon: "✅" },
-          { to: "/renewals", label: "Renewals", icon: "↻" },
-          { to: "/subscriptions/detail", label: "Subscription Detail", icon: "◉" },
-          { to: "/renewals/detail", label: "Renewal Detail", icon: "○" },
-          { to: "/reports", label: "Reports", icon: "🗒" },
-        ],
-      },
-      {
-        label: "Admin",
-        items: [
-          { to: "/admin/vendors", label: "Tenants", icon: "🏢" },
-          { to: "/admin/vendor-new", label: "Onboard Tenant", icon: "＋" },
-          { to: "/admin/settings", label: "Admin / Settings", icon: "⚙" },
-        ],
-      },
-    ],
-    [],
-  )
+  const navItems = useMemo(() => navSections ?? defaultNav, [navSections])
 
   const expanded = isPinned || isHovered
   const sidebarWidth = expanded ? 240 : 72
@@ -124,8 +98,11 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
 
           <div style={topRight}>
             {actions ? <div style={actionsWrap}>{actions}</div> : null}
-            <span style={chip}>Env: PROD</span>
-            <span style={chip}>Region: KSA</span>
+            {(chips || defaultChips).map((chipNode, idx) => (
+              <span key={idx} style={chip}>
+                {chipNode}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -312,3 +289,37 @@ const tipCard: CSSProperties = {
   background: "var(--surface)",
   boxShadow: "var(--shadow-sm)",
 }
+
+const defaultNav: NavSection[] = [
+  {
+    label: "Core",
+    items: [
+      { to: "/dashboard", label: "Dashboard", icon: "📊" },
+      { to: "/subscriptions", label: "Subscriptions", icon: "💳" },
+      { to: "/users", label: "Users", icon: "👥" },
+      { to: "/departments", label: "Departments", icon: "🏢" },
+      { to: "/analytics", label: "Analytics", icon: "📈" },
+      { to: "/ai-insights", label: "AI Insights", icon: "✨" },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { to: "/approvals", label: "Approvals", icon: "✅" },
+      { to: "/renewals", label: "Renewals", icon: "↻" },
+      { to: "/subscriptions/detail", label: "Subscription Detail", icon: "◉" },
+      { to: "/renewals/detail", label: "Renewal Detail", icon: "○" },
+      { to: "/reports", label: "Reports", icon: "🗒" },
+    ],
+  },
+  {
+    label: "Admin",
+    items: [
+      { to: "/admin/vendors", label: "Tenants", icon: "🏢" },
+      { to: "/admin/vendor-new", label: "Onboard Tenant", icon: "＋" },
+      { to: "/admin/settings", label: "Admin / Settings", icon: "⚙" },
+    ],
+  },
+]
+
+const defaultChips = ["Env: PROD", "Region: KSA"]

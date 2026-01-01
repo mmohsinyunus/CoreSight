@@ -1,133 +1,135 @@
 // src/App.tsx
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom"
+import type { ReactElement } from "react"
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom"
+import Landing from "./pages/Landing"
+import AdminLogin from "./pages/AdminLogin"
+import CustomerLogin from "./pages/CustomerLogin"
+import AdminTenants from "./pages/admin/AdminTenants"
+import AdminTenantForm from "./pages/admin/AdminTenantForm"
+import AdminUsers from "./pages/admin/AdminUsers"
+import AdminSettings from "./pages/admin/AdminSettings"
+import CustomerDashboard from "./pages/customer/Dashboard"
+import CustomerReports from "./pages/customer/Reports"
+import CustomerDepartments from "./pages/customer/Departments"
+import CustomerAnalytics from "./pages/customer/Analytics"
+import CustomerAIInsights from "./pages/customer/AIInsights"
+import CustomerSettings from "./pages/customer/Settings"
+import { useAdminAuth } from "./auth/AdminAuthContext"
+import { useCustomerAuth } from "./auth/CustomerAuthContext"
 
-// Real pages (these DO exist)
-import Home from "./pages/Home"
-import Dashboard from "./pages/Dashboard"
-import Reports from "./pages/Reports"
-import Approvals from "./pages/Approvals"
+function AdminGuard({ children }: { children: ReactElement }) {
+  const { isAuthenticated } = useAdminAuth()
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />
+  return children
+}
 
-// Real pages
-import Renewals from "./pages/Renewals"
-import RenewalDetail from "./pages/RenewalDetail"
-import Subscriptions from "./pages/Subscriptions"
-import SubscriptionDetail from "./pages/SubscriptionDetail"
-
-// Existing admin pages
-import Vendors from "./pages/admin/Vendors"
-import VendorNew from "./pages/admin/VendorNew"
-import Settings from "./pages/admin/Settings"
-
-// Placeholders (stubs for pages not built yet)
-import { PlaceholderPage } from "./pages/_placeholders"
+function CustomerGuard({ children }: { children: ReactElement }) {
+  const { isAuthenticated } = useCustomerAuth()
+  if (!isAuthenticated) return <Navigate to="/customer/login" replace />
+  return children
+}
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        {/* Default */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Landing />} />
 
-        {/* Core */}
-        <Route path="/home" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/reports" element={<Reports />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route
-          path="/analytics"
+          path="/admin/tenants"
           element={
-            <PlaceholderPage
-              title="Analytics Dashboard"
-              subtitle="Usage, adoption, and performance metrics"
-            />
+            <AdminGuard>
+              <AdminTenants />
+            </AdminGuard>
           }
         />
         <Route
-          path="/ai-insights"
+          path="/admin/tenants/new"
           element={
-            <PlaceholderPage
-              title="AI Insights"
-              subtitle="Foresight, signals, and recommendations (coming soon)"
-            />
-          }
-        />
-
-        {/* Auth / selection */}
-        <Route
-          path="/login"
-          element={<PlaceholderPage title="Login" subtitle="SSO + email login (demo stub)" />}
-        />
-        <Route
-          path="/tenant-selection"
-          element={<PlaceholderPage title="Tenant Selection" subtitle="Choose tenant and role" />}
-        />
-
-        {/* Setup */}
-        <Route path="/company-setup" element={<PlaceholderPage title="Company Setup" />} />
-        <Route path="/department-setup" element={<PlaceholderPage title="Department Setup" />} />
-        <Route
-          path="/connect-sources"
-          element={
-            <PlaceholderPage
-              title="Connect Data Sources"
-              subtitle="Google Sheets / CRM / ERP connectors"
-            />
+            <AdminGuard>
+              <AdminTenantForm />
+            </AdminGuard>
           }
         />
         <Route
-          path="/sync-progress"
-          element={<PlaceholderPage title="Sync Progress" subtitle="Live progress + error handling" />}
-        />
-
-        {/* Subscriptions */}
-        <Route path="/subscriptions" element={<Subscriptions />} />
-        <Route path="/subscriptions/detail" element={<SubscriptionDetail />} />
-
-        {/* Users / identity */}
-        <Route path="/users" element={<PlaceholderPage title="Users List" />} />
-        <Route path="/users/profile" element={<PlaceholderPage title="User Profile" />} />
-        <Route
-          path="/identity-queue"
+          path="/admin/tenants/:tenantId/edit"
           element={
-            <PlaceholderPage
-              title="Identity Resolution Queue"
-              subtitle="Merge/split identities + review actions"
-            />
+            <AdminGuard>
+              <AdminTenantForm />
+            </AdminGuard>
           }
         />
-        <Route path="/departments" element={<PlaceholderPage title="Departments Overview" />} />
-
-        {/* Vendors / admin onboarding (REAL) */}
-        <Route path="/admin/vendors" element={<Vendors />} />
-        <Route path="/admin/vendor-new" element={<VendorNew />} />
-        <Route path="/admin/settings" element={<Settings />} />
-
-        {/* Renewals (REAL) */}
-        <Route path="/renewals" element={<Renewals />} />
-        <Route path="/renewals/detail" element={<RenewalDetail />} />
-
-        {/* Approvals (REAL) */}
-        <Route path="/approvals" element={<Approvals />} />
-
-        {/* Audit log (stub for now) */}
         <Route
-          path="/audit-log"
+          path="/admin/users"
           element={
-            <PlaceholderPage
-              title="Audit Log"
-              subtitle="All actions are tracked here (demo log next)"
-            />
+            <AdminGuard>
+              <AdminUsers />
+            </AdminGuard>
           }
         />
-
-        {/* Policies / settings */}
-        <Route path="/tenant-settings" element={<PlaceholderPage title="Tenant Settings" />} />
         <Route
-          path="/policies"
-          element={<PlaceholderPage title="Policies" subtitle="Security + retention + data governance" />}
+          path="/admin/settings"
+          element={
+            <AdminGuard>
+              <AdminSettings />
+            </AdminGuard>
+          }
         />
+        <Route path="/admin" element={<Navigate to="/admin/tenants" replace />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/customer/login" element={<CustomerLogin />} />
+        <Route
+          path="/app/dashboard"
+          element={
+            <CustomerGuard>
+              <CustomerDashboard />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/reports"
+          element={
+            <CustomerGuard>
+              <CustomerReports />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/departments"
+          element={
+            <CustomerGuard>
+              <CustomerDepartments />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/analytics"
+          element={
+            <CustomerGuard>
+              <CustomerAnalytics />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/ai-insights"
+          element={
+            <CustomerGuard>
+              <CustomerAIInsights />
+            </CustomerGuard>
+          }
+        />
+        <Route
+          path="/app/settings"
+          element={
+            <CustomerGuard>
+              <CustomerSettings />
+            </CustomerGuard>
+          }
+        />
+        <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   )
