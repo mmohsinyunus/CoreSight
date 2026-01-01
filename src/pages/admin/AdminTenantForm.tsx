@@ -94,7 +94,7 @@ export default function AdminTenantForm() {
     setPrimaryPassword("")
     setPrimaryConfirm("")
     setPrimaryName("")
-    setUserNotice("Primary customer login created")
+    setUserNotice("Primary customer created. Subscriptions & renewals seeded for this tenant.")
   }
 
   const resetPasswordHandler = (e: FormEvent) => {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { findCustomerUser, hashPassword, listUsers, verifyPassword } from "../data/users"
+import { findUserByEmail, hashPassword, listUsers, verifyPassword } from "../data/users"
 import { fetchTenantsFromSheet, getTenantByCode, listTenants } from "../data/tenants"
 import type { Tenant } from "../data/tenants"
 import type { User } from "../data/users"
@@ -36,6 +36,8 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
   const login = async (tenantCode: string, email: string, password: string): Promise<LoginResult> => {
     const code = tenantCode.trim()
+    const normalizedEmail = email.trim()
+
     let tenant = getTenantByCode(code)
 
     if (!tenant) {
@@ -49,14 +51,32 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     }
 
     if (!tenant) return { success: false, error: "Tenant not found" }
-    if (tenant.status !== "Active") return { success: false, error: "Tenant inactive" }
 
-    const user = findCustomerUser(tenant, email.trim())
-    if (!user) return { success: false, error: "User not found" }
-    if (user.status !== "Active") return { success: false, error: "User inactive" }
+    const isActiveTenant = (tenant.status || "").toLowerCase() === "active"
+    if (!isActiveTenant) {
+      return { success: false, error: "Tenant is inactive. Contact administrator." }
+    }
+
+    const user = listUsers().find(
+      (u) =>
+        u.tenant_id === tenant?.tenant_id &&
+        u.email.toLowerCase() === normalizedEmail.toLowerCase() &&
+        (!u.status || u.status === "Active") &&
+        (u.role === "CUSTOMER_PRIMARY" || u.role === "CUSTOMER_USER"),
+    )
+
+    if (!user) {
+      const emailMatch = findUserByEmail(normalizedEmail)
+      if (emailMatch && emailMatch.tenant_id !== tenant.tenant_id) {
+        return { success: false, error: "Email is registered to a different tenant." }
+      }
+      return { success: false, error: "No user found for this tenant. Ask admin to create primary login." }
+    }
+
+    if (user.status && user.status !== "Active") return { success: false, error: "User inactive" }
 
     if (!verifyPassword(password, user.password_hash)) {
-      return { success: false, error: "Incorrect password" }
+      return { success: false, error: "Invalid credentials." }
     }
 
     const newSession: CustomerSession = { tenant, user }
