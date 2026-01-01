@@ -3,7 +3,7 @@ import AppShell from "../../layout/AppShell"
 import { listUsers } from "../../data/users"
 import type { User } from "../../data/users"
 import { listTenants } from "../../data/tenants"
-import { adminNav } from "./nav"
+import { adminNav } from "../../navigation/adminNav"
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([])
@@ -20,7 +20,7 @@ export default function AdminUsers() {
   }, [])
 
   return (
-    <AppShell title="Tenant users" subtitle="Accounts issued by admins" navSections={adminNav} chips={["Admin"]}>
+    <AppShell title="Tenant users" subtitle="Accounts issued by admins" navItems={adminNav} chips={["Admin"]}>
       <div className="cs-card" style={{ padding: 18 }}>
         <table className="cs-table">
           <thead>

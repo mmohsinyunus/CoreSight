@@ -1,9 +1,9 @@
 import AppShell from "../../layout/AppShell"
-import { adminNav } from "./nav"
+import { adminNav } from "../../navigation/adminNav"
 
 export default function AdminSettings() {
   return (
-    <AppShell title="Admin settings" subtitle="Prototype controls" navSections={adminNav} chips={["Admin"]}>
+    <AppShell title="Admin settings" subtitle="Prototype controls" navItems={adminNav} chips={["Admin"]}>
       <div className="cs-card" style={{ padding: 18, display: "grid", gap: 12 }}>
         <div style={{ fontWeight: 800 }}>Environment</div>
         <div style={{ color: "var(--text-secondary)" }}>
