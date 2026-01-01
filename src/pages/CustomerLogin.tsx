@@ -19,9 +19,9 @@ export default function CustomerLogin() {
 
   if (isAuthenticated) return <Navigate to="/app/dashboard" replace />
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    const result = login(tenantCode, email, password)
+    const result = await login(tenantCode, email, password)
     if (!result.success) {
       setError(result.error)
       return
