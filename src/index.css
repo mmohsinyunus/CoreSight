@@ -1,30 +1,39 @@
 /* src/index.css */
 
-/* Apple-ish light UI tokens */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 :root {
-  --bg: #f5f6f8;
-  --card: #ffffff;
-  --text: #0b1220;
-  --muted: rgba(11, 18, 32, 0.62);
-  --border: rgba(11, 18, 32, 0.10);
+  /* Core surfaces */
+  --bg: #0b1018;
+  --surface: #111926;
+  --surface-elevated: #162133;
+  --card: var(--surface);
 
-  --shadow: 0 12px 30px rgba(11, 18, 32, 0.08);
-  --shadow-sm: 0 6px 18px rgba(11, 18, 32, 0.06);
+  /* Text */
+  --text: #e5edf7;
+  --text-secondary: #a8b6ce;
+  --muted: #8a97ad;
 
-  --blue: #0a84ff;
-  --blue-weak: rgba(10, 132, 255, 0.12);
-  --green: #34c759;
-  --red: #ff3b30;
-  --yellow: #ffcc00;
+  /* Borders & shadows */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --shadow: 0 18px 38px rgba(0, 0, 0, 0.42);
+  --shadow-sm: 0 12px 26px rgba(0, 0, 0, 0.32);
 
+  /* Accent */
+  --accent: #40c3e9;
+  --accent-hover: #64d2f3;
+  --focus-ring: rgba(64, 195, 233, 0.32);
+
+  /* Radii */
   --radius-lg: 18px;
   --radius-md: 14px;
   --radius-sm: 12px;
 
   --sidebar-w: 280px;
 
-  font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
-    Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
   background: var(--bg);
   text-rendering: optimizeLegibility;
@@ -34,7 +43,11 @@
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
-body { margin: 0; background: var(--bg); color: var(--text); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
 
 a {
   color: inherit;
@@ -48,33 +61,45 @@ button, input, select, textarea {
 
 /* Subtle modern focus (works for keyboard navigation) */
 :focus-visible {
-  outline: 3px solid rgba(10, 132, 255, 0.28);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: 10px;
 }
 
 /* Inputs */
 .cs-input,
-.cs-select {
+.cs-select,
+.cs-textarea {
   height: 44px;
   width: 100%;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: rgba(11, 18, 32, 0.03);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
   padding: 0 12px;
   outline: none;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
-.cs-input::placeholder {
-  color: rgba(11, 18, 32, 0.45);
+.cs-textarea {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.cs-input::placeholder,
+.cs-select::placeholder,
+.cs-textarea::placeholder {
+  color: var(--muted);
 }
 
 .cs-input:focus,
-.cs-select:focus {
-  border-color: rgba(10, 132, 255, 0.45);
-  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.12);
-  background: #fff;
+.cs-select:focus,
+.cs-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* Buttons */
@@ -83,22 +108,30 @@ button, input, select, textarea {
   padding: 0 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, background 160ms ease, border-color 160ms ease;
+  transition: transform 140ms ease, box-shadow 200ms ease, background 200ms ease, border-color 200ms ease;
 }
-.cs-btn:hover { box-shadow: var(--shadow-sm); }
+.cs-btn:hover { box-shadow: var(--shadow-sm); background: rgba(255, 255, 255, 0.06); }
 .cs-btn:active { transform: translateY(1px); }
 .cs-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .cs-btn-primary {
-  border: 1px solid rgba(10, 132, 255, 0.25);
-  background: var(--blue-weak);
-  color: rgba(11, 18, 32, 0.95);
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #041018;
   font-weight: 700;
+  box-shadow: var(--shadow-sm);
 }
-.cs-btn-primary:hover { box-shadow: var(--shadow-sm); }
+.cs-btn-primary:hover { background: var(--accent-hover); }
 .cs-btn-primary:active { transform: translateY(1px); }
+
+.cs-btn-ghost {
+  border-color: var(--border-soft);
+  background: transparent;
+  color: var(--text);
+}
 
 /* Pills / chips */
 .cs-pill {
@@ -108,8 +141,8 @@ button, input, select, textarea {
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(11, 18, 32, 0.03);
-  color: rgba(11, 18, 32, 0.86);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
   font-size: 13px;
   font-weight: 650;
 }
@@ -133,47 +166,53 @@ button, input, select, textarea {
 .cs-table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.cs-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--surface-elevated);
+  z-index: 1;
+  box-shadow: inset 0 -1px 0 var(--border);
 }
 .cs-th {
   text-align: left;
   font-size: 12px;
-  color: rgba(11, 18, 32, 0.55);
+  color: var(--muted);
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(11, 18, 32, 0.08);
+  border-bottom: 1px solid var(--border);
   font-weight: 800;
   white-space: nowrap;
+  background: var(--surface-elevated);
 }
 .cs-td {
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(11, 18, 32, 0.06);
+  border-bottom: 1px solid var(--border);
   font-size: 14px;
   white-space: nowrap;
+  color: var(--text);
 }
-
-/* ✅ Clickable row hover (Renewals, Subscriptions, etc.) */
 .cs-row-hover {
   cursor: pointer;
-  transition: background 140ms ease;
+  transition: background 160ms ease;
 }
-.cs-row-hover:hover {
-  background: rgba(11, 18, 32, 0.03);
-}
-.cs-row-hover:active {
-  background: rgba(11, 18, 32, 0.05);
-}
-/* Keyboard users: highlight row when focused */
+.cs-row-hover:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+.cs-row-hover:hover { background: rgba(255, 255, 255, 0.04); }
+.cs-row-hover:active { background: rgba(255, 255, 255, 0.05); }
 .cs-row-hover:focus-within,
 .cs-row-hover:focus {
-  outline: 3px solid rgba(10, 132, 255, 0.22);
+  outline: 3px solid var(--focus-ring);
   outline-offset: -2px;
 }
 
 /* Optional: nicer scrollbars */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(11, 18, 32, 0.18);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(11, 18, 32, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }

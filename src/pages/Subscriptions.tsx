@@ -120,10 +120,10 @@ export default function Subscriptions() {
         </div>
 
         <div style={bar}>
-          <div style={barLeft}>
-            <input
-              className="cs-input"
-              style={{ width: 280 }}
+            <div style={barLeft}>
+              <input
+                className="cs-input"
+                style={{ width: 280 }}
               placeholder="Search entitlement, vendor, product, or plan"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -263,23 +263,13 @@ function Kpi({ title, value }: { title: string; value: string }) {
 }
 
 function Badge({ children, tone }: { children: React.ReactNode; tone: "ok" | "warn" | "danger" | "info" }) {
-  const bg =
-    tone === "ok"
-      ? "rgba(52,199,89,0.12)"
-      : tone === "warn"
-        ? "rgba(255,159,10,0.14)"
-        : tone === "danger"
-          ? "rgba(255,59,48,0.12)"
-          : "rgba(10,132,255,0.12)"
-
-  const border =
-    tone === "ok"
-      ? "rgba(52,199,89,0.25)"
-      : tone === "warn"
-        ? "rgba(255,159,10,0.28)"
-        : tone === "danger"
-          ? "rgba(255,59,48,0.25)"
-          : "rgba(10,132,255,0.22)"
+  const palette = {
+    ok: { bg: "rgba(64,195,233,0.16)", border: "rgba(64,195,233,0.32)", color: "#dff7ff" },
+    warn: { bg: "rgba(255,255,255,0.07)", border: "var(--border)", color: "var(--text-secondary)" },
+    danger: { bg: "rgba(255,255,255,0.06)", border: "var(--border)", color: "var(--muted)" },
+    info: { bg: "rgba(255,255,255,0.05)", border: "var(--border)", color: "var(--text-secondary)" },
+  } as const
+  const { bg, border, color } = palette[tone]
 
   return (
     <span
@@ -293,6 +283,7 @@ function Badge({ children, tone }: { children: React.ReactNode; tone: "ok" | "wa
         fontSize: 12,
         fontWeight: 700,
         whiteSpace: "nowrap",
+        color,
       }}
     >
       {children}
@@ -310,15 +301,16 @@ const kpiGrid: React.CSSProperties = {
 }
 
 const kpi: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
   padding: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const kpiTitle: React.CSSProperties = {
   fontSize: 12,
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   fontWeight: 700,
 }
 
@@ -329,10 +321,10 @@ const kpiValue: React.CSSProperties = {
 }
 
 const bar: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface-elevated)",
   borderRadius: 16,
   padding: 12,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   display: "flex",
   gap: 12,
   alignItems: "center",
@@ -354,33 +346,35 @@ const barRight: React.CSSProperties = {
 }
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   overflow: "hidden",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const cardHead: React.CSSProperties = {
   padding: 14,
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
 }
 
 const muted: React.CSSProperties = {
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   fontSize: 13,
 }
 
 const table: React.CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
+  background: "var(--surface)",
 }
 
 const th: React.CSSProperties = {
   textAlign: "left",
   fontSize: 12,
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   padding: "12px 14px",
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
   fontWeight: 800,
   whiteSpace: "nowrap",
 }
@@ -392,9 +386,10 @@ const tr: React.CSSProperties = {
 
 const td: React.CSSProperties = {
   padding: "12px 14px",
-  borderBottom: "1px solid rgba(15,23,42,0.06)",
+  borderBottom: "1px solid var(--border)",
   fontSize: 14,
   whiteSpace: "nowrap",
+  color: "var(--text)",
 }
 
 const tdMono: React.CSSProperties = {
@@ -402,11 +397,11 @@ const tdMono: React.CSSProperties = {
   fontFamily:
     "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   fontSize: 13,
-  color: "rgba(15,23,42,0.8)",
+  color: "var(--text-secondary)",
 }
 
 const tdEmpty: React.CSSProperties = {
   padding: 18,
   textAlign: "center",
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
 }

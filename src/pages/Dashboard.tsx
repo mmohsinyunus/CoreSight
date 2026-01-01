@@ -76,7 +76,7 @@ export default function Dashboard() {
             <span style={pill}>Env: PROD</span>
           </div>
 
-          <button style={btn} onClick={load} disabled={loading}>
+          <button className="cs-btn cs-btn-primary" style={{ height: 40 }} onClick={load} disabled={loading}>
             {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
@@ -170,22 +170,22 @@ function Kpi({ title, value, hint }: { title: string; value: number; hint: strin
 
 function statusPill(status?: string): React.CSSProperties {
   const s = (status || "").toLowerCase()
-  let bg = "rgba(15,23,42,0.06)"
-  let border = "rgba(15,23,42,0.10)"
-  let color = "rgba(15,23,42,0.80)"
+  let bg = "rgba(255,255,255,0.04)"
+  let border = "var(--border)"
+  let color = "var(--text-secondary)"
 
   if (s === "active") {
-    bg = "rgba(52,199,89,0.12)"
-    border = "rgba(52,199,89,0.22)"
-    color = "rgba(14,87,32,0.95)"
+    bg = "rgba(64,195,233,0.16)"
+    border = "rgba(64,195,233,0.35)"
+    color = "#dff7ff"
   } else if (s === "trial") {
-    bg = "rgba(10,132,255,0.12)"
-    border = "rgba(10,132,255,0.22)"
-    color = "rgba(0,60,120,0.95)"
+    bg = "rgba(100,210,243,0.16)"
+    border = "rgba(100,210,243,0.35)"
+    color = "#d2f5ff"
   } else if (s === "inactive") {
-    bg = "rgba(255,59,48,0.10)"
-    border = "rgba(255,59,48,0.18)"
-    color = "rgba(120,15,15,0.95)"
+    bg = "rgba(255,255,255,0.06)"
+    border = "var(--border)"
+    color = "var(--muted)"
   }
 
   return {
@@ -215,20 +215,11 @@ const pillRow: React.CSSProperties = { display: "flex", gap: 10, flexWrap: "wrap
 const pill: React.CSSProperties = {
   padding: "8px 12px",
   borderRadius: 999,
-  border: "1px solid rgba(15,23,42,0.10)",
-  background: "rgba(15,23,42,0.03)",
+  border: "1px solid var(--border)",
+  background: "rgba(255,255,255,0.04)",
   fontSize: 13,
   fontWeight: 600,
-  color: "rgba(15,23,42,0.75)",
-}
-const btn: React.CSSProperties = {
-  height: 40,
-  padding: "0 14px",
-  borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "#fff",
-  cursor: "pointer",
-  fontWeight: 600,
+  color: "var(--text-secondary)",
 }
 const grid4: React.CSSProperties = {
   display: "grid",
@@ -236,59 +227,66 @@ const grid4: React.CSSProperties = {
   gap: 12,
 }
 const kpi: React.CSSProperties = {
-  background: "#fff",
-  border: "1px solid rgba(15,23,42,0.10)",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 16,
   padding: 14,
-  boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+  boxShadow: "var(--shadow-sm)",
   minHeight: 92,
 }
 const kpiTop: React.CSSProperties = { display: "grid", gap: 4 }
-const kpiTitle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "rgba(15,23,42,0.70)" }
-const kpiHint: React.CSSProperties = { fontSize: 12, color: "rgba(15,23,42,0.55)" }
-const kpiValue: React.CSSProperties = { marginTop: 10, fontSize: 28, fontWeight: 700, letterSpacing: -0.2 }
+const kpiTitle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--text-secondary)" }
+const kpiHint: React.CSSProperties = { fontSize: 12, color: "var(--muted)" }
+const kpiValue: React.CSSProperties = {
+  marginTop: 10,
+  fontSize: 28,
+  fontWeight: 800,
+  letterSpacing: -0.2,
+  color: "var(--text)",
+}
 
 const card: React.CSSProperties = {
-  background: "#fff",
-  border: "1px solid rgba(15,23,42,0.10)",
+  background: "var(--surface-elevated)",
+  border: "1px solid var(--border)",
   borderRadius: 18,
   padding: 16,
-  boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
+  boxShadow: "var(--shadow-sm)",
 }
 const cardHead: React.CSSProperties = { display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }
 const cardTitle: React.CSSProperties = { fontSize: 16, fontWeight: 700 }
-const cardSub: React.CSSProperties = { fontSize: 13, color: "rgba(15,23,42,0.60)", marginTop: 4 }
-const smallMuted: React.CSSProperties = { fontSize: 12, color: "rgba(15,23,42,0.55)" }
+const cardSub: React.CSSProperties = { fontSize: 13, color: "var(--muted)", marginTop: 4 }
+const smallMuted: React.CSSProperties = { fontSize: 12, color: "var(--muted)" }
 
-const table: React.CSSProperties = { width: "100%", borderCollapse: "separate", borderSpacing: 0, marginTop: 12 }
+const table: React.CSSProperties = { width: "100%", borderCollapse: "separate", borderSpacing: 0, marginTop: 12, background: "var(--surface)" }
 const th: React.CSSProperties = {
   textAlign: "left",
   fontSize: 12,
-  color: "rgba(15,23,42,0.60)",
+  color: "var(--muted)",
   padding: "10px 10px",
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
   fontWeight: 700,
 }
-const tr: React.CSSProperties = { borderBottom: "1px solid rgba(15,23,42,0.06)" }
-const td: React.CSSProperties = { padding: "10px 10px", fontSize: 13, color: "rgba(15,23,42,0.85)" }
+const tr: React.CSSProperties = { borderBottom: "1px solid var(--border)" }
+const td: React.CSSProperties = { padding: "10px 10px", fontSize: 13, color: "var(--text)" }
 const tdMono: React.CSSProperties = { ...td, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }
 
 const errorBox: React.CSSProperties = {
   padding: 12,
   borderRadius: 12,
-  background: "rgba(255,59,48,0.08)",
-  border: "1px solid rgba(255,59,48,0.18)",
-  color: "rgba(120,15,15,0.95)",
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid var(--border)",
+  color: "var(--text)",
 }
 
 const noteCard: React.CSSProperties = {
-  background: "rgba(15,23,42,0.02)",
-  border: "1px solid rgba(15,23,42,0.08)",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 18,
   padding: 16,
+  boxShadow: "var(--shadow-sm)",
 }
 const noteTitle: React.CSSProperties = { fontSize: 14, fontWeight: 700, marginBottom: 8 }
-const list: React.CSSProperties = { margin: 0, paddingLeft: 18, color: "rgba(15,23,42,0.75)" }
+const list: React.CSSProperties = { margin: 0, paddingLeft: 18, color: "var(--text-secondary)" }
 
 // Simple responsive tweak (optional): if you want, move to CSS later
 if (typeof window !== "undefined") {
