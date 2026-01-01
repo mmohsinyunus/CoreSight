@@ -29,15 +29,21 @@ export default function VendorNew() {
   // Tenant (Step 1)
   const [tenant_name, setTenantName] = useState("")
   const [legal_name, setLegalName] = useState("")
-  const [tenant_type, setTenantType] = useState<string>(TENANT_TYPE_OPTIONS[0] || "Enterprise")
+  const [tenant_type, setTenantType] = useState<string>(
+    TENANT_TYPE_OPTIONS[0] || "Enterprise",
+  )
 
   // Point 5: VAT + National Address MUST be on first screen and mandatory
   const [vat_registration_number, setVat] = useState("")
   const [national_address, setNationalAddress] = useState("")
 
   // Subscription (Step 2)
-  const [plan_type, setPlanType] = useState<string>(PLAN_TYPE_OPTIONS[1] || "Standard")
-  const [subscription_status, setSubscriptionStatus] = useState<string>(SUBSCRIPTION_STATUS_OPTIONS[0] || "Active")
+  const [plan_type, setPlanType] = useState<string>(
+    PLAN_TYPE_OPTIONS[1] || "Standard",
+  )
+  const [subscription_status, setSubscriptionStatus] = useState<string>(
+    SUBSCRIPTION_STATUS_OPTIONS[0] || "Active",
+  )
   const [subscription_start_date, setStartDate] = useState("")
   const [subscription_end_date, setEndDate] = useState("")
   const [max_users, setMaxUsers] = useState<number>(50)
@@ -67,8 +73,8 @@ export default function VendorNew() {
 
   const created_by_user_id = "platform_admin_mock"
 
-  // Point 7: full reset after create
-  function resetAll() {
+  // Point 7: reset fields after create (but keep success message visible)
+  function resetFieldsOnly() {
     setStep(1)
 
     setTenantName("")
@@ -147,9 +153,15 @@ export default function VendorNew() {
       const nowIso = new Date().toISOString()
       const tenantId = makeTenantId()
 
+      /**
+       * IMPORTANT:
+       * Many Sheets / Apps Script implementations still expect `tenant_code`.
+       * We are removing it from UI, but keeping compatibility by sending it as tenantId.
+       * If your sheet truly no longer has tenant_code, you can remove this line later.
+       */
       const payload: Vendor = {
-        // Point 1: remove tenant_code (only tenant_id)
         tenant_id: tenantId,
+        tenant_code: tenantId, // compat: keep if sheet expects it
 
         tenant_name: tenant_name.trim(),
         legal_name: legal_name.trim(),
@@ -166,10 +178,12 @@ export default function VendorNew() {
         subscription_end_date: subscription_end_date || "",
 
         max_users: Number.isFinite(max_users) ? max_users : undefined,
-        max_organizations: Number.isFinite(max_organizations) ? max_organizations : undefined,
+        max_organizations: Number.isFinite(max_organizations)
+          ? max_organizations
+          : undefined,
 
         tenant_status,
-        is_demo_tenant, // stays false
+        is_demo_tenant,
 
         data_retention_policy,
         compliance_flag,
@@ -190,33 +204,28 @@ export default function VendorNew() {
         primary_admin_user_id: "",
         notes: notes || "",
 
-        // Point 5: still included in payload
         vat_registration_number: vat_registration_number.trim(),
         national_address: national_address.trim(),
       }
 
       const res = await fetch(SHEET_URL, {
         method: "POST",
-        headers: {
-          // avoids preflight on GitHub Pages in many cases
-          "Content-Type": "text/plain;charset=utf-8",
-        },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       })
 
       const json = (await res.json().catch(() => null)) as CreateResponse | null
-
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
       if (!json?.ok) throw new Error(json?.error || "Create failed")
 
       const mirrorTenant = upsertTenantMirrorFromSheet(payload as any)
       if (mirrorTenant) ensureTenantLifecycleRecords(mirrorTenant)
 
-      // Point 3: better wording
+      // Point 3: improved message
       setSuccess(`✅ New tenant is created. The Tenant ID is ${tenantId}.`)
 
-      // Point 7: full reset (but keep success visible)
-      resetAll()
+      // Point 7: reset form completely (but keep success visible)
+      resetFieldsOnly()
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Failed to fetch"
       setError(`Create failed: ${message}`)
@@ -252,19 +261,35 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Legal Name *">
-                  <input className="cs-input" value={legal_name} onChange={(e) => setLegalName(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={legal_name}
+                    onChange={(e) => setLegalName(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="VAT Registration Number *">
-                  <input className="cs-input" value={vat_registration_number} onChange={(e) => setVat(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={vat_registration_number}
+                    onChange={(e) => setVat(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="National Address *">
-                  <input className="cs-input" value={national_address} onChange={(e) => setNationalAddress(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={national_address}
+                    onChange={(e) => setNationalAddress(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Tenant Type *">
-                  <select className="cs-input" value={tenant_type} onChange={(e) => setTenantType(e.target.value)}>
+                  <select
+                    className="cs-input"
+                    value={tenant_type}
+                    onChange={(e) => setTenantType(e.target.value)}
+                  >
                     {TENANT_TYPE_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -283,7 +308,11 @@ export default function VendorNew() {
 
               <div style={grid2}>
                 <Field label="Plan Type">
-                  <select className="cs-input" value={plan_type} onChange={(e) => setPlanType(e.target.value)}>
+                  <select
+                    className="cs-input"
+                    value={plan_type}
+                    onChange={(e) => setPlanType(e.target.value)}
+                  >
                     {PLAN_TYPE_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -293,7 +322,11 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Subscription Status">
-                  <select className="cs-input" value={subscription_status} onChange={(e) => setSubscriptionStatus(e.target.value)}>
+                  <select
+                    className="cs-input"
+                    value={subscription_status}
+                    onChange={(e) => setSubscriptionStatus(e.target.value)}
+                  >
                     {SUBSCRIPTION_STATUS_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -303,23 +336,49 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Subscription Start Date">
-                  <input className="cs-input" type="date" value={subscription_start_date} onChange={(e) => setStartDate(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    type="date"
+                    value={subscription_start_date}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Subscription End Date">
-                  <input className="cs-input" type="date" value={subscription_end_date} onChange={(e) => setEndDate(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    type="date"
+                    value={subscription_end_date}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Max Users">
-                  <input className="cs-input" type="number" min={0} value={max_users} onChange={(e) => setMaxUsers(Number(e.target.value))} />
+                  <input
+                    className="cs-input"
+                    type="number"
+                    min={0}
+                    value={max_users}
+                    onChange={(e) => setMaxUsers(Number(e.target.value))}
+                  />
                 </Field>
 
                 <Field label="Max Organizations">
-                  <input className="cs-input" type="number" min={0} value={max_organizations} onChange={(e) => setMaxOrgs(Number(e.target.value))} />
+                  <input
+                    className="cs-input"
+                    type="number"
+                    min={0}
+                    value={max_organizations}
+                    onChange={(e) => setMaxOrgs(Number(e.target.value))}
+                  />
                 </Field>
 
                 <Field label="Tenant Status">
-                  <select className="cs-input" value={tenant_status} onChange={(e) => setTenantStatus(e.target.value)}>
+                  <select
+                    className="cs-input"
+                    value={tenant_status}
+                    onChange={(e) => setTenantStatus(e.target.value)}
+                  >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                     <option value="Suspended">Suspended</option>
@@ -338,23 +397,43 @@ export default function VendorNew() {
 
               <div style={grid2}>
                 <Field label="Admin Name *">
-                  <input className="cs-input" value={primary_admin_name} onChange={(e) => setAdminName(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={primary_admin_name}
+                    onChange={(e) => setAdminName(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Admin Email *">
-                  <input className="cs-input" value={primary_admin_email} onChange={(e) => setAdminEmail(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={primary_admin_email}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Primary Country">
-                  <input className="cs-input" value={primary_country} onChange={(e) => setCountry(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={primary_country}
+                    onChange={(e) => setCountry(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Primary Timezone">
-                  <input className="cs-input" value={primary_timezone} onChange={(e) => setTimezone(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={primary_timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Default Currency">
-                  <select className="cs-input" value={default_currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
+                  <select
+                    className="cs-input"
+                    value={default_currency}
+                    onChange={(e) => setCurrency(e.target.value as Currency)}
+                  >
                     {CURRENCY_OPTIONS.map((option) => (
                       <option key={option} value={option}>
                         {option}
@@ -364,7 +443,11 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Data Retention Policy">
-                  <select className="cs-input" value={data_retention_policy} onChange={(e) => setRetentionPolicy(e.target.value)}>
+                  <select
+                    className="cs-input"
+                    value={data_retention_policy}
+                    onChange={(e) => setRetentionPolicy(e.target.value)}
+                  >
                     <option value="standard">standard</option>
                     <option value="strict">strict</option>
                     <option value="custom">custom</option>
@@ -373,34 +456,58 @@ export default function VendorNew() {
 
                 <Field label="Compliance Flag">
                   <div style={checkRow}>
-                    <input type="checkbox" style={checkbox} checked={compliance_flag} onChange={(e) => setComplianceFlag(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={compliance_flag}
+                      onChange={(e) => setComplianceFlag(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Requires compliance review</span>
                   </div>
                 </Field>
 
                 <Field label="AI Insights Enabled">
                   <div style={checkRow}>
-                    <input type="checkbox" style={checkbox} checked={ai_insights_enabled} onChange={(e) => setAI(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={ai_insights_enabled}
+                      onChange={(e) => setAI(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Cost Optimization Enabled">
                   <div style={checkRow}>
-                    <input type="checkbox" style={checkbox} checked={cost_optimization_enabled} onChange={(e) => setCost(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={cost_optimization_enabled}
+                      onChange={(e) => setCost(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Usage Analytics Enabled">
                   <div style={checkRow}>
-                    <input type="checkbox" style={checkbox} checked={usage_analytics_enabled} onChange={(e) => setAnalytics(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={usage_analytics_enabled}
+                      onChange={(e) => setAnalytics(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Notes (optional)">
-                  <input className="cs-input" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
                 </Field>
               </div>
 
@@ -419,30 +526,63 @@ export default function VendorNew() {
                 <div>
                   <b>Tenant ID:</b> Will be generated on create
                 </div>
-                <div><b>Name:</b> {tenant_name || "-"}</div>
-                <div><b>Legal Name:</b> {legal_name || "-"}</div>
-                <div><b>VAT:</b> {vat_registration_number || "-"}</div>
-                <div><b>National Address:</b> {national_address || "-"}</div>
-                <div><b>Type:</b> {tenant_type || "-"}</div>
-                <div><b>Plan:</b> {plan_type || "-"}</div>
-                <div><b>Status:</b> {subscription_status || "-"}</div>
-                <div><b>Currency:</b> {default_currency || "-"}</div>
-                <div><b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})</div>
+                <div>
+                  <b>Name:</b> {tenant_name || "-"}
+                </div>
+                <div>
+                  <b>Legal Name:</b> {legal_name || "-"}
+                </div>
+                <div>
+                  <b>VAT:</b> {vat_registration_number || "-"}
+                </div>
+                <div>
+                  <b>National Address:</b> {national_address || "-"}
+                </div>
+                <div>
+                  <b>Type:</b> {tenant_type || "-"}
+                </div>
+                <div>
+                  <b>Plan:</b> {plan_type || "-"}
+                </div>
+                <div>
+                  <b>Status:</b> {subscription_status || "-"}
+                </div>
+                <div>
+                  <b>Currency:</b> {default_currency || "-"}
+                </div>
+                <div>
+                  <b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})
+                </div>
               </div>
             </>
           )}
 
           <div style={navRow}>
-            <button className="cs-btn cs-btn-ghost" style={ghostBtn} onClick={back} disabled={step === 1 || loading}>
+            <button
+              className="cs-btn cs-btn-ghost"
+              style={ghostBtn}
+              onClick={back}
+              disabled={step === 1 || loading}
+            >
               Back
             </button>
 
             {step < 4 ? (
-              <button className="cs-btn cs-btn-primary" style={primaryBtnSmall} onClick={next} disabled={!canNext || loading}>
+              <button
+                className="cs-btn cs-btn-primary"
+                style={primaryBtnSmall}
+                onClick={next}
+                disabled={!canNext || loading}
+              >
                 Next
               </button>
             ) : (
-              <button className="cs-btn cs-btn-primary" style={primaryBtnSmall} onClick={createTenant} disabled={loading}>
+              <button
+                className="cs-btn cs-btn-primary"
+                style={primaryBtnSmall}
+                onClick={createTenant}
+                disabled={loading}
+              >
                 {loading ? "Creating..." : "Create Tenant"}
               </button>
             )}
@@ -539,7 +679,7 @@ const checkbox: React.CSSProperties = {
   background: "var(--surface-elevated)",
   borderRadius: 6,
   border: "1px solid var(--border)",
-  boxShadow: "0 0 0 1px rgba(0,0,0,0.4)",
+  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.4)",
 }
 const errorBox: React.CSSProperties = {
   marginTop: 14,
