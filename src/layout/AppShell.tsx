@@ -11,7 +11,8 @@ export type AppShellProps = {
 }
 
 export default function AppShell({ title, subtitle, actions, children }: AppShellProps) {
-  const [collapsed, setCollapsed] = useState(true)
+  const [isPinned, setIsPinned] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   const navItems = useMemo(
     () => [
@@ -48,7 +49,8 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
     [],
   )
 
-  const sidebarWidth = collapsed ? 72 : 240
+  const expanded = isPinned || isHovered
+  const sidebarWidth = expanded ? 240 : 72
 
   const shellStyle = useMemo<CSSProperties>(
     () => ({
@@ -60,32 +62,50 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
 
   return (
     <div style={shellStyle}>
-      <aside style={{ ...sidebar, width: sidebarWidth }}>
+      <aside
+        style={{ ...sidebar, width: sidebarWidth }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          if (!isPinned) setIsHovered(false)
+        }}
+      >
         <div style={brand}>
           <div style={brandRow}>
             <div style={brandName}>CS</div>
             <button
               className="cs-btn cs-btn-ghost"
               style={toggle}
-              aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
-              onClick={() => setCollapsed((v) => !v)}
+              aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+              onClick={() => setIsPinned((v) => {
+                const next = !v
+                if (!next) setIsHovered(false)
+                return next
+              })}
             >
-              {collapsed ? "→" : "←"}
+              <span
+                style={{
+                  display: "inline-block",
+                  transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 200ms ease",
+                }}
+              >
+                ➜
+              </span>
             </button>
           </div>
-          {!collapsed && <div style={brandSub}>CoreSight — Enterprise control</div>}
+          {expanded && <div style={brandSub}>CoreSight — Enterprise control</div>}
         </div>
 
         {navItems.map((section) => (
           <div key={section.label} style={{ marginBottom: 12 }}>
-            {!collapsed && <div style={navSectionTitle}>{section.label}</div>}
+            {expanded && <div style={navSectionTitle}>{section.label}</div>}
             {section.items.map((item) => (
-              <SideLink key={item.to} to={item.to} label={item.label} icon={item.icon} collapsed={collapsed} />
+              <SideLink key={item.to} to={item.to} label={item.label} icon={item.icon} collapsed={!expanded} />
             ))}
           </div>
         ))}
 
-        {!collapsed && (
+        {expanded && (
           <div style={tipCard}>
             <div style={{ fontWeight: 800, marginBottom: 6, color: "var(--text)" }}>Boardroom ready</div>
             <div style={{ color: "var(--muted)", lineHeight: 1.45 }}>
