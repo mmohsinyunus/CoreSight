@@ -88,7 +88,7 @@ export default function AdminRequests() {
         <table className="cs-table">
           <thead>
             <tr>
-              <th className="cs-th">Tenant</th>
+              <th className="cs-th">Tenant ID</th>
               <th className="cs-th">Type</th>
               <th className="cs-th">Status</th>
               <th className="cs-th">Requested by</th>
@@ -99,7 +99,7 @@ export default function AdminRequests() {
           <tbody>
             {requests.map((req, idx) => (
               <tr key={req.request_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
-                <td className="cs-td">{req.tenant_code || req.tenant_id}</td>
+                <td className="cs-td">{req.tenant_id || "–"}</td>
                 <td className="cs-td">{req.type}</td>
                 <td className="cs-td">{req.status}</td>
                 <td className="cs-td">{req.requested_by || "-"}</td>

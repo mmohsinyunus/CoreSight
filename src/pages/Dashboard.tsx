@@ -4,7 +4,6 @@ import AppShell from "../layout/AppShell"
 
 type TenantRow = {
   tenant_id?: string
-  tenant_code?: string
   tenant_name?: string
   tenant_type?: string
   plan_type?: string
@@ -107,7 +106,7 @@ export default function Dashboard() {
             <table style={table}>
               <thead>
                 <tr>
-                  <th style={th}>Code</th>
+                  <th style={th}>Tenant ID</th>
                   <th style={th}>Name</th>
                   <th style={th}>Type</th>
                   <th style={th}>Plan</th>
@@ -118,8 +117,8 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {recent.map((r, idx) => (
-                  <tr key={`${r.tenant_id || r.tenant_code || idx}`} style={tr}>
-                    <td style={tdMono}>{r.tenant_code || "-"}</td>
+                  <tr key={`${r.tenant_id || idx}`} style={tr}>
+                    <td style={tdMono}>{r.tenant_id || "-"}</td>
                     <td style={td}>{r.tenant_name || "-"}</td>
                     <td style={td}>{r.tenant_type || "-"}</td>
                     <td style={td}>{r.plan_type || "-"}</td>

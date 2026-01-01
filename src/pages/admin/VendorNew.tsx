@@ -17,6 +17,8 @@ const SHEET_URL =
 type Step = 1 | 2 | 3 | 4
 type CreateResponse = { ok?: boolean; error?: string }
 
+const CURRENCY_OPTIONS = ["SAR", "USD", "EUR", "AED"] as const
+
 export default function VendorNew() {
   const [step, setStep] = useState<Step>(1)
   const [loading, setLoading] = useState(false)
@@ -24,7 +26,6 @@ export default function VendorNew() {
   const [success, setSuccess] = useState<string>("")
 
   // Tenant
-  const [tenant_code, setTenantCode] = useState("")
   const [tenant_name, setTenantName] = useState("")
   const [legal_name, setLegalName] = useState("")
   const [tenant_type, setTenantType] = useState<string>(
@@ -50,7 +51,7 @@ export default function VendorNew() {
   const [primary_admin_email, setAdminEmail] = useState("")
   const [primary_country, setCountry] = useState("Saudi Arabia")
   const [primary_timezone, setTimezone] = useState("Asia/Riyadh")
-  const [default_currency, setCurrency] = useState("SAR")
+  const [default_currency, setCurrency] = useState<(typeof CURRENCY_OPTIONS)[number]>("SAR")
   const [data_retention_policy, setRetentionPolicy] = useState("standard")
   const [compliance_flag, setComplianceFlag] = useState(false)
   const [vat_registration_number, setVat] = useState("")
@@ -65,19 +66,27 @@ export default function VendorNew() {
   const created_by_user_id = "platform_admin_mock"
 
   const canNext = useMemo(() => {
-    if (step === 1) return tenant_code.trim() && tenant_name.trim() && tenant_type.trim()
+    if (step === 1) return tenant_name.trim() && tenant_type.trim() && legal_name.trim()
     if (step === 2) return plan_type.trim() && subscription_status.trim()
-    if (step === 3) return primary_admin_name.trim() && primary_admin_email.trim()
+    if (step === 3)
+      return (
+        primary_admin_name.trim() &&
+        primary_admin_email.trim() &&
+        vat_registration_number.trim() &&
+        national_address.trim()
+      )
     return true
   }, [
     step,
-    tenant_code,
     tenant_name,
     tenant_type,
+    legal_name,
     plan_type,
     subscription_status,
     primary_admin_name,
     primary_admin_email,
+    vat_registration_number,
+    national_address,
   ])
 
   function next() {
@@ -96,10 +105,11 @@ export default function VendorNew() {
 
     try {
       const nowIso = new Date().toISOString()
+      const tenantId = makeTenantId()
 
       const payload: Vendor = {
-        tenant_id: makeTenantId(),
-        tenant_code: tenant_code.trim(),
+        tenant_id: tenantId,
+        tenant_code: tenantId,
         tenant_name: tenant_name.trim(),
         legal_name: legal_name.trim() || undefined,
 
@@ -166,15 +176,16 @@ export default function VendorNew() {
         ensureTenantLifecycleRecords(mirrorTenant)
       }
 
-      setSuccess("✅ Tenant created and appended to Google Sheet.")
+      setSuccess(`✅ Tenant created. Tenant ID: ${tenantId}. Appended to Google Sheet.`)
       setStep(1)
 
       // Clear key fields
-      setTenantCode("")
       setTenantName("")
       setLegalName("")
       setAdminName("")
       setAdminEmail("")
+      setVat("")
+      setNationalAddress("")
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Failed to fetch"
       setError(`Create failed: ${message}`)
@@ -200,15 +211,6 @@ export default function VendorNew() {
               <p style={muted}>Basic tenant identity</p>
 
               <div style={grid2}>
-                <Field label="Tenant Code">
-                  <input
-                    className="cs-input"
-                    value={tenant_code}
-                    onChange={(e) => setTenantCode(e.target.value)}
-                    placeholder="e.g. CKSA"
-                  />
-                </Field>
-
                 <Field label="Tenant Name">
                   <input
                     className="cs-input"
@@ -218,7 +220,7 @@ export default function VendorNew() {
                   />
                 </Field>
 
-                <Field label="Legal Name (optional)">
+                <Field label="Legal Name">
                   <input
                     className="cs-input"
                     value={legal_name}
@@ -357,14 +359,24 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Default Currency">
-                  <input className="cs-input" value={default_currency} onChange={(e) => setCurrency(e.target.value)} />
+                  <select
+                    className="cs-input"
+                    value={default_currency}
+                    onChange={(e) => setCurrency(e.target.value as (typeof CURRENCY_OPTIONS)[number])}
+                  >
+                    {CURRENCY_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
-                <Field label="VAT Registration Number (optional)">
+                <Field label="VAT Registration Number">
                   <input className="cs-input" value={vat_registration_number} onChange={(e) => setVat(e.target.value)} />
                 </Field>
 
-                <Field label="National Address (optional)">
+                <Field label="National Address">
                   <input className="cs-input" value={national_address} onChange={(e) => setNationalAddress(e.target.value)} />
                 </Field>
 
@@ -445,11 +457,17 @@ export default function VendorNew() {
               <p style={muted}>Confirm and create tenant</p>
 
               <div style={reviewBox}>
-                <div><b>Code:</b> {tenant_code || "-"}</div>
+                <div>
+                  <b>Tenant ID:</b> Will be generated on create
+                </div>
                 <div><b>Name:</b> {tenant_name || "-"}</div>
+                <div><b>Legal Name:</b> {legal_name || "-"}</div>
                 <div><b>Type:</b> {tenant_type || "-"}</div>
                 <div><b>Plan:</b> {plan_type || "-"}</div>
                 <div><b>Status:</b> {subscription_status || "-"}</div>
+                <div><b>Currency:</b> {default_currency || "-"}</div>
+                <div><b>VAT:</b> {vat_registration_number || "-"}</div>
+                <div><b>National Address:</b> {national_address || "-"}</div>
                 <div><b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})</div>
               </div>
             </>
