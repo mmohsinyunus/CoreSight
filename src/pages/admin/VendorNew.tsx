@@ -18,6 +18,7 @@ type Step = 1 | 2 | 3 | 4
 type CreateResponse = { ok?: boolean; error?: string }
 
 const CURRENCY_OPTIONS = ["SAR", "USD", "EUR", "AED"] as const
+type Currency = (typeof CURRENCY_OPTIONS)[number]
 
 export default function VendorNew() {
   const [step, setStep] = useState<Step>(1)
@@ -25,37 +26,38 @@ export default function VendorNew() {
   const [error, setError] = useState<string>("")
   const [success, setSuccess] = useState<string>("")
 
-  // Tenant
+  // Tenant (Step 1)
   const [tenant_name, setTenantName] = useState("")
   const [legal_name, setLegalName] = useState("")
-  const [tenant_type, setTenantType] = useState<string>(
-    TENANT_TYPE_OPTIONS[0] || "Enterprise"
-  )
+  const [tenant_type, setTenantType] = useState<string>(TENANT_TYPE_OPTIONS[0] || "Enterprise")
 
-  // Subscription
-  const [plan_type, setPlanType] = useState<string>(
-    PLAN_TYPE_OPTIONS[1] || "Standard"
-  )
-  const [subscription_status, setSubscriptionStatus] = useState<string>(
-    SUBSCRIPTION_STATUS_OPTIONS[0] || "Active"
-  )
+  // Point 5: VAT + National Address MUST be on first screen and mandatory
+  const [vat_registration_number, setVat] = useState("")
+  const [national_address, setNationalAddress] = useState("")
+
+  // Subscription (Step 2)
+  const [plan_type, setPlanType] = useState<string>(PLAN_TYPE_OPTIONS[1] || "Standard")
+  const [subscription_status, setSubscriptionStatus] = useState<string>(SUBSCRIPTION_STATUS_OPTIONS[0] || "Active")
   const [subscription_start_date, setStartDate] = useState("")
   const [subscription_end_date, setEndDate] = useState("")
   const [max_users, setMaxUsers] = useState<number>(50)
   const [max_organizations, setMaxOrgs] = useState<number>(5)
   const [tenant_status, setTenantStatus] = useState("Active")
-  const [is_demo_tenant, setIsDemoTenant] = useState(false)
 
-  // Admin & Compliance
+  // Point 4: remove demo checkbox from UI (keep default false in payload)
+  const is_demo_tenant = false
+
+  // Admin & Compliance (Step 3)
   const [primary_admin_name, setAdminName] = useState("")
   const [primary_admin_email, setAdminEmail] = useState("")
   const [primary_country, setCountry] = useState("Saudi Arabia")
   const [primary_timezone, setTimezone] = useState("Asia/Riyadh")
-  const [default_currency, setCurrency] = useState<(typeof CURRENCY_OPTIONS)[number]>("SAR")
+
+  // Point 6: Currency dropdown options
+  const [default_currency, setCurrency] = useState<Currency>("SAR")
+
   const [data_retention_policy, setRetentionPolicy] = useState("standard")
   const [compliance_flag, setComplianceFlag] = useState(false)
-  const [vat_registration_number, setVat] = useState("")
-  const [national_address, setNationalAddress] = useState("")
   const [notes, setNotes] = useState("")
 
   // Feature flags
@@ -65,28 +67,66 @@ export default function VendorNew() {
 
   const created_by_user_id = "platform_admin_mock"
 
+  // Point 7: full reset after create
+  function resetAll() {
+    setStep(1)
+
+    setTenantName("")
+    setLegalName("")
+    setTenantType(TENANT_TYPE_OPTIONS[0] || "Enterprise")
+
+    setVat("")
+    setNationalAddress("")
+
+    setPlanType(PLAN_TYPE_OPTIONS[1] || "Standard")
+    setSubscriptionStatus(SUBSCRIPTION_STATUS_OPTIONS[0] || "Active")
+    setStartDate("")
+    setEndDate("")
+    setMaxUsers(50)
+    setMaxOrgs(5)
+    setTenantStatus("Active")
+
+    setAdminName("")
+    setAdminEmail("")
+    setCountry("Saudi Arabia")
+    setTimezone("Asia/Riyadh")
+    setCurrency("SAR")
+
+    setRetentionPolicy("standard")
+    setComplianceFlag(false)
+    setNotes("")
+
+    setAI(true)
+    setCost(true)
+    setAnalytics(true)
+  }
+
   const canNext = useMemo(() => {
-    if (step === 1) return tenant_name.trim() && tenant_type.trim() && legal_name.trim()
-    if (step === 2) return plan_type.trim() && subscription_status.trim()
-    if (step === 3)
+    if (step === 1)
       return (
-        primary_admin_name.trim() &&
-        primary_admin_email.trim() &&
-        vat_registration_number.trim() &&
-        national_address.trim()
+        tenant_name.trim() &&
+        legal_name.trim() && // Point 2 mandatory
+        tenant_type.trim() &&
+        vat_registration_number.trim() && // Point 5 mandatory in step 1
+        national_address.trim() // Point 5 mandatory in step 1
       )
+
+    if (step === 2) return plan_type.trim() && subscription_status.trim()
+
+    if (step === 3) return primary_admin_name.trim() && primary_admin_email.trim()
+
     return true
   }, [
     step,
     tenant_name,
-    tenant_type,
     legal_name,
+    tenant_type,
+    vat_registration_number,
+    national_address,
     plan_type,
     subscription_status,
     primary_admin_name,
     primary_admin_email,
-    vat_registration_number,
-    national_address,
   ])
 
   function next() {
@@ -108,10 +148,11 @@ export default function VendorNew() {
       const tenantId = makeTenantId()
 
       const payload: Vendor = {
+        // Point 1: remove tenant_code (only tenant_id)
         tenant_id: tenantId,
-        tenant_code: tenantId,
+
         tenant_name: tenant_name.trim(),
-        legal_name: legal_name.trim() || undefined,
+        legal_name: legal_name.trim(),
 
         tenant_type,
 
@@ -128,7 +169,7 @@ export default function VendorNew() {
         max_organizations: Number.isFinite(max_organizations) ? max_organizations : undefined,
 
         tenant_status,
-        is_demo_tenant,
+        is_demo_tenant, // stays false
 
         data_retention_policy,
         compliance_flag,
@@ -148,44 +189,34 @@ export default function VendorNew() {
 
         primary_admin_user_id: "",
         notes: notes || "",
-        vat_registration_number: vat_registration_number || "",
-        national_address: national_address || "",
+
+        // Point 5: still included in payload
+        vat_registration_number: vat_registration_number.trim(),
+        national_address: national_address.trim(),
       }
 
       const res = await fetch(SHEET_URL, {
         method: "POST",
         headers: {
-          // IMPORTANT: avoids preflight on GitHub Pages in many cases
+          // avoids preflight on GitHub Pages in many cases
           "Content-Type": "text/plain;charset=utf-8",
         },
         body: JSON.stringify(payload),
       })
 
-      // Read body ONCE
       const json = (await res.json().catch(() => null)) as CreateResponse | null
 
-      if (!res.ok) {
-        throw new Error(json?.error || `HTTP ${res.status}`)
-      }
-      if (!json?.ok) {
-        throw new Error(json?.error || "Create failed")
-      }
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
+      if (!json?.ok) throw new Error(json?.error || "Create failed")
 
-      const mirrorTenant = upsertTenantMirrorFromSheet(payload)
-      if (mirrorTenant) {
-        ensureTenantLifecycleRecords(mirrorTenant)
-      }
+      const mirrorTenant = upsertTenantMirrorFromSheet(payload as any)
+      if (mirrorTenant) ensureTenantLifecycleRecords(mirrorTenant)
 
-      setSuccess(`✅ Tenant created. Tenant ID: ${tenantId}. Appended to Google Sheet.`)
-      setStep(1)
+      // Point 3: better wording
+      setSuccess(`✅ New tenant is created. The Tenant ID is ${tenantId}.`)
 
-      // Clear key fields
-      setTenantName("")
-      setLegalName("")
-      setAdminName("")
-      setAdminEmail("")
-      setVat("")
-      setNationalAddress("")
+      // Point 7: full reset (but keep success visible)
+      resetAll()
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Failed to fetch"
       setError(`Create failed: ${message}`)
@@ -201,17 +232,17 @@ export default function VendorNew() {
           <div style={stepRow}>
             <StepPill active={step === 1} label="1. Tenant" />
             <StepPill active={step === 2} label="2. Subscription" />
-            <StepPill active={step === 3} label="3. Admin & Compliance" />
+            <StepPill active={step === 3} label="3. Admin" />
             <StepPill active={step === 4} label="4. Review" />
           </div>
 
           {step === 1 && (
             <>
               <h2 style={h2}>Tenant</h2>
-              <p style={muted}>Basic tenant identity</p>
+              <p style={muted}>Basic tenant identity (required fields)</p>
 
               <div style={grid2}>
-                <Field label="Tenant Name">
+                <Field label="Tenant Name *">
                   <input
                     className="cs-input"
                     value={tenant_name}
@@ -220,20 +251,20 @@ export default function VendorNew() {
                   />
                 </Field>
 
-                <Field label="Legal Name">
-                  <input
-                    className="cs-input"
-                    value={legal_name}
-                    onChange={(e) => setLegalName(e.target.value)}
-                  />
+                <Field label="Legal Name *">
+                  <input className="cs-input" value={legal_name} onChange={(e) => setLegalName(e.target.value)} />
                 </Field>
 
-                <Field label="Tenant Type">
-                  <select
-                    className="cs-input"
-                    value={tenant_type}
-                    onChange={(e) => setTenantType(e.target.value)}
-                  >
+                <Field label="VAT Registration Number *">
+                  <input className="cs-input" value={vat_registration_number} onChange={(e) => setVat(e.target.value)} />
+                </Field>
+
+                <Field label="National Address *">
+                  <input className="cs-input" value={national_address} onChange={(e) => setNationalAddress(e.target.value)} />
+                </Field>
+
+                <Field label="Tenant Type *">
+                  <select className="cs-input" value={tenant_type} onChange={(e) => setTenantType(e.target.value)}>
                     {TENANT_TYPE_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -262,11 +293,7 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Subscription Status">
-                  <select
-                    className="cs-input"
-                    value={subscription_status}
-                    onChange={(e) => setSubscriptionStatus(e.target.value)}
-                  >
+                  <select className="cs-input" value={subscription_status} onChange={(e) => setSubscriptionStatus(e.target.value)}>
                     {SUBSCRIPTION_STATUS_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -276,41 +303,19 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Subscription Start Date">
-                  <input
-                    className="cs-input"
-                    type="date"
-                    value={subscription_start_date}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
+                  <input className="cs-input" type="date" value={subscription_start_date} onChange={(e) => setStartDate(e.target.value)} />
                 </Field>
 
                 <Field label="Subscription End Date">
-                  <input
-                    className="cs-input"
-                    type="date"
-                    value={subscription_end_date}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
+                  <input className="cs-input" type="date" value={subscription_end_date} onChange={(e) => setEndDate(e.target.value)} />
                 </Field>
 
                 <Field label="Max Users">
-                  <input
-                    className="cs-input"
-                    type="number"
-                    min={0}
-                    value={max_users}
-                    onChange={(e) => setMaxUsers(Number(e.target.value))}
-                  />
+                  <input className="cs-input" type="number" min={0} value={max_users} onChange={(e) => setMaxUsers(Number(e.target.value))} />
                 </Field>
 
                 <Field label="Max Organizations">
-                  <input
-                    className="cs-input"
-                    type="number"
-                    min={0}
-                    value={max_organizations}
-                    onChange={(e) => setMaxOrgs(Number(e.target.value))}
-                  />
+                  <input className="cs-input" type="number" min={0} value={max_organizations} onChange={(e) => setMaxOrgs(Number(e.target.value))} />
                 </Field>
 
                 <Field label="Tenant Status">
@@ -321,32 +326,22 @@ export default function VendorNew() {
                   </select>
                 </Field>
 
-                <Field label="Demo tenant">
-                  <div style={checkRow}>
-                    <input
-                      type="checkbox"
-                      style={checkbox}
-                      checked={is_demo_tenant}
-                      onChange={(e) => setIsDemoTenant(e.target.checked)}
-                    />
-                    <span style={mutedSmall}>Mark as demo</span>
-                  </div>
-                </Field>
+                {/* Point 4: demo checkbox removed from UI */}
               </div>
             </>
           )}
 
           {step === 3 && (
             <>
-              <h2 style={h2}>Admin & Compliance</h2>
-              <p style={muted}>Primary admin + compliance + flags</p>
+              <h2 style={h2}>Admin</h2>
+              <p style={muted}>Primary admin + configuration</p>
 
               <div style={grid2}>
-                <Field label="Admin Name">
+                <Field label="Admin Name *">
                   <input className="cs-input" value={primary_admin_name} onChange={(e) => setAdminName(e.target.value)} />
                 </Field>
 
-                <Field label="Admin Email">
+                <Field label="Admin Email *">
                   <input className="cs-input" value={primary_admin_email} onChange={(e) => setAdminEmail(e.target.value)} />
                 </Field>
 
@@ -359,11 +354,7 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Default Currency">
-                  <select
-                    className="cs-input"
-                    value={default_currency}
-                    onChange={(e) => setCurrency(e.target.value as (typeof CURRENCY_OPTIONS)[number])}
-                  >
+                  <select className="cs-input" value={default_currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
                     {CURRENCY_OPTIONS.map((option) => (
                       <option key={option} value={option}>
                         {option}
@@ -372,20 +363,8 @@ export default function VendorNew() {
                   </select>
                 </Field>
 
-                <Field label="VAT Registration Number">
-                  <input className="cs-input" value={vat_registration_number} onChange={(e) => setVat(e.target.value)} />
-                </Field>
-
-                <Field label="National Address">
-                  <input className="cs-input" value={national_address} onChange={(e) => setNationalAddress(e.target.value)} />
-                </Field>
-
                 <Field label="Data Retention Policy">
-                  <select
-                    className="cs-input"
-                    value={data_retention_policy}
-                    onChange={(e) => setRetentionPolicy(e.target.value)}
-                  >
+                  <select className="cs-input" value={data_retention_policy} onChange={(e) => setRetentionPolicy(e.target.value)}>
                     <option value="standard">standard</option>
                     <option value="strict">strict</option>
                     <option value="custom">custom</option>
@@ -394,48 +373,28 @@ export default function VendorNew() {
 
                 <Field label="Compliance Flag">
                   <div style={checkRow}>
-                    <input
-                      type="checkbox"
-                      style={checkbox}
-                      checked={compliance_flag}
-                      onChange={(e) => setComplianceFlag(e.target.checked)}
-                    />
+                    <input type="checkbox" style={checkbox} checked={compliance_flag} onChange={(e) => setComplianceFlag(e.target.checked)} />
                     <span style={mutedSmall}>Requires compliance review</span>
                   </div>
                 </Field>
 
                 <Field label="AI Insights Enabled">
                   <div style={checkRow}>
-                    <input
-                      type="checkbox"
-                      style={checkbox}
-                      checked={ai_insights_enabled}
-                      onChange={(e) => setAI(e.target.checked)}
-                    />
+                    <input type="checkbox" style={checkbox} checked={ai_insights_enabled} onChange={(e) => setAI(e.target.checked)} />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Cost Optimization Enabled">
                   <div style={checkRow}>
-                    <input
-                      type="checkbox"
-                      style={checkbox}
-                      checked={cost_optimization_enabled}
-                      onChange={(e) => setCost(e.target.checked)}
-                    />
+                    <input type="checkbox" style={checkbox} checked={cost_optimization_enabled} onChange={(e) => setCost(e.target.checked)} />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Usage Analytics Enabled">
                   <div style={checkRow}>
-                    <input
-                      type="checkbox"
-                      style={checkbox}
-                      checked={usage_analytics_enabled}
-                      onChange={(e) => setAnalytics(e.target.checked)}
-                    />
+                    <input type="checkbox" style={checkbox} checked={usage_analytics_enabled} onChange={(e) => setAnalytics(e.target.checked)} />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
@@ -462,12 +421,12 @@ export default function VendorNew() {
                 </div>
                 <div><b>Name:</b> {tenant_name || "-"}</div>
                 <div><b>Legal Name:</b> {legal_name || "-"}</div>
+                <div><b>VAT:</b> {vat_registration_number || "-"}</div>
+                <div><b>National Address:</b> {national_address || "-"}</div>
                 <div><b>Type:</b> {tenant_type || "-"}</div>
                 <div><b>Plan:</b> {plan_type || "-"}</div>
                 <div><b>Status:</b> {subscription_status || "-"}</div>
                 <div><b>Currency:</b> {default_currency || "-"}</div>
-                <div><b>VAT:</b> {vat_registration_number || "-"}</div>
-                <div><b>National Address:</b> {national_address || "-"}</div>
                 <div><b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})</div>
               </div>
             </>
@@ -479,21 +438,11 @@ export default function VendorNew() {
             </button>
 
             {step < 4 ? (
-              <button
-                className="cs-btn cs-btn-primary"
-                style={primaryBtnSmall}
-                onClick={next}
-                disabled={!canNext || loading}
-              >
+              <button className="cs-btn cs-btn-primary" style={primaryBtnSmall} onClick={next} disabled={!canNext || loading}>
                 Next
               </button>
             ) : (
-              <button
-                className="cs-btn cs-btn-primary"
-                style={primaryBtnSmall}
-                onClick={createTenant}
-                disabled={loading}
-              >
+              <button className="cs-btn cs-btn-primary" style={primaryBtnSmall} onClick={createTenant} disabled={loading}>
                 {loading ? "Creating..." : "Create Tenant"}
               </button>
             )}
