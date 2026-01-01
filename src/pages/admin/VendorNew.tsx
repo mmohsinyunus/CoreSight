@@ -470,14 +470,15 @@ function StepPill({ active, label }: { active: boolean; label: string }) {
   return (
     <div
       style={{
-        padding: "8px 12px",
-        borderRadius: 999,
-        border: "1px solid var(--border)",
-        background: active ? "rgba(64,195,233,0.16)" : "rgba(255,255,255,0.04)",
-        color: "var(--text)",
+        padding: "10px 14px",
+        borderRadius: 12,
+        border: `1px solid ${active ? "rgba(77,163,255,0.55)" : "var(--border)"}`,
+        background: active ? "rgba(77,163,255,0.08)" : "var(--surface-elevated)",
+        color: active ? "var(--text)" : "var(--text-secondary)",
         fontSize: 13,
-        fontWeight: 600,
+        fontWeight: 700,
         userSelect: "none",
+        boxShadow: active ? "0 0 0 1px rgba(77,163,255,0.28)" : "none",
       }}
     >
       {label}
@@ -486,16 +487,30 @@ function StepPill({ active, label }: { active: boolean; label: string }) {
 }
 
 /** Styles */
-const wrap: React.CSSProperties = { width: "100%", maxWidth: 1200, margin: "0 auto" }
+const wrap: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 1200,
+  margin: "0 auto",
+  padding: 6,
+}
 const card: React.CSSProperties = {
   width: "100%",
   background: "var(--surface)",
   border: "1px solid var(--border)",
   borderRadius: 18,
-  padding: 18,
-  boxShadow: "var(--shadow-sm)",
+  padding: 20,
+  boxShadow: "var(--shadow-soft)",
 }
-const stepRow: React.CSSProperties = { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }
+const stepRow: React.CSSProperties = {
+  display: "flex",
+  gap: 10,
+  flexWrap: "wrap",
+  marginBottom: 18,
+  background: "var(--surface-elevated)",
+  border: "1px solid var(--border)",
+  borderRadius: 14,
+  padding: 10,
+}
 const grid2: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -510,6 +525,7 @@ const ghostBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
+  background: "var(--surface-elevated)",
 }
 const primaryBtnSmall: React.CSSProperties = {
   height: 42,
@@ -521,9 +537,9 @@ const errorBox: React.CSSProperties = {
   marginTop: 14,
   padding: 12,
   borderRadius: 12,
-  background: "rgba(255,59,48,0.12)",
-  border: "1px solid rgba(255,59,48,0.25)",
-  color: "#ffd7d7",
+  background: "rgba(255,106,106,0.12)",
+  border: "1px solid rgba(255,106,106,0.28)",
+  color: "#ffd8d8",
 }
 const successBox: React.CSSProperties = {
   marginTop: 14,

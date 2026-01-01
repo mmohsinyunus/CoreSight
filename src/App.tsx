@@ -41,6 +41,15 @@ export default function App() {
             />
           }
         />
+        <Route
+          path="/ai-insights"
+          element={
+            <PlaceholderPage
+              title="AI Insights"
+              subtitle="Foresight, signals, and recommendations (coming soon)"
+            />
+          }
+        />
 
         {/* Auth / selection */}
         <Route
