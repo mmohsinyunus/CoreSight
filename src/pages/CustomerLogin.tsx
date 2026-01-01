@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
-import { Navigate, useNavigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useCustomerAuth, seedDemoUsers } from "../auth/CustomerAuthContext"
 import { ensureSeedTenant } from "../data/tenants"
 
@@ -32,6 +32,14 @@ export default function CustomerLogin() {
   return (
     <div style={wrap}>
       <div style={card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <Link to="/" style={backLink}>
+            ← Back to login selection
+          </Link>
+          <Link to="/admin/login" style={switchLink}>
+            Go to Admin Login
+          </Link>
+        </div>
         <p style={eyebrow}>Customer access</p>
         <h2 style={title}>Tenant login</h2>
         <p style={subtitle}>Enter the tenant code and credentials issued by your CoreSight admin.</p>
@@ -59,6 +67,11 @@ export default function CustomerLogin() {
           <button className="cs-btn cs-btn-primary" type="submit">
             Login to portal
           </button>
+          <div style={{ textAlign: "right" }}>
+            <Link to="/admin/login" style={{ ...switchLink, fontSize: 12 }}>
+              Switch to Admin Login
+            </Link>
+          </div>
         </form>
       </div>
     </div>
@@ -96,4 +109,16 @@ const errorBox: React.CSSProperties = {
   padding: 10,
   color: "#ffb4b4",
   fontWeight: 700,
+}
+const backLink: React.CSSProperties = {
+  color: "var(--text-secondary)",
+  textDecoration: "none",
+  fontWeight: 700,
+  fontSize: 13,
+}
+
+const switchLink: React.CSSProperties = {
+  color: "var(--muted)",
+  fontWeight: 700,
+  fontSize: 13,
 }

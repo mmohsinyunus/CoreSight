@@ -1,6 +1,6 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
-import { Navigate, useNavigate } from "react-router-dom"
+import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useAdminAuth } from "../auth/AdminAuthContext"
 
 export default function AdminLogin() {
@@ -25,6 +25,14 @@ export default function AdminLogin() {
   return (
     <div style={wrap}>
       <div style={card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <Link to="/" style={backLink}>
+            ← Back to login selection
+          </Link>
+          <Link to="/customer/login" style={{ ...switchLink }}>
+            Go to Customer Login
+          </Link>
+        </div>
         <p style={eyebrow}>Admin access</p>
         <h2 style={title}>Administrator login</h2>
         <p style={subtitle}>Use the prototype admin credentials. Update env vars to change.</p>
@@ -48,6 +56,11 @@ export default function AdminLogin() {
           <button className="cs-btn cs-btn-primary" type="submit">
             Login as Admin
           </button>
+          <div style={{ textAlign: "right" }}>
+            <Link to="/customer/login" style={{ ...switchLink, fontSize: 12 }}>
+              Switch to Customer Login
+            </Link>
+          </div>
         </form>
       </div>
     </div>
@@ -85,4 +98,16 @@ const errorBox: React.CSSProperties = {
   padding: 10,
   color: "#ffb4b4",
   fontWeight: 700,
+}
+const backLink: React.CSSProperties = {
+  color: "var(--text-secondary)",
+  textDecoration: "none",
+  fontWeight: 700,
+  fontSize: 13,
+}
+
+const switchLink: React.CSSProperties = {
+  color: "var(--muted)",
+  fontWeight: 700,
+  fontSize: 13,
 }

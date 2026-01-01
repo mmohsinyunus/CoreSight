@@ -8,6 +8,7 @@ import {
   SUBSCRIPTION_STATUS_OPTIONS,
   makeTenantId,
 } from "../../data/vendors"
+import { upsertTenantMirrorFromSheet } from "../../data/tenants"
 
 const SHEET_URL =
   "https://script.google.com/macros/s/AKfycbwxTAPJITLdR3AUQoseEs-TsUefbWfuPPmt2rrqsmgDBGXSfAL3xDeUG10VLKUrGhDb0w/exec"
@@ -158,6 +159,8 @@ export default function VendorNew() {
       if (!json?.ok) {
         throw new Error(json?.error || "Create failed")
       }
+
+      upsertTenantMirrorFromSheet(payload)
 
       setSuccess("✅ Tenant created and appended to Google Sheet.")
       setStep(1)

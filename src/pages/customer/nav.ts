@@ -5,6 +5,8 @@ export const customerNav: NavSection[] = [
     label: "Portal",
     items: [
       { to: "/app/dashboard", label: "Dashboard", icon: "📊" },
+      { to: "/app/subscriptions", label: "Subscriptions", icon: "🧾" },
+      { to: "/app/renewals", label: "Renewals", icon: "♻️" },
       { to: "/app/reports", label: "Reports", icon: "🗒" },
       { to: "/app/departments", label: "Departments", icon: "🏢" },
       { to: "/app/analytics", label: "Analytics", icon: "📈" },
