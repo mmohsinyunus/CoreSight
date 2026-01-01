@@ -10,7 +10,7 @@ export default function CustomerSettings() {
         {tenant ? (
           <>
             {infoRow("Tenant", tenant.tenant_name)}
-            {infoRow("Code", tenant.tenant_code)}
+            {infoRow("Tenant ID", tenant.tenant_id)}
             {infoRow("Legal name", tenant.legal_name ?? "–")}
             {infoRow("Region", tenant.region ?? "–")}
             {infoRow("Timezone", tenant.timezone ?? "–")}

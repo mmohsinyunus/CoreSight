@@ -5,7 +5,7 @@ import { appsScriptBaseUrl } from "./api"
 export type TenantStatus = "Active" | "Inactive"
 export type Tenant = {
   tenant_id: string
-  tenant_code: string
+  tenant_code?: string
   tenant_name: string
   legal_name?: string
   tenant_type?: string
@@ -42,12 +42,13 @@ function persistTenants(next: Tenant[]) {
 export function getTenant(id: string) {
   const normalizedId = id?.toLowerCase()
   return listTenants().find(
-    (t) => t.tenant_id.toLowerCase() === normalizedId || t.tenant_code.toLowerCase() === normalizedId,
+    (t) =>
+      t.tenant_id?.toLowerCase() === normalizedId || t.tenant_code?.toLowerCase() === normalizedId,
   )
 }
 
 export function getTenantByCode(code: string) {
-  return listTenants().find((t) => t.tenant_code.toLowerCase() === code.toLowerCase())
+  return listTenants().find((t) => t.tenant_code?.toLowerCase() === code.toLowerCase())
 }
 
 export type TenantInput = Omit<Tenant, "tenant_id" | "created_at" | "updated_at" | "status"> & {
@@ -56,9 +57,10 @@ export type TenantInput = Omit<Tenant, "tenant_id" | "created_at" | "updated_at"
 
 export function createTenant(payload: TenantInput): Tenant {
   const now = nowIso()
+  const tenantId = generateId("tenant")
   const tenant: Tenant = {
-    tenant_id: generateId("tenant"),
-    tenant_code: payload.tenant_code,
+    tenant_id: tenantId,
+    tenant_code: payload.tenant_code?.trim() || tenantId,
     tenant_name: payload.tenant_name,
     legal_name: payload.legal_name ?? payload.tenant_name,
     tenant_type: payload.tenant_type ?? "Enterprise",
@@ -125,7 +127,7 @@ export function ensureSeedTenant() {
 function normalizeSheetRow(row: Record<string, any>): TenantSheetPayload {
   return {
     tenant_id: row.tenant_id || row.tenant_code || "",
-    tenant_code: row.tenant_code || row.code || "",
+    tenant_code: row.tenant_code || row.code || row.tenant_id || "",
     tenant_name: row.tenant_name || row.name || "",
     legal_name: row.legal_name || row.tenant_name || "",
     tenant_type: row.tenant_type || row.type || "",
@@ -179,7 +181,7 @@ export async function fetchTenantsFromSheet(): Promise<Tenant[]> {
 
   const normalized = rows
     .map((row) => normalizeSheetRow(row))
-    .filter((row) => row.tenant_code && row.tenant_name)
+    .filter((row) => (row.tenant_id || row.tenant_code) && row.tenant_name)
 
   const tenants: Tenant[] = []
   normalized.forEach((row) => {
@@ -192,7 +194,7 @@ export async function fetchTenantsFromSheet(): Promise<Tenant[]> {
 
 export type TenantSheetPayload = {
   tenant_id: string
-  tenant_code: string
+  tenant_code?: string
   tenant_name: string
   legal_name?: string
   tenant_type?: string
@@ -239,7 +241,7 @@ export function upsertTenantMirrorFromSheet(payload: TenantSheetPayload) {
 
   const nextTenant: Tenant = {
     tenant_id: id,
-    tenant_code: payload.tenant_code,
+    tenant_code: payload.tenant_code || payload.tenant_id || id,
     tenant_name: payload.tenant_name,
     legal_name: payload.legal_name ?? payload.tenant_name,
     tenant_type: payload.tenant_type ?? "Enterprise",

@@ -52,7 +52,7 @@ export default function Vendors() {
         <table>
           <thead>
             <tr>
-              <th>Code</th>
+              <th>Tenant ID</th>
               <th>Name</th>
               <th>Type</th>
               <th>Plan</th>
@@ -64,8 +64,8 @@ export default function Vendors() {
           </thead>
           <tbody>
             {rows.map((v) => (
-              <tr key={v.tenant_id}>
-                <td>{v.tenant_code}</td>
+              <tr key={v.tenant_id || v.tenant_code || v.tenant_name}>
+                <td>{v.tenant_id || "-"}</td>
                 <td>{v.tenant_name}</td>
                 <td>{v.tenant_type}</td>
                 <td>{v.plan_type}</td>

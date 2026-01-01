@@ -21,7 +21,6 @@ export default function CustomerRenewals() {
     if (!tenant || !user) return
     createRequest({
       tenant_id: tenant.tenant_id,
-      tenant_code: tenant.tenant_code,
       requested_by: user.email,
       requested_by_user_id: user.user_id,
       type: "RENEWAL_REQUEST",

@@ -12,7 +12,7 @@ export type SubscriptionStatus =
 
 export interface Vendor {
   tenant_id: string
-  tenant_code: string
+  tenant_code?: string
   tenant_name: string
   legal_name?: string
 
