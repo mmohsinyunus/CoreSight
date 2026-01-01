@@ -12,6 +12,7 @@ export type User = {
   password_hash: string
   role: UserRole
   status: UserStatus
+  name?: string
   created_at: string
   updated_at: string
 }
@@ -61,6 +62,7 @@ export type CreateUserPayload = {
   password: string
   role: UserRole
   status?: UserStatus
+  name?: string
 }
 
 export function createUser(payload: CreateUserPayload): User {
@@ -72,6 +74,7 @@ export function createUser(payload: CreateUserPayload): User {
     password_hash: hashPassword(payload.password),
     role: payload.role,
     status: payload.status ?? "Active",
+    name: payload.name,
     created_at: now,
     updated_at: now,
   }

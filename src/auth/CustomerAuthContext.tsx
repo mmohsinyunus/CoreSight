@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { findCustomerUser, hashPassword, listUsers, verifyPassword } from "../data/users"
-import { getTenantByCode, listTenants } from "../data/tenants"
+import { fetchTenantsFromSheet, getTenantByCode, listTenants } from "../data/tenants"
 import type { Tenant } from "../data/tenants"
 import type { User } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
@@ -18,7 +18,7 @@ type CustomerAuthValue = {
   tenant?: Tenant
   user?: User
   isAuthenticated: boolean
-  login: (tenantCode: string, email: string, password: string) => LoginResult
+  login: (tenantCode: string, email: string, password: string) => Promise<LoginResult>
   logout: () => void
 }
 
@@ -34,8 +34,20 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     }
   }, [])
 
-  const login = (tenantCode: string, email: string, password: string): LoginResult => {
-    const tenant = getTenantByCode(tenantCode.trim())
+  const login = async (tenantCode: string, email: string, password: string): Promise<LoginResult> => {
+    const code = tenantCode.trim()
+    let tenant = getTenantByCode(code)
+
+    if (!tenant) {
+      try {
+        await fetchTenantsFromSheet()
+        tenant = getTenantByCode(code)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unable to validate tenant"
+        return { success: false, error: message }
+      }
+    }
+
     if (!tenant) return { success: false, error: "Tenant not found" }
     if (tenant.status !== "Active") return { success: false, error: "Tenant inactive" }
 
@@ -60,7 +72,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
   const value = useMemo(
     () => ({ tenant: session?.tenant, user: session?.user, isAuthenticated: Boolean(session), login, logout }),
-    [session],
+    [login, logout, session],
   )
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>

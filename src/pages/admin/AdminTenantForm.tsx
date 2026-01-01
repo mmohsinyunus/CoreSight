@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import AppShell from "../../layout/AppShell"
-import { createTenant, getTenant, updateTenant } from "../../data/tenants"
+import { createTenant, fetchTenantsFromSheet, getTenant, updateTenant } from "../../data/tenants"
 import type { Tenant, TenantInput } from "../../data/tenants"
 import { createUser, listUsersByTenant, resetPassword } from "../../data/users"
+import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
 import type { User } from "../../data/users"
 import { adminNav } from "./nav"
 
@@ -28,8 +29,12 @@ export default function AdminTenantForm() {
   })
   const [primaryEmail, setPrimaryEmail] = useState("")
   const [primaryPassword, setPrimaryPassword] = useState("")
+  const [primaryConfirm, setPrimaryConfirm] = useState("")
+  const [primaryName, setPrimaryName] = useState("")
   const [resetPasswordValue, setResetPasswordValue] = useState("")
   const [users, setUsers] = useState<User[]>([])
+  const [userError, setUserError] = useState<string | undefined>()
+  const [userNotice, setUserNotice] = useState<string | undefined>()
 
   useEffect(() => {
     if (editing && tenantId) {
@@ -37,7 +42,18 @@ export default function AdminTenantForm() {
       if (tenant) {
         setForm(tenant)
         setUsers(listUsersByTenant(tenant.tenant_id))
+        return
       }
+
+      fetchTenantsFromSheet()
+        .then(() => {
+          const mirrorTenant = getTenant(tenantId)
+          if (mirrorTenant) {
+            setForm(mirrorTenant)
+            setUsers(listUsersByTenant(mirrorTenant.tenant_id))
+          }
+        })
+        .catch(() => undefined)
     }
   }, [editing, tenantId])
 
@@ -48,6 +64,7 @@ export default function AdminTenantForm() {
       updateTenant(tenantId, form)
     } else {
       const newTenant = createTenant(form as TenantInput)
+      ensureTenantLifecycleRecords(newTenant)
       navigate(`/admin/tenants/${newTenant.tenant_id}/edit`)
       return
     }
@@ -59,9 +76,25 @@ export default function AdminTenantForm() {
   const createPrimary = (e: FormEvent) => {
     e.preventDefault()
     if (!tenantId || !primaryEmail || !primaryPassword) return
-    createUser({ tenant_id: tenantId, email: primaryEmail, password: primaryPassword, role: "CUSTOMER_PRIMARY" })
+    if (primaryPassword !== primaryConfirm) {
+      setUserError("Passwords do not match")
+      return
+    }
+    const tenant = getTenant(tenantId)
+    setUserError(undefined)
+    createUser({
+      tenant_id: tenantId,
+      email: primaryEmail.trim(),
+      password: primaryPassword,
+      role: "CUSTOMER_PRIMARY",
+      name: primaryName.trim() || undefined,
+    })
+    if (tenant) ensureTenantLifecycleRecords(tenant)
     setUsers(listUsersByTenant(tenantId))
     setPrimaryPassword("")
+    setPrimaryConfirm("")
+    setPrimaryName("")
+    setUserNotice("Primary customer login created")
   }
 
   const resetPasswordHandler = (e: FormEvent) => {
@@ -70,6 +103,7 @@ export default function AdminTenantForm() {
     resetPassword(primaryUser.user_id, resetPasswordValue)
     setUsers(listUsersByTenant(primaryUser.tenant_id || ""))
     setResetPasswordValue("")
+    setUserNotice("Password reset")
   }
 
   return (
@@ -136,6 +170,10 @@ export default function AdminTenantForm() {
           ) : (
             <form style={{ display: "grid", gap: 12, maxWidth: 420 }} onSubmit={createPrimary}>
               <label style={label}>
+                Primary admin name (optional)
+                <input className="cs-input" value={primaryName} onChange={(e) => setPrimaryName(e.target.value)} />
+              </label>
+              <label style={label}>
                 Primary admin email
                 <input className="cs-input" value={primaryEmail} onChange={(e) => setPrimaryEmail(e.target.value)} />
               </label>
@@ -148,11 +186,27 @@ export default function AdminTenantForm() {
                   onChange={(e) => setPrimaryPassword(e.target.value)}
                 />
               </label>
+              <label style={label}>
+                Confirm password
+                <input
+                  className="cs-input"
+                  type="password"
+                  value={primaryConfirm}
+                  onChange={(e) => setPrimaryConfirm(e.target.value)}
+                />
+              </label>
+              {userError ? (
+                <div style={errorBox}>{userError}</div>
+              ) : null}
+              {userNotice ? (
+                <div style={successBox}>{userNotice}</div>
+              ) : null}
               <button className="cs-btn cs-btn-primary" type="submit">
                 Create primary user
               </button>
             </form>
           )}
+          {userNotice && primaryUser ? <div style={successBox}>{userNotice}</div> : null}
         </div>
       ) : null}
     </AppShell>
@@ -178,3 +232,21 @@ function inputField(labelText: string, key: keyof Tenant, value: string, setForm
 }
 
 const label: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 6, fontWeight: 700, color: "var(--text-secondary)" }
+
+const errorBox: React.CSSProperties = {
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(255,90,90,0.08)",
+  color: "#ffb4b4",
+  padding: 10,
+  borderRadius: 12,
+  fontWeight: 700,
+}
+
+const successBox: React.CSSProperties = {
+  border: "1px solid rgba(77,163,255,0.35)",
+  background: "rgba(77,163,255,0.08)",
+  color: "var(--text)",
+  padding: 10,
+  borderRadius: 12,
+  fontWeight: 700,
+}
