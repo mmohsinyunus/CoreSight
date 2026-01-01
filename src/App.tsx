@@ -13,8 +13,13 @@ import AdminHome from "./pages/admin/AdminHome"
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions"
 import AdminRenewals from "./pages/admin/AdminRenewals"
 import AdminAnalytics from "./pages/admin/AdminAnalytics"
+import AdminRequests from "./pages/admin/AdminRequests"
+import AdminAudit from "./pages/admin/AdminAudit"
 import CustomerDashboard from "./pages/customer/Dashboard"
 import CustomerReports from "./pages/customer/Reports"
+import ReportsUsage from "./pages/customer/ReportsUsage"
+import ReportsSubscriptionHealth from "./pages/customer/ReportsSubscriptionHealth"
+import ReportsDepartments from "./pages/customer/ReportsDepartments"
 import CustomerDepartments from "./pages/customer/Departments"
 import CustomerAnalytics from "./pages/customer/Analytics"
 import CustomerAIInsights from "./pages/customer/AIInsights"
@@ -67,9 +72,11 @@ export default function App() {
           <Route path="tenants/new" element={<VendorNew />} />
           <Route path="tenants/:tenantId/edit" element={<AdminTenantForm />} />
           <Route path="users" element={<AdminUsers />} />
+          <Route path="requests" element={<AdminRequests />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="renewals" element={<AdminRenewals />} />
           <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="audit" element={<AdminAudit />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 
@@ -101,6 +108,9 @@ export default function App() {
             }
           />
           <Route path="reports" element={<CustomerReports />} />
+          <Route path="reports/usage" element={<ReportsUsage />} />
+          <Route path="reports/subscription-health" element={<ReportsSubscriptionHealth />} />
+          <Route path="reports/departments" element={<ReportsDepartments />} />
           <Route path="departments" element={<CustomerDepartments />} />
           <Route path="analytics" element={<CustomerAnalytics />} />
           <Route path="ai-insights" element={<CustomerAIInsights />} />

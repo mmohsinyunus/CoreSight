@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { ensureSeedAdmin, getAdminEmail, getAdminPassword } from "../data/users"
 import type { User } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
+import { addAuditLog } from "../data/auditLogs"
 
 const STORAGE_KEY = "coresight_admin_session"
 
@@ -54,6 +55,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
     setCurrentUser(sessionUser)
     writeStorage(STORAGE_KEY, { user: sessionUser })
+    addAuditLog({
+      actor_type: "ADMIN",
+      actor_email: sessionUser.email,
+      action: "LOGIN_SUCCESS",
+    })
     return { success: true }
   }
 

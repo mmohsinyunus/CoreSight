@@ -4,6 +4,8 @@ import { fetchTenantsFromSheet, getTenantByCode, listTenants } from "../data/ten
 import type { Tenant } from "../data/tenants"
 import type { User, UserRole } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
+import { addActivity } from "../data/activity"
+import { addAuditLog } from "../data/auditLogs"
 
 const STORAGE_KEY = "coresight_customer_session"
 
@@ -95,6 +97,14 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     const newSession: CustomerSession = { tenant, user: normalizedUser }
     setSession(newSession)
     writeStorage(STORAGE_KEY, newSession)
+    addActivity({ tenant_id: tenant.tenant_id, user_email: normalizedEmail, user_id: user.user_id, event: "LOGIN" })
+    addAuditLog({
+      actor_type: "CUSTOMER",
+      actor_email: normalizedEmail,
+      actor_user_id: user.user_id,
+      tenant_id: tenant.tenant_id,
+      action: "LOGIN_SUCCESS",
+    })
     return { success: true }
   }
 
