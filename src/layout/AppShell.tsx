@@ -1,5 +1,5 @@
 // src/layout/AppShell.tsx
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useMemo, useState } from "react"
 import type { ReactNode, CSSProperties } from "react"
 import { useAdminAuth } from "../auth/AdminAuthContext"
@@ -7,6 +7,7 @@ import { useCustomerAuth } from "../auth/CustomerAuthContext"
 import Sidebar from "./Sidebar"
 import type { NavItem } from "../navigation/types"
 import { customerNav } from "../navigation/customerNav"
+import { adminNav } from "../navigation/adminNav"
 import { useNavItemsContext } from "../navigation/NavItemsProvider"
 
 export type AppShellProps = {
@@ -18,15 +19,35 @@ export type AppShellProps = {
   chips?: ReactNode[]
 }
 
-export default function AppShell({ title, subtitle, actions, children, navItems, chips }: AppShellProps) {
+export default function AppShell({
+  title,
+  subtitle,
+  actions,
+  children,
+  navItems,
+  chips,
+}: AppShellProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const adminAuth = useAdminAuth()
   const customerAuth = useCustomerAuth()
   const contextNavItems = useNavItemsContext()
 
   const [sidebarWidth, setSidebarWidth] = useState(72)
 
-  const resolvedNavItems = useMemo(() => navItems ?? contextNavItems ?? customerNav, [contextNavItems, navItems])
+  // Decide which nav to show (Admin vs Customer)
+  const resolvedNavItems = useMemo(() => {
+    if (navItems) return navItems
+
+    const path = location.pathname || ""
+    const isAdminRoute = path.startsWith("/admin") || adminAuth.isAuthenticated
+    const isCustomerRoute = path.startsWith("/customer") || customerAuth.isAuthenticated
+
+    if (isAdminRoute) return adminNav
+    if (isCustomerRoute) return customerNav
+
+    return contextNavItems ?? customerNav
+  }, [navItems, location.pathname, adminAuth.isAuthenticated, customerAuth.isAuthenticated, contextNavItems])
 
   const shellStyle = useMemo<CSSProperties>(
     () => ({
@@ -35,6 +56,8 @@ export default function AppShell({ title, subtitle, actions, children, navItems,
     }),
     [sidebarWidth],
   )
+
+  const isLoggedIn = adminAuth.isAuthenticated || customerAuth.isAuthenticated
 
   return (
     <div style={shellStyle}>
@@ -49,15 +72,28 @@ export default function AppShell({ title, subtitle, actions, children, navItems,
 
           <div style={topRight}>
             {actions ? <div style={actionsWrap}>{actions}</div> : null}
-            {(chips || defaultChips).map((chipNode, idx) => (
+
+            {(chips ?? defaultChips).map((chipNode, idx) => (
               <span key={idx} style={chip}>
                 {chipNode}
               </span>
             ))}
-            {(adminAuth.isAuthenticated || customerAuth.isAuthenticated) && (
+
+            {/* Switch role / go back to login chooser */}
+            <button
+              className="cs-btn"
+              style={{ height: 38, marginLeft: 8 }}
+              onClick={() => navigate("/")}
+              title="Back to login selection"
+            >
+              Switch login
+            </button>
+
+            {/* Logout */}
+            {isLoggedIn && (
               <button
                 className="cs-btn"
-                style={{ height: 38, marginLeft: 8 }}
+                style={{ height: 38 }}
                 onClick={() => {
                   if (adminAuth.isAuthenticated) adminAuth.logout()
                   if (customerAuth.isAuthenticated) customerAuth.logout()
