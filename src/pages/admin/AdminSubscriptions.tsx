@@ -1,50 +1,102 @@
+import { useEffect, useState } from "react"
 import AppShell from "../../layout/AppShell"
 import { adminNav } from "../../navigation/adminNav"
-
-const table = {
-  width: "100%",
-  borderCollapse: "collapse" as const,
-  background: "rgba(255,255,255,0.02)",
-  border: "1px solid var(--border)",
-  borderRadius: 12,
-  overflow: "hidden",
-}
-
-const thtd = {
-  padding: 12,
-  borderBottom: "1px solid var(--border)",
-  color: "var(--text)",
-  textAlign: "left" as const,
-}
+import { listSubscriptions, updateSubscription } from "../../data/tenantRecords"
+import { addAuditLog } from "../../data/auditLogs"
 
 export default function AdminSubscriptions() {
-  const rows = [
-    { name: "Tenant A", plan: "Enterprise", seats: 120, status: "Active" },
-    { name: "Tenant B", plan: "Standard", seats: 80, status: "Pending" },
-    { name: "Tenant C", plan: "Trial", seats: 25, status: "Expiring" },
-  ]
+  const [rows, setRows] = useState(() => listSubscriptions())
+
+  useEffect(() => {
+    setRows(listSubscriptions())
+  }, [])
+
+  const updateRow = (id: string, field: string, value: string) => {
+    setRows((prev) => prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)))
+  }
+
+  const saveRow = (id: string) => {
+    const row = rows.find((r) => r.id === id)
+    if (!row) return
+    updateSubscription(id, row)
+    addAuditLog({
+      actor_type: "ADMIN",
+      action: "SUBSCRIPTION_UPDATED",
+      tenant_id: row.tenant_id,
+      meta: { subscription_id: id },
+    })
+    setRows(listSubscriptions())
+  }
 
   return (
-    <AppShell title="Subscriptions" subtitle="Admin view of tenant subscriptions" navItems={adminNav} chips={["Admin"]}>
-      <div style={{ background: "var(--surface)", borderRadius: 16, padding: 16, border: "1px solid var(--border)" }}>
-        <table style={table}>
-          <thead style={{ background: "rgba(255,255,255,0.03)" }}>
+    <AppShell title="Subscriptions" subtitle="Admin control of tenant subscriptions" navItems={adminNav} chips={["Admin"]}>
+      <div className="cs-card" style={{ padding: 18 }}>
+        <table className="cs-table">
+          <thead>
             <tr>
-              <th style={thtd}>Tenant</th>
-              <th style={thtd}>Plan</th>
-              <th style={thtd}>Seats</th>
-              <th style={thtd}>Status</th>
+              <th className="cs-th">Tenant</th>
+              <th className="cs-th">Plan</th>
+              <th className="cs-th">Status</th>
+              <th className="cs-th">Start</th>
+              <th className="cs-th">End</th>
+              <th className="cs-th">Seats</th>
+              <th className="cs-th">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.name}>
-                <td style={thtd}>{row.name}</td>
-                <td style={thtd}>{row.plan}</td>
-                <td style={thtd}>{row.seats}</td>
-                <td style={thtd}>{row.status}</td>
+            {rows.map((row, idx) => (
+              <tr key={row.id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+                <td className="cs-td">{row.tenant_id}</td>
+                <td className="cs-td">
+                  <input
+                    className="cs-input"
+                    value={row.plan_type || ""}
+                    onChange={(e) => updateRow(row.id, "plan_type", e.target.value)}
+                  />
+                </td>
+                <td className="cs-td">
+                  <input
+                    className="cs-input"
+                    value={row.subscription_status || row.status || ""}
+                    onChange={(e) => updateRow(row.id, "subscription_status", e.target.value)}
+                  />
+                </td>
+                <td className="cs-td">
+                  <input
+                    className="cs-input"
+                    value={row.start_date || row.subscription_start_date || ""}
+                    onChange={(e) => updateRow(row.id, "start_date", e.target.value)}
+                  />
+                </td>
+                <td className="cs-td">
+                  <input
+                    className="cs-input"
+                    value={row.end_date || row.subscription_end_date || ""}
+                    onChange={(e) => updateRow(row.id, "end_date", e.target.value)}
+                  />
+                </td>
+                <td className="cs-td">
+                  <input
+                    className="cs-input"
+                    type="number"
+                    value={row.seats ?? row.max_users ?? ""}
+                    onChange={(e) => updateRow(row.id, "seats", Number(e.target.value))}
+                  />
+                </td>
+                <td className="cs-td">
+                  <button className="cs-btn cs-btn-primary" onClick={() => saveRow(row.id)}>
+                    Save
+                  </button>
+                </td>
               </tr>
             ))}
+            {rows.length === 0 && (
+              <tr>
+                <td className="cs-td" colSpan={7} style={{ textAlign: "center", color: "var(--muted)" }}>
+                  No subscriptions captured.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

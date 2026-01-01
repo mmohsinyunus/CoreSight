@@ -4,7 +4,9 @@ import { useNavigate, useParams } from "react-router-dom"
 import AppShell from "../../layout/AppShell"
 import { createTenant, fetchTenantsFromSheet, getTenant, syncTenantToSheet, updateTenant } from "../../data/tenants"
 import type { Tenant, TenantInput } from "../../data/tenants"
-import { createUser, listUsersByTenant, resetPassword } from "../../data/users"
+import { createUser, getAdminEmail, listUsersByTenant, resetPassword } from "../../data/users"
+import { ensureDepartmentSeed } from "../../data/departments"
+import { addAuditLog } from "../../data/auditLogs"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
 import type { User } from "../../data/users"
 import { adminNav } from "../../navigation/adminNav"
@@ -92,7 +94,17 @@ export default function AdminTenantForm() {
       role: "CUSTOMER_PRIMARY",
       name: primaryName.trim() || undefined,
     })
-    if (tenant) ensureTenantLifecycleRecords(tenant)
+    if (tenant) {
+      ensureTenantLifecycleRecords(tenant)
+      ensureDepartmentSeed(tenant.tenant_id)
+      addAuditLog({
+        actor_type: "ADMIN",
+        actor_email: getAdminEmail(),
+        action: "PRIMARY_USER_CREATED",
+        tenant_id: tenant.tenant_id,
+        meta: { email: primaryEmail.trim() },
+      })
+    }
     setUsers(listUsersByTenant(tenantId))
     setPrimaryPassword("")
     setPrimaryConfirm("")

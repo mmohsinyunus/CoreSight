@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react"
 import type { CSSProperties } from "react"
-import { ensureTenantLifecycleRecords, listSubscriptionsByTenant, upsertSubscription } from "../../data/tenantRecords"
+import { ensureTenantLifecycleRecords, listSubscriptionsByTenant } from "../../data/tenantRecords"
 import { useCustomerAuth } from "../../auth/CustomerAuthContext"
 import CustomerPageShell from "./CustomerPageShell"
+import { createRequest } from "../../data/requests"
+import { addAuditLog } from "../../data/auditLogs"
 
 export default function CustomerSubscriptions() {
-  const { tenant } = useCustomerAuth()
+  const { tenant, user } = useCustomerAuth()
   const [rows, setRows] = useState(() => (tenant ? listSubscriptionsByTenant(tenant.tenant_id) : []))
   const [toast, setToast] = useState<string | undefined>()
 
@@ -16,13 +18,24 @@ export default function CustomerSubscriptions() {
   }, [tenant])
 
   const requestUpgrade = () => {
-    if (!tenant) return
-    const tenantSubs = listSubscriptionsByTenant(tenant.tenant_id)
-    tenantSubs.forEach((sub) => {
-      upsertSubscription({ ...sub, subscription_status: "Pending Upgrade", status: "Pending Upgrade" })
+    if (!tenant || !user) return
+    createRequest({
+      tenant_id: tenant.tenant_id,
+      tenant_code: tenant.tenant_code,
+      requested_by: user.email,
+      requested_by_user_id: user.user_id,
+      type: "UPGRADE_REQUEST",
+      payload: { desired_plan: "Enterprise", note: "Customer submitted via portal" },
     })
-    setRows(listSubscriptionsByTenant(tenant.tenant_id))
-    setToast("Request submitted.")
+    addAuditLog({
+      actor_type: "CUSTOMER",
+      actor_email: user.email,
+      actor_user_id: user.user_id,
+      tenant_id: tenant.tenant_id,
+      action: "REQUEST_CREATED",
+      meta: { type: "UPGRADE_REQUEST" },
+    })
+    setToast("Request submitted for admin review.")
   }
 
   return (

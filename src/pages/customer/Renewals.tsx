@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react"
 import type { CSSProperties } from "react"
-import {
-  ensureTenantLifecycleRecords,
-  isRenewalExpiringSoon,
-  listRenewalsByTenant,
-  updateRenewal,
-} from "../../data/tenantRecords"
+import { ensureTenantLifecycleRecords, isRenewalExpiringSoon, listRenewalsByTenant } from "../../data/tenantRecords"
 import { useCustomerAuth } from "../../auth/CustomerAuthContext"
 import CustomerPageShell from "./CustomerPageShell"
+import { createRequest } from "../../data/requests"
+import { addAuditLog } from "../../data/auditLogs"
 
 export default function CustomerRenewals() {
-  const { tenant } = useCustomerAuth()
+  const { tenant, user } = useCustomerAuth()
   const [rows, setRows] = useState(() => (tenant ? listRenewalsByTenant(tenant.tenant_id) : []))
   const [toast, setToast] = useState<string | undefined>()
 
@@ -21,10 +18,24 @@ export default function CustomerRenewals() {
   }, [tenant])
 
   const initiateRenewal = (renewalId: string) => {
-    if (!tenant) return
-    updateRenewal(renewalId, { status: "In Progress", updated_at: new Date().toISOString() })
-    setRows(listRenewalsByTenant(tenant.tenant_id))
-    setToast("Renewal initiated.")
+    if (!tenant || !user) return
+    createRequest({
+      tenant_id: tenant.tenant_id,
+      tenant_code: tenant.tenant_code,
+      requested_by: user.email,
+      requested_by_user_id: user.user_id,
+      type: "RENEWAL_REQUEST",
+      payload: { renewal_id: renewalId, note: "Customer initiated" },
+    })
+    addAuditLog({
+      actor_type: "CUSTOMER",
+      actor_email: user.email,
+      actor_user_id: user.user_id,
+      tenant_id: tenant.tenant_id,
+      action: "REQUEST_CREATED",
+      meta: { type: "RENEWAL_REQUEST" },
+    })
+    setToast("Request submitted for admin review.")
   }
 
   return (
