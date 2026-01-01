@@ -195,7 +195,7 @@ export default function VendorNew() {
               <div style={grid2}>
                 <Field label="Tenant Code">
                   <input
-                    style={input}
+                    className="cs-input"
                     value={tenant_code}
                     onChange={(e) => setTenantCode(e.target.value)}
                     placeholder="e.g. CKSA"
@@ -204,7 +204,7 @@ export default function VendorNew() {
 
                 <Field label="Tenant Name">
                   <input
-                    style={input}
+                    className="cs-input"
                     value={tenant_name}
                     onChange={(e) => setTenantName(e.target.value)}
                     placeholder="e.g. Canon Saudi Arabia"
@@ -213,7 +213,7 @@ export default function VendorNew() {
 
                 <Field label="Legal Name (optional)">
                   <input
-                    style={input}
+                    className="cs-input"
                     value={legal_name}
                     onChange={(e) => setLegalName(e.target.value)}
                   />
@@ -221,7 +221,7 @@ export default function VendorNew() {
 
                 <Field label="Tenant Type">
                   <select
-                    style={input}
+                    className="cs-input"
                     value={tenant_type}
                     onChange={(e) => setTenantType(e.target.value)}
                   >
@@ -243,7 +243,7 @@ export default function VendorNew() {
 
               <div style={grid2}>
                 <Field label="Plan Type">
-                  <select style={input} value={plan_type} onChange={(e) => setPlanType(e.target.value)}>
+                  <select className="cs-input" value={plan_type} onChange={(e) => setPlanType(e.target.value)}>
                     {PLAN_TYPE_OPTIONS.map((o) => (
                       <option key={o} value={o}>
                         {o}
@@ -254,7 +254,7 @@ export default function VendorNew() {
 
                 <Field label="Subscription Status">
                   <select
-                    style={input}
+                    className="cs-input"
                     value={subscription_status}
                     onChange={(e) => setSubscriptionStatus(e.target.value)}
                   >
@@ -267,23 +267,45 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Subscription Start Date">
-                  <input style={input} type="date" value={subscription_start_date} onChange={(e) => setStartDate(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    type="date"
+                    value={subscription_start_date}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Subscription End Date">
-                  <input style={input} type="date" value={subscription_end_date} onChange={(e) => setEndDate(e.target.value)} />
+                  <input
+                    className="cs-input"
+                    type="date"
+                    value={subscription_end_date}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
                 </Field>
 
                 <Field label="Max Users">
-                  <input style={input} type="number" min={0} value={max_users} onChange={(e) => setMaxUsers(Number(e.target.value))} />
+                  <input
+                    className="cs-input"
+                    type="number"
+                    min={0}
+                    value={max_users}
+                    onChange={(e) => setMaxUsers(Number(e.target.value))}
+                  />
                 </Field>
 
                 <Field label="Max Organizations">
-                  <input style={input} type="number" min={0} value={max_organizations} onChange={(e) => setMaxOrgs(Number(e.target.value))} />
+                  <input
+                    className="cs-input"
+                    type="number"
+                    min={0}
+                    value={max_organizations}
+                    onChange={(e) => setMaxOrgs(Number(e.target.value))}
+                  />
                 </Field>
 
                 <Field label="Tenant Status">
-                  <select style={input} value={tenant_status} onChange={(e) => setTenantStatus(e.target.value)}>
+                  <select className="cs-input" value={tenant_status} onChange={(e) => setTenantStatus(e.target.value)}>
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                     <option value="Suspended">Suspended</option>
@@ -307,35 +329,39 @@ export default function VendorNew() {
 
               <div style={grid2}>
                 <Field label="Admin Name">
-                  <input style={input} value={primary_admin_name} onChange={(e) => setAdminName(e.target.value)} />
+                  <input className="cs-input" value={primary_admin_name} onChange={(e) => setAdminName(e.target.value)} />
                 </Field>
 
                 <Field label="Admin Email">
-                  <input style={input} value={primary_admin_email} onChange={(e) => setAdminEmail(e.target.value)} />
+                  <input className="cs-input" value={primary_admin_email} onChange={(e) => setAdminEmail(e.target.value)} />
                 </Field>
 
                 <Field label="Primary Country">
-                  <input style={input} value={primary_country} onChange={(e) => setCountry(e.target.value)} />
+                  <input className="cs-input" value={primary_country} onChange={(e) => setCountry(e.target.value)} />
                 </Field>
 
                 <Field label="Primary Timezone">
-                  <input style={input} value={primary_timezone} onChange={(e) => setTimezone(e.target.value)} />
+                  <input className="cs-input" value={primary_timezone} onChange={(e) => setTimezone(e.target.value)} />
                 </Field>
 
                 <Field label="Default Currency">
-                  <input style={input} value={default_currency} onChange={(e) => setCurrency(e.target.value)} />
+                  <input className="cs-input" value={default_currency} onChange={(e) => setCurrency(e.target.value)} />
                 </Field>
 
                 <Field label="VAT Registration Number (optional)">
-                  <input style={input} value={vat_registration_number} onChange={(e) => setVat(e.target.value)} />
+                  <input className="cs-input" value={vat_registration_number} onChange={(e) => setVat(e.target.value)} />
                 </Field>
 
                 <Field label="National Address (optional)">
-                  <input style={input} value={national_address} onChange={(e) => setNationalAddress(e.target.value)} />
+                  <input className="cs-input" value={national_address} onChange={(e) => setNationalAddress(e.target.value)} />
                 </Field>
 
                 <Field label="Data Retention Policy">
-                  <select style={input} value={data_retention_policy} onChange={(e) => setRetentionPolicy(e.target.value)}>
+                  <select
+                    className="cs-input"
+                    value={data_retention_policy}
+                    onChange={(e) => setRetentionPolicy(e.target.value)}
+                  >
                     <option value="standard">standard</option>
                     <option value="strict">strict</option>
                     <option value="custom">custom</option>
@@ -371,11 +397,11 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Notes (optional)">
-                  <input style={input} value={notes} onChange={(e) => setNotes(e.target.value)} />
+                  <input className="cs-input" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </Field>
               </div>
 
-              <div style={{ marginTop: 8, color: "rgba(15, 23, 42, 0.65)", fontSize: 13 }}>
+              <div style={{ marginTop: 8, color: "var(--muted)", fontSize: 13 }}>
                 Created By User ID: <b>{created_by_user_id}</b>
               </div>
             </>
@@ -398,16 +424,26 @@ export default function VendorNew() {
           )}
 
           <div style={navRow}>
-            <button style={ghostBtn} onClick={back} disabled={step === 1 || loading}>
+            <button className="cs-btn cs-btn-ghost" style={ghostBtn} onClick={back} disabled={step === 1 || loading}>
               Back
             </button>
 
             {step < 4 ? (
-              <button style={primaryBtnSmall} onClick={next} disabled={!canNext || loading}>
+              <button
+                className="cs-btn cs-btn-primary"
+                style={primaryBtnSmall}
+                onClick={next}
+                disabled={!canNext || loading}
+              >
                 Next
               </button>
             ) : (
-              <button style={primaryBtnSmall} onClick={createTenant} disabled={loading}>
+              <button
+                className="cs-btn cs-btn-primary"
+                style={primaryBtnSmall}
+                onClick={createTenant}
+                disabled={loading}
+              >
                 {loading ? "Creating..." : "Create Tenant"}
               </button>
             )}
@@ -436,9 +472,9 @@ function StepPill({ active, label }: { active: boolean; label: string }) {
       style={{
         padding: "8px 12px",
         borderRadius: 999,
-        border: "1px solid rgba(15, 23, 42, 0.10)",
-        background: active ? "rgba(10,132,255,0.12)" : "rgba(15, 23, 42, 0.04)",
-        color: "rgba(15, 23, 42, 0.85)",
+        border: "1px solid var(--border)",
+        background: active ? "rgba(64,195,233,0.16)" : "rgba(255,255,255,0.04)",
+        color: "var(--text)",
         fontSize: 13,
         fontWeight: 600,
         userSelect: "none",
@@ -450,14 +486,14 @@ function StepPill({ active, label }: { active: boolean; label: string }) {
 }
 
 /** Styles */
-const wrap: React.CSSProperties = { width: "100%", display: "flex", justifyContent: "center" }
+const wrap: React.CSSProperties = { width: "100%", maxWidth: 1200, margin: "0 auto" }
 const card: React.CSSProperties = {
-  width: "min(980px, 100%)",
-  background: "#fff",
-  border: "1px solid rgba(15, 23, 42, 0.10)",
+  width: "100%",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 18,
   padding: 18,
-  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+  boxShadow: "var(--shadow-sm)",
 }
 const stepRow: React.CSSProperties = { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }
 const grid2: React.CSSProperties = {
@@ -466,56 +502,42 @@ const grid2: React.CSSProperties = {
   gap: 16,
 }
 const h2: React.CSSProperties = { margin: "6px 0 0", fontSize: 18 }
-const muted: React.CSSProperties = { margin: "6px 0 14px", color: "rgba(15, 23, 42, 0.65)" }
-const mutedSmall: React.CSSProperties = { color: "rgba(15, 23, 42, 0.65)", fontSize: 13 }
-const input: React.CSSProperties = {
-  height: 44,
-  borderRadius: 12,
-  border: "1px solid rgba(15, 23, 42, 0.12)",
-  padding: "0 12px",
-  outline: "none",
-  background: "rgba(15, 23, 42, 0.03)",
-  width: "100%",
-  boxSizing: "border-box",
-}
+const muted: React.CSSProperties = { margin: "6px 0 14px", color: "var(--muted)" }
+const mutedSmall: React.CSSProperties = { color: "var(--muted)", fontSize: 13 }
 const checkRow: React.CSSProperties = { display: "flex", alignItems: "center", gap: 10, height: 44 }
 const navRow: React.CSSProperties = { display: "flex", justifyContent: "space-between", marginTop: 18 }
 const ghostBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(15, 23, 42, 0.12)",
-  background: "#fff",
 }
 const primaryBtnSmall: React.CSSProperties = {
   height: 42,
   padding: "0 16px",
   borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
   fontWeight: 700,
 }
 const errorBox: React.CSSProperties = {
   marginTop: 14,
   padding: 12,
   borderRadius: 12,
-  background: "rgba(255,59,48,0.08)",
-  border: "1px solid rgba(255,59,48,0.20)",
-  color: "rgba(120, 15, 15, 0.95)",
+  background: "rgba(255,59,48,0.12)",
+  border: "1px solid rgba(255,59,48,0.25)",
+  color: "#ffd7d7",
 }
 const successBox: React.CSSProperties = {
   marginTop: 14,
   padding: 12,
   borderRadius: 12,
-  background: "rgba(52,199,89,0.10)",
-  border: "1px solid rgba(52,199,89,0.22)",
-  color: "rgba(14, 87, 32, 0.95)",
+  background: "rgba(64,195,233,0.12)",
+  border: "1px solid var(--accent)",
+  color: "var(--text)",
 }
 const reviewBox: React.CSSProperties = {
   padding: 14,
   borderRadius: 14,
-  border: "1px solid rgba(15, 23, 42, 0.10)",
-  background: "rgba(15, 23, 42, 0.03)",
+  border: "1px solid var(--border)",
+  background: "var(--surface-elevated)",
   display: "grid",
   gap: 6,
 }

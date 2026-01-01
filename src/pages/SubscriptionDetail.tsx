@@ -209,24 +209,26 @@ function Badge({ children, tone }: { children: React.ReactNode; tone: "ok" | "wa
 const stack: React.CSSProperties = { display: "grid", gap: 14 }
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   overflow: "hidden",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const cardHead: React.CSSProperties = {
   padding: 14,
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   gap: 12,
   flexWrap: "wrap",
+  background: "var(--surface-elevated)",
 }
 
 const muted: React.CSSProperties = {
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   fontSize: 13,
 }
 

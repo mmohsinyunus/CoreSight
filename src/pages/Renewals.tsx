@@ -384,15 +384,16 @@ const kpiGrid: React.CSSProperties = {
 }
 
 const kpi: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
   padding: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const kpiTitle: React.CSSProperties = {
   fontSize: 12,
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   fontWeight: 700,
 }
 
@@ -403,15 +404,16 @@ const kpiValue: React.CSSProperties = {
 }
 
 const bar: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface-elevated)",
   borderRadius: 16,
   padding: 12,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   display: "flex",
   gap: 12,
   alignItems: "center",
   justifyContent: "space-between",
   flexWrap: "wrap",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const barLeft: React.CSSProperties = {
@@ -430,42 +432,46 @@ const barRight: React.CSSProperties = {
 const search: React.CSSProperties = {
   height: 42,
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "rgba(15,23,42,0.03)",
+  border: "1px solid var(--border)",
+  background: "rgba(255,255,255,0.04)",
   padding: "0 12px",
   outline: "none",
   width: 320,
   maxWidth: "72vw",
+  color: "var(--text)",
 }
 
 const select: React.CSSProperties = {
   height: 42,
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "rgba(15,23,42,0.03)",
+  border: "1px solid var(--border)",
+  background: "rgba(255,255,255,0.04)",
   padding: "0 10px",
   outline: "none",
+  color: "var(--text)",
 }
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   overflow: "hidden",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const cardHead: React.CSSProperties = {
   padding: 14,
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
   display: "flex",
   alignItems: "baseline",
   justifyContent: "space-between",
   gap: 10,
   flexWrap: "wrap",
+  background: "var(--surface-elevated)",
 }
 
 const muted: React.CSSProperties = {
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   fontSize: 13,
 }
 
@@ -477,11 +483,12 @@ const table: React.CSSProperties = {
 const th: React.CSSProperties = {
   textAlign: "left",
   fontSize: 12,
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
   padding: "12px 14px",
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
   fontWeight: 800,
   whiteSpace: "nowrap",
+  background: "var(--surface-elevated)",
 }
 
 const thRight: React.CSSProperties = { ...th, textAlign: "right" }
@@ -494,7 +501,7 @@ const tr: React.CSSProperties = {
 
 const td: React.CSSProperties = {
   padding: "12px 14px",
-  borderBottom: "1px solid rgba(15,23,42,0.06)",
+  borderBottom: "1px solid var(--border)",
   fontSize: 14,
   whiteSpace: "nowrap",
 }
@@ -506,7 +513,7 @@ const tdMono: React.CSSProperties = {
   fontFamily:
     "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   fontSize: 13,
-  color: "rgba(15,23,42,0.8)",
+  color: "var(--text)",
 }
 
 const tdRight: React.CSSProperties = { ...td, textAlign: "right", fontWeight: 700 }
@@ -514,23 +521,18 @@ const tdRight: React.CSSProperties = { ...td, textAlign: "right", fontWeight: 70
 const tdEmpty: React.CSSProperties = {
   padding: 18,
   textAlign: "center",
-  color: "rgba(15,23,42,0.6)",
+  color: "var(--muted)",
 }
 
 const ghostBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "#fff",
-  fontWeight: 700,
 }
 
 const primaryBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
   fontWeight: 800,
 }
