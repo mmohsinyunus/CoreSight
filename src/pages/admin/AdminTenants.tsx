@@ -52,12 +52,7 @@ export default function AdminTenants() {
   }
 
   return (
-    <AppShell
-      title="Tenants"
-      subtitle="Administer tenant records"
-      navItems={adminNav}
-      chips={["Admin", "CoreSight"]}
-    >
+    <AppShell title="Tenants" subtitle="Administer tenant records" navItems={adminNav} chips={["Admin", "CoreSight"]}>
       <div className="cs-card" style={{ padding: 18, display: "grid", gap: 12 }}>
         <div
           style={{
@@ -111,6 +106,7 @@ export default function AdminTenants() {
           <table className="cs-table">
             <thead>
               <tr>
+                <th className="cs-th">#</th>
                 <th className="cs-th">Tenant</th>
                 <th className="cs-th">Tenant ID</th>
                 <th className="cs-th">Country</th>
@@ -125,19 +121,29 @@ export default function AdminTenants() {
             <tbody>
               {filtered.map((tenant, idx) => (
                 <tr
-                  key={tenant.tenant_id}
+                  key={tenant.tenant_id || `${tenant.tenant_name || "tenant"}-${idx}`}
                   style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}
                 >
+                  <td className="cs-td" style={{ width: 44 }}>
+                    {idx + 1}
+                  </td>
+
                   <td className="cs-td">
-                    <div style={{ fontWeight: 800 }}>{tenant.tenant_name}</div>
+                    <div style={{ fontWeight: 800 }}>{tenant.tenant_name || "-"}</div>
                     <div style={{ color: "var(--muted)", fontSize: 12 }}>
-                      {tenant.tenant_type || tenant.legal_name}
+                      {tenant.tenant_type || tenant.legal_name || "-"}
                     </div>
                   </td>
 
-                  {/* ✅ Code removed, show tenant_id instead */}
-                  <td className="cs-td" style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace" }}>
-                    {tenant.tenant_id}
+                  <td
+                    className="cs-td"
+                    style={{
+                      fontFamily:
+                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {tenant.tenant_id || "-"}
                   </td>
 
                   <td className="cs-td">{tenant.region ?? "-"}</td>
@@ -160,7 +166,7 @@ export default function AdminTenants() {
                     <Link className="cs-btn" to={`/admin/tenants/${tenant.tenant_id}/edit`}>
                       View / Edit
                     </Link>
-                    <button className="cs-btn" onClick={() => toggleStatus(tenant)} disabled={loading}>
+                    <button className="cs-btn" onClick={() => toggleStatus(tenant)} disabled={loading || !tenant.tenant_id}>
                       {tenant.status === "Active" ? "Deactivate" : "Activate"}
                     </button>
                   </td>
@@ -169,7 +175,7 @@ export default function AdminTenants() {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td className="cs-td" colSpan={8} style={{ textAlign: "center", color: "var(--muted)" }}>
+                  <td className="cs-td" colSpan={9} style={{ textAlign: "center", color: "var(--muted)" }}>
                     {loading ? "Loading tenants…" : "No tenants match the filter."}
                   </td>
                 </tr>
