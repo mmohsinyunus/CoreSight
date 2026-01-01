@@ -314,7 +314,12 @@ export default function VendorNew() {
 
                 <Field label="Demo tenant">
                   <div style={checkRow}>
-                    <input type="checkbox" checked={is_demo_tenant} onChange={(e) => setIsDemoTenant(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={is_demo_tenant}
+                      onChange={(e) => setIsDemoTenant(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Mark as demo</span>
                   </div>
                 </Field>
@@ -370,28 +375,48 @@ export default function VendorNew() {
 
                 <Field label="Compliance Flag">
                   <div style={checkRow}>
-                    <input type="checkbox" checked={compliance_flag} onChange={(e) => setComplianceFlag(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={compliance_flag}
+                      onChange={(e) => setComplianceFlag(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Requires compliance review</span>
                   </div>
                 </Field>
 
                 <Field label="AI Insights Enabled">
                   <div style={checkRow}>
-                    <input type="checkbox" checked={ai_insights_enabled} onChange={(e) => setAI(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={ai_insights_enabled}
+                      onChange={(e) => setAI(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Cost Optimization Enabled">
                   <div style={checkRow}>
-                    <input type="checkbox" checked={cost_optimization_enabled} onChange={(e) => setCost(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={cost_optimization_enabled}
+                      onChange={(e) => setCost(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
 
                 <Field label="Usage Analytics Enabled">
                   <div style={checkRow}>
-                    <input type="checkbox" checked={usage_analytics_enabled} onChange={(e) => setAnalytics(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      style={checkbox}
+                      checked={usage_analytics_enabled}
+                      onChange={(e) => setAnalytics(e.target.checked)}
+                    />
                     <span style={mutedSmall}>Enable</span>
                   </div>
                 </Field>
@@ -460,7 +485,7 @@ export default function VendorNew() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
-      <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{label}</div>
       {children}
     </div>
   )
@@ -491,13 +516,13 @@ const wrap: React.CSSProperties = {
   width: "100%",
   maxWidth: 1200,
   margin: "0 auto",
-  padding: 6,
+  padding: 12,
 }
 const card: React.CSSProperties = {
   width: "100%",
-  background: "var(--surface)",
+  background: "linear-gradient(145deg, #161a20, #13161d)",
   border: "1px solid var(--border)",
-  borderRadius: 18,
+  borderRadius: 14,
   padding: 20,
   boxShadow: "var(--shadow-soft)",
 }
@@ -516,7 +541,7 @@ const grid2: React.CSSProperties = {
   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
   gap: 16,
 }
-const h2: React.CSSProperties = { margin: "6px 0 0", fontSize: 18 }
+const h2: React.CSSProperties = { margin: "6px 0 0", fontSize: 18, color: "var(--text)" }
 const muted: React.CSSProperties = { margin: "6px 0 14px", color: "var(--muted)" }
 const mutedSmall: React.CSSProperties = { color: "var(--muted)", fontSize: 13 }
 const checkRow: React.CSSProperties = { display: "flex", alignItems: "center", gap: 10, height: 44 }
@@ -532,6 +557,15 @@ const primaryBtnSmall: React.CSSProperties = {
   padding: "0 16px",
   borderRadius: 12,
   fontWeight: 700,
+}
+const checkbox: React.CSSProperties = {
+  width: 18,
+  height: 18,
+  accentColor: "var(--accent)",
+  background: "var(--surface-elevated)",
+  borderRadius: 6,
+  border: "1px solid var(--border)",
+  boxShadow: "0 0 0 1px rgba(0,0,0,0.4)",
 }
 const errorBox: React.CSSProperties = {
   marginTop: 14,
