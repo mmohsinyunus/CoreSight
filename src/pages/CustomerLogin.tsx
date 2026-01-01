@@ -104,10 +104,10 @@ const form: React.CSSProperties = { display: "flex", flexDirection: "column", ga
 const label: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 8, fontWeight: 700, color: "var(--text-secondary)" }
 const errorBox: React.CSSProperties = {
   borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(255, 90, 90, 0.08)",
+  border: "1px solid var(--border)",
+  background: "var(--surface)",
   padding: 10,
-  color: "#ffb4b4",
+  color: "var(--text)",
   fontWeight: 700,
 }
 const backLink: React.CSSProperties = {

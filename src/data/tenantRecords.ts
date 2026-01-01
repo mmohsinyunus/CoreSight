@@ -4,9 +4,16 @@ import type { Tenant } from "./tenants"
 
 export type SubscriptionRecord = {
   id: string
+  subscription_id: string
   tenant_id: string
-  plan: string
-  status: string
+  plan_type?: string
+  subscription_status?: string
+  subscription_start_date?: string
+  subscription_end_date?: string
+  max_users?: number
+  max_organizations?: number
+  plan?: string
+  status?: string
   start_date?: string
   end_date?: string
   seats?: number
@@ -17,17 +24,18 @@ export type SubscriptionRecord = {
 
 export type RenewalRecord = {
   id: string
+  renewal_id: string
   tenant_id: string
-  subscription: string
   renewal_date: string
-  term: string
   status: string
-  owner?: string
   notes?: string
+  subscription?: string
+  term?: string
+  owner?: string
 }
 
-const SUB_KEY = "coresight_subscription_records"
-const RENEWAL_KEY = "coresight_renewal_records"
+const SUB_KEY = "coresight_subscriptions"
+const RENEWAL_KEY = "coresight_renewals"
 
 function persistSubscriptions(next: SubscriptionRecord[]) {
   writeStorage(SUB_KEY, next)
@@ -55,28 +63,51 @@ export function listRenewalsByTenant(tenantId: string) {
 
 export function upsertSubscription(record: SubscriptionRecord) {
   const existing = listSubscriptions()
-  const idx = existing.findIndex((s) => s.id === record.id)
+  const idx = existing.findIndex(
+    (s) =>
+      s.subscription_id === record.subscription_id ||
+      s.id === record.id ||
+      (!!record.tenant_id && s.tenant_id === record.tenant_id),
+  )
+  const normalized: SubscriptionRecord = {
+    ...record,
+    id: record.id || record.subscription_id || generateId("sub"),
+    subscription_id: record.subscription_id || record.id || generateId("sub"),
+    plan: record.plan || record.plan_type,
+    status: record.status || record.subscription_status,
+    start_date: record.start_date || record.subscription_start_date,
+    end_date: record.end_date || record.subscription_end_date,
+    seats: record.seats ?? record.max_users,
+  }
   if (idx >= 0) {
-    existing[idx] = { ...existing[idx], ...record }
+    existing[idx] = { ...existing[idx], ...normalized }
     persistSubscriptions([...existing])
     return existing[idx]
   }
-  const created = { ...record, id: record.id || generateId("sub") }
-  persistSubscriptions([...existing, created])
-  return created
+  persistSubscriptions([...existing, normalized])
+  return normalized
 }
 
 export function upsertRenewal(record: RenewalRecord) {
   const existing = listRenewals()
-  const idx = existing.findIndex((r) => r.id === record.id)
+  const idx = existing.findIndex(
+    (r) =>
+      r.renewal_id === record.renewal_id ||
+      r.id === record.id ||
+      (!!record.tenant_id && r.tenant_id === record.tenant_id),
+  )
+  const normalized: RenewalRecord = {
+    ...record,
+    id: record.id || record.renewal_id || generateId("renewal"),
+    renewal_id: record.renewal_id || record.id || generateId("renewal"),
+  }
   if (idx >= 0) {
-    existing[idx] = { ...existing[idx], ...record }
+    existing[idx] = { ...existing[idx], ...normalized }
     persistRenewals([...existing])
     return existing[idx]
   }
-  const created = { ...record, id: record.id || generateId("renewal") }
-  persistRenewals([...existing, created])
-  return created
+  persistRenewals([...existing, normalized])
+  return normalized
 }
 
 function addMonths(date: Date, months: number) {
@@ -97,15 +128,23 @@ export function ensureTenantLifecycleRecords(tenant: Tenant) {
   const planName = tenant.plan_type || tenant.subscription || "Enterprise"
   const startDate = tenant.subscription_start_date || formatDate(new Date())
   const endDate =
-    tenant.subscription_end_date ||
-    formatDate(addMonths(new Date(startDate || Date.now()), 12))
+    tenant.subscription_end_date || formatDate(addMonths(new Date(startDate || Date.now()), 12))
+  const status = tenant.subscription_status || "Active"
 
   if (!hasSubscription) {
+    const subscriptionId = generateId("sub")
     upsertSubscription({
-      id: generateId("sub"),
+      id: subscriptionId,
+      subscription_id: subscriptionId,
       tenant_id: tenantId,
+      plan_type: planName,
+      subscription_status: status,
+      subscription_start_date: startDate,
+      subscription_end_date: endDate,
+      max_users: tenant.max_users,
+      max_organizations: tenant.max_organizations,
       plan: planName,
-      status: tenant.subscription_status || "Active",
+      status,
       start_date: startDate,
       end_date: endDate,
       seats: tenant.max_users,
@@ -115,13 +154,15 @@ export function ensureTenantLifecycleRecords(tenant: Tenant) {
 
   const hasRenewal = listRenewalsByTenant(tenantId).length > 0
   if (!hasRenewal) {
+    const renewalId = generateId("renewal")
     upsertRenewal({
-      id: generateId("renewal"),
+      id: renewalId,
+      renewal_id: renewalId,
       tenant_id: tenantId,
       subscription: planName,
       renewal_date: endDate,
       term: "12 months",
-      status: tenant.subscription_status || "On track",
+      status: "Upcoming",
       owner: tenant.primary_admin_name || "Procurement",
       notes: tenant.primary_admin_email || "Renewal owner notified",
     })
