@@ -346,64 +346,63 @@ const kpiGrid: React.CSSProperties = {
 }
 
 const kpi: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
   padding: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-sm)",
 }
 
-const kpiTitle: React.CSSProperties = { fontSize: 12, color: "rgba(15,23,42,0.6)", fontWeight: 800 }
+const kpiTitle: React.CSSProperties = { fontSize: 12, color: "var(--muted)", fontWeight: 800 }
 const kpiValue: React.CSSProperties = { marginTop: 6, fontSize: 20, fontWeight: 950 }
 
 const bar: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface-elevated)",
   borderRadius: 16,
   padding: 12,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   display: "flex",
   gap: 12,
   alignItems: "center",
   justifyContent: "space-between",
   flexWrap: "wrap",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const barLeft: React.CSSProperties = { display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }
 const barRight: React.CSSProperties = { display: "flex", gap: 10, alignItems: "center" }
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   overflow: "hidden",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const cardHead: React.CSSProperties = {
   padding: 14,
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
   display: "flex",
   alignItems: "baseline",
   justifyContent: "space-between",
   gap: 10,
   flexWrap: "wrap",
+  background: "var(--surface-elevated)",
 }
 
-const muted: React.CSSProperties = { color: "rgba(15,23,42,0.6)", fontSize: 13 }
+const muted: React.CSSProperties = { color: "var(--muted)", fontSize: 13 }
 
 const ghostBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "#fff",
-  fontWeight: 800,
 }
 
 const primaryBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
   fontWeight: 900,
 }
 
@@ -413,7 +412,8 @@ const toastBox: React.CSSProperties = {
   bottom: 18,
   padding: "12px 14px",
   borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.10)",
-  boxShadow: "0 10px 30px rgba(15,23,42,0.10)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-sm)",
   fontWeight: 900,
+  background: "var(--surface-elevated)",
 }

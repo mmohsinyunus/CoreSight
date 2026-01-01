@@ -55,9 +55,19 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
     [],
   )
 
+  const sidebarWidth = collapsed ? 72 : 240
+
+  const shellStyle = useMemo<CSSProperties>(
+    () => ({
+      ...shell,
+      gridTemplateColumns: `${sidebarWidth}px 1fr`,
+    }),
+    [sidebarWidth],
+  )
+
   return (
-    <div style={shell}>
-      <aside style={{ ...sidebar, width: collapsed ? 96 : 300 }}>
+    <div style={shellStyle}>
+      <aside style={{ ...sidebar, width: sidebarWidth }}>
         <div style={brand}>
           <div style={brandRow}>
             <div style={brandName}>CS</div>
@@ -144,7 +154,6 @@ function SideLink({
 /* Styles */
 const shell: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "auto 1fr",
   minHeight: "100vh",
   background: "radial-gradient(circle at 10% 20%, rgba(255,255,255,0.04), transparent 30%), var(--bg)",
 }
@@ -158,9 +167,20 @@ const sidebar: CSSProperties = {
   flexDirection: "column",
   gap: 8,
   transition: "width 200ms ease",
+  position: "sticky",
+  top: 0,
+  alignSelf: "start",
+  height: "100vh",
+  overflowY: "auto",
+  boxShadow: "var(--shadow-sm)",
 }
 
-const main: CSSProperties = { padding: 18 }
+const main: CSSProperties = {
+  padding: 18,
+  minHeight: "100vh",
+  overflow: "auto",
+  background: "var(--bg)",
+}
 
 const brand: CSSProperties = {
   padding: 12,

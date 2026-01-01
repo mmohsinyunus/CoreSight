@@ -328,14 +328,15 @@ function TimelineItem({
 const stack: React.CSSProperties = { display: "grid", gap: 14 }
 
 const hero: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 18,
   padding: 16,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-sm)",
 }
 
 const heroTitle: React.CSSProperties = { fontSize: 22, fontWeight: 950, letterSpacing: -0.2, marginTop: 6 }
-const heroSub: React.CSSProperties = { marginTop: 8, color: "rgba(15,23,42,0.70)" }
+const heroSub: React.CSSProperties = { marginTop: 8, color: "var(--muted)" }
 
 const heroRight: React.CSSProperties = { display: "grid", gap: 6, textAlign: "right", minWidth: 240 }
 const money: React.CSSProperties = { fontSize: 22, fontWeight: 950, letterSpacing: -0.2 }
@@ -346,21 +347,23 @@ const grid: React.CSSProperties = {
   gap: 12,
 }
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--surface)",
   borderRadius: 18,
-  border: "1px solid rgba(15,23,42,0.08)",
+  border: "1px solid var(--border)",
   overflow: "hidden",
+  boxShadow: "var(--shadow-sm)",
 }
 const cardHead: React.CSSProperties = {
   padding: 14,
-  borderBottom: "1px solid rgba(15,23,42,0.08)",
+  borderBottom: "1px solid var(--border)",
+  background: "var(--surface-elevated)",
 }
 const cardTitle: React.CSSProperties = { fontWeight: 950 }
-const mutedSmall: React.CSSProperties = { marginTop: 6, fontSize: 13, color: "rgba(15,23,42,0.6)" }
+const mutedSmall: React.CSSProperties = { marginTop: 6, fontSize: 13, color: "var(--muted)" }
 
 const timeline: React.CSSProperties = { padding: 14, display: "grid", gap: 14 }
 
-const divider: React.CSSProperties = { height: 1, background: "rgba(15,23,42,0.08)" }
+const divider: React.CSSProperties = { height: 1, background: "var(--border)" }
 
 const kvGrid: React.CSSProperties = {
   padding: 14,
@@ -373,7 +376,7 @@ const kicker: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 900,
   letterSpacing: 0.7,
-  color: "rgba(15,23,42,0.48)",
+  color: "var(--muted)",
   textTransform: "uppercase",
 }
 
@@ -395,8 +398,9 @@ const toastBox: React.CSSProperties = {
   bottom: 18,
   padding: "12px 14px",
   borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.10)",
-  boxShadow: "0 10px 30px rgba(15,23,42,0.10)",
+  border: "1px solid var(--border)",
+  boxShadow: "var(--shadow-sm)",
+  background: "var(--surface-elevated)",
   fontWeight: 900,
 }
 
@@ -405,15 +409,11 @@ const ghostBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "#fff",
   fontWeight: 800,
 }
 const primaryBtn: React.CSSProperties = {
   height: 42,
   padding: "0 14px",
   borderRadius: 12,
-  border: "1px solid rgba(10,132,255,0.25)",
-  background: "rgba(10,132,255,0.12)",
   fontWeight: 900,
 }
