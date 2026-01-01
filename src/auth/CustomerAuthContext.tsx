@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { findUserByEmail, hashPassword, listUsers, verifyPassword } from "../data/users"
+import { findUserByEmail, hashPassword, listUsers, listUsersByTenant, verifyPassword } from "../data/users"
 import { fetchTenantsFromSheet, getTenantByCode, listTenants } from "../data/tenants"
 import type { Tenant } from "../data/tenants"
-import type { User } from "../data/users"
+import type { User, UserRole } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
 
 const STORAGE_KEY = "coresight_customer_session"
@@ -24,13 +24,24 @@ type CustomerAuthValue = {
 
 const CustomerAuthContext = createContext<CustomerAuthValue | undefined>(undefined)
 
+function resolveRole(user: User, tenant: Tenant): UserRole {
+  if (user.role) return user.role
+  const tenantUsers = listUsersByTenant(tenant.tenant_id)
+  const hasPrimary = tenantUsers.some((u) => u.role === "CUSTOMER_PRIMARY")
+  return hasPrimary ? "CUSTOMER_USER" : "CUSTOMER_PRIMARY"
+}
+
 export function CustomerAuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<CustomerSession | undefined>(undefined)
 
   useEffect(() => {
     const stored = readStorage<CustomerSession | undefined>(STORAGE_KEY, undefined)
     if (stored?.tenant && stored?.user) {
-      setSession(stored)
+      const role = resolveRole(stored.user, stored.tenant)
+      const normalizedUser = { ...stored.user, role }
+      const normalizedSession: CustomerSession = { tenant: stored.tenant, user: normalizedUser }
+      setSession(normalizedSession)
+      writeStorage(STORAGE_KEY, normalizedSession)
     }
   }, [])
 
@@ -79,7 +90,9 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       return { success: false, error: "Invalid credentials." }
     }
 
-    const newSession: CustomerSession = { tenant, user }
+    const role = resolveRole(user, tenant)
+    const normalizedUser = { ...user, role }
+    const newSession: CustomerSession = { tenant, user: normalizedUser }
     setSession(newSession)
     writeStorage(STORAGE_KEY, newSession)
     return { success: true }

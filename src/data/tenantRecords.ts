@@ -32,6 +32,7 @@ export type RenewalRecord = {
   subscription?: string
   term?: string
   owner?: string
+  updated_at?: string
 }
 
 const SUB_KEY = "coresight_subscriptions"
@@ -88,6 +89,19 @@ export function upsertSubscription(record: SubscriptionRecord) {
   return normalized
 }
 
+export function updateSubscription(id: string, changes: Partial<SubscriptionRecord>) {
+  let updated: SubscriptionRecord | undefined
+  const next = listSubscriptions().map((sub) => {
+    if (sub.id !== id) return sub
+    updated = { ...sub, ...changes, id: sub.id, subscription_id: sub.subscription_id }
+    return updated
+  })
+  if (updated) {
+    persistSubscriptions(next)
+  }
+  return updated
+}
+
 export function upsertRenewal(record: RenewalRecord) {
   const existing = listRenewals()
   const idx = existing.findIndex(
@@ -108,6 +122,19 @@ export function upsertRenewal(record: RenewalRecord) {
   }
   persistRenewals([...existing, normalized])
   return normalized
+}
+
+export function updateRenewal(id: string, changes: Partial<RenewalRecord>) {
+  let updated: RenewalRecord | undefined
+  const next = listRenewals().map((renewal) => {
+    if (renewal.id !== id) return renewal
+    updated = { ...renewal, ...changes, id: renewal.id, renewal_id: renewal.renewal_id }
+    return updated
+  })
+  if (updated) {
+    persistRenewals(next)
+  }
+  return updated
 }
 
 function addMonths(date: Date, months: number) {
@@ -167,4 +194,14 @@ export function ensureTenantLifecycleRecords(tenant: Tenant) {
       notes: tenant.primary_admin_email || "Renewal owner notified",
     })
   }
+}
+
+export function isRenewalExpiringSoon(record: RenewalRecord, windowDays = 45) {
+  if (!record.renewal_date) return false
+  const renewalDate = new Date(record.renewal_date)
+  if (Number.isNaN(renewalDate.getTime())) return false
+
+  const today = new Date()
+  const windowMs = windowDays * 24 * 60 * 60 * 1000
+  return renewalDate.getTime() - today.getTime() <= windowMs && record.status !== "Completed"
 }

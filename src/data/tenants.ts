@@ -19,6 +19,9 @@ export type Tenant = {
   subscription_end_date?: string
   max_users?: number
   max_organizations?: number
+  notes?: string
+  vat_registration_number?: string
+  national_address?: string
   primary_admin_name?: string
   primary_admin_email?: string
   status: TenantStatus
@@ -69,6 +72,9 @@ export function createTenant(payload: TenantInput): Tenant {
     subscription_end_date: payload.subscription_end_date,
     max_users: payload.max_users,
     max_organizations: payload.max_organizations,
+    notes: payload.notes,
+    vat_registration_number: payload.vat_registration_number,
+    national_address: payload.national_address,
     primary_admin_email: payload.primary_admin_email,
     primary_admin_name: payload.primary_admin_name,
     status: payload.status ?? "Active",
@@ -267,4 +273,63 @@ export function upsertTenantMirrorFromSheet(payload: TenantSheetPayload) {
   const next = [...existing, nextTenant]
   persistTenants(next)
   return nextTenant
+}
+
+type TenantSyncResponse = { ok: boolean; error?: string }
+
+export type TenantSyncResult = { ok: true } | { ok: false; unsupported?: boolean; error?: string }
+
+function buildSheetUpdateRow(tenant: Tenant): Partial<TenantSheetPayload> {
+  const now = nowIso()
+  return {
+    tenant_name: tenant.tenant_name,
+    legal_name: tenant.legal_name,
+    tenant_type: tenant.tenant_type,
+    primary_country: tenant.region,
+    primary_timezone: tenant.timezone,
+    default_currency: tenant.currency,
+    plan_type: tenant.plan_type || tenant.subscription,
+    subscription_status: tenant.subscription_status,
+    subscription_start_date: tenant.subscription_start_date,
+    subscription_end_date: tenant.subscription_end_date,
+    max_users: tenant.max_users,
+    max_organizations: tenant.max_organizations,
+    tenant_status: tenant.status,
+    primary_admin_name: tenant.primary_admin_name,
+    primary_admin_email: tenant.primary_admin_email,
+    notes: tenant.notes,
+    vat_registration_number: tenant.vat_registration_number,
+    national_address: tenant.national_address,
+    updated_at: now,
+  }
+}
+
+export async function syncTenantToSheet(tenant: Tenant): Promise<TenantSyncResult> {
+  if (!tenant.tenant_id) return { ok: false, error: "Missing tenant id" }
+
+  const payload = {
+    action: "updateTenant",
+    tenant_id: tenant.tenant_id,
+    row: buildSheetUpdateRow(tenant),
+  }
+
+  const res = await fetch(appsScriptBaseUrl, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload),
+  })
+
+  const json = (await res.json().catch(() => null)) as TenantSyncResponse | null
+
+  if (!res.ok) {
+    return { ok: false, error: json?.error || `HTTP ${res.status}` }
+  }
+
+  if (json && json.ok === false) {
+    const message = json.error || "Sync failed"
+    const unsupported = /unsupported|not enabled|not implemented/i.test(message)
+    return { ok: false, error: message, unsupported }
+  }
+
+  return { ok: true }
 }
