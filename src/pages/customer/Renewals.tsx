@@ -1,17 +1,31 @@
 import { useEffect, useState } from "react"
-import { ensureTenantLifecycleRecords, listRenewalsByTenant } from "../../data/tenantRecords"
+import type { CSSProperties } from "react"
+import {
+  ensureTenantLifecycleRecords,
+  isRenewalExpiringSoon,
+  listRenewalsByTenant,
+  updateRenewal,
+} from "../../data/tenantRecords"
 import { useCustomerAuth } from "../../auth/CustomerAuthContext"
 import CustomerPageShell from "./CustomerPageShell"
 
 export default function CustomerRenewals() {
   const { tenant } = useCustomerAuth()
   const [rows, setRows] = useState(() => (tenant ? listRenewalsByTenant(tenant.tenant_id) : []))
+  const [toast, setToast] = useState<string | undefined>()
 
   useEffect(() => {
     if (!tenant) return
     ensureTenantLifecycleRecords(tenant)
     setRows(listRenewalsByTenant(tenant.tenant_id))
   }, [tenant])
+
+  const initiateRenewal = (renewalId: string) => {
+    if (!tenant) return
+    updateRenewal(renewalId, { status: "In Progress", updated_at: new Date().toISOString() })
+    setRows(listRenewalsByTenant(tenant.tenant_id))
+    setToast("Renewal initiated.")
+  }
 
   return (
     <CustomerPageShell title="Renewals" subtitle="Key renewal dates and owners">
@@ -23,7 +37,6 @@ export default function CustomerRenewals() {
               Track renewal readiness and assign owners.
             </p>
           </div>
-          <button className="cs-btn cs-btn-primary">Initiate Renewal</button>
         </div>
 
         <table className="cs-table">
@@ -42,7 +55,12 @@ export default function CustomerRenewals() {
             {rows.map((row, idx) => (
               <tr key={row.id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
                 <td className="cs-td">{row.subscription}</td>
-                <td className="cs-td">{row.renewal_date}</td>
+                <td className="cs-td">
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    {row.renewal_date}
+                    {isRenewalExpiringSoon(row) ? <Badge /> : null}
+                  </div>
+                </td>
                 <td className="cs-td">{row.term}</td>
                 <td className="cs-td">
                   <span className="cs-pill" style={{ padding: "6px 10px", background: "var(--surface-elevated)" }}>
@@ -52,7 +70,13 @@ export default function CustomerRenewals() {
                 <td className="cs-td">{row.owner || "-"}</td>
                 <td className="cs-td">{row.notes || "-"}</td>
                 <td className="cs-td">
-                  <button className="cs-btn" style={{ height: 36 }}>Details</button>
+                  <button
+                    className="cs-btn cs-btn-primary"
+                    style={{ height: 36 }}
+                    onClick={() => initiateRenewal(row.id)}
+                  >
+                    Initiate renewal
+                  </button>
                 </td>
               </tr>
             ))}
@@ -65,7 +89,28 @@ export default function CustomerRenewals() {
             )}
           </tbody>
         </table>
+        {toast ? <div style={successBox}>{toast}</div> : null}
       </div>
     </CustomerPageShell>
   )
+}
+
+function Badge() {
+  return (
+    <span
+      className="cs-pill"
+      style={{ background: "rgba(255,193,7,0.12)", borderColor: "rgba(255,193,7,0.22)", color: "#f1c27d" }}
+    >
+      Expiring soon
+    </span>
+  )
+}
+
+const successBox: CSSProperties = {
+  border: "1px solid rgba(77,163,255,0.35)",
+  background: "rgba(77,163,255,0.08)",
+  color: "var(--text)",
+  padding: 10,
+  borderRadius: 12,
+  fontWeight: 700,
 }

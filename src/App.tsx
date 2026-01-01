@@ -21,6 +21,7 @@ import CustomerAIInsights from "./pages/customer/AIInsights"
 import CustomerSettings from "./pages/customer/Settings"
 import CustomerSubscriptions from "./pages/customer/Subscriptions"
 import CustomerRenewals from "./pages/customer/Renewals"
+import CustomerUsers from "./pages/customer/Users"
 import AdminLayout from "./layout/AdminLayout"
 import CustomerLayout from "./layout/CustomerLayout"
 import { useAdminAuth } from "./auth/AdminAuthContext"
@@ -38,6 +39,12 @@ function CustomerGuard({ children }: { children: ReactElement }) {
   if (!isAuthenticated && adminAuthed) return <Navigate to="/admin" replace />
   if (!isAuthenticated) return <Navigate to="/customer/login" replace />
   return children
+}
+
+function RequireCustomerPrimary({ children }: { children: ReactElement }) {
+  const { user } = useCustomerAuth()
+  if (user?.role === "CUSTOMER_PRIMARY") return children
+  return <Navigate to="/app/dashboard" replace state={{ message: "You don’t have access to this section." }} />
 }
 
 export default function App() {
@@ -77,13 +84,42 @@ export default function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<CustomerDashboard />} />
-          <Route path="subscriptions" element={<CustomerSubscriptions />} />
-          <Route path="renewals" element={<CustomerRenewals />} />
+          <Route
+            path="subscriptions"
+            element={
+              <RequireCustomerPrimary>
+                <CustomerSubscriptions />
+              </RequireCustomerPrimary>
+            }
+          />
+          <Route
+            path="renewals"
+            element={
+              <RequireCustomerPrimary>
+                <CustomerRenewals />
+              </RequireCustomerPrimary>
+            }
+          />
           <Route path="reports" element={<CustomerReports />} />
           <Route path="departments" element={<CustomerDepartments />} />
           <Route path="analytics" element={<CustomerAnalytics />} />
           <Route path="ai-insights" element={<CustomerAIInsights />} />
-          <Route path="settings" element={<CustomerSettings />} />
+          <Route
+            path="settings"
+            element={
+              <RequireCustomerPrimary>
+                <CustomerSettings />
+              </RequireCustomerPrimary>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <RequireCustomerPrimary>
+                <CustomerUsers />
+              </RequireCustomerPrimary>
+            }
+          />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

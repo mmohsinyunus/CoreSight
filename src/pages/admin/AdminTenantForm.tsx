@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { FormEvent } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import AppShell from "../../layout/AppShell"
-import { createTenant, fetchTenantsFromSheet, getTenant, updateTenant } from "../../data/tenants"
+import { createTenant, fetchTenantsFromSheet, getTenant, syncTenantToSheet, updateTenant } from "../../data/tenants"
 import type { Tenant, TenantInput } from "../../data/tenants"
 import { createUser, listUsersByTenant, resetPassword } from "../../data/users"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
@@ -35,6 +35,9 @@ export default function AdminTenantForm() {
   const [users, setUsers] = useState<User[]>([])
   const [userError, setUserError] = useState<string | undefined>()
   const [userNotice, setUserNotice] = useState<string | undefined>()
+  const [syncNotice, setSyncNotice] = useState<string | undefined>()
+  const [syncError, setSyncError] = useState<string | undefined>()
+  const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
     if (editing && tenantId) {
@@ -106,6 +109,40 @@ export default function AdminTenantForm() {
     setUserNotice("Password reset")
   }
 
+  const syncToSheet = async () => {
+    if (!tenantId) return
+    const confirmed = window.confirm(
+      "This will update the source-of-truth Google Sheet for this tenant. Continue?",
+    )
+    if (!confirmed) return
+
+    setSyncNotice(undefined)
+    setSyncError(undefined)
+    setSyncing(true)
+
+    const updated = updateTenant(tenantId, form) || getTenant(tenantId)
+    if (!updated) {
+      setSyncError("Sync failed. Local changes remain saved.")
+      setSyncing(false)
+      return
+    }
+
+    try {
+      const result = await syncTenantToSheet(updated)
+      if (result.ok) {
+        setSyncNotice("Synced to Google Sheet.")
+      } else if (result.unsupported) {
+        setSyncError("Sheet sync not enabled yet. Local changes saved.")
+      } else {
+        setSyncError("Sync failed. Local changes remain saved.")
+      }
+    } catch (err) {
+      setSyncError("Sync failed. Local changes remain saved.")
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   return (
     <AppShell
       title={editing ? "Edit tenant" : "Create tenant"}
@@ -135,8 +172,20 @@ export default function AdminTenantForm() {
           <button className="cs-btn cs-btn-primary" type="submit">
             {editing ? "Update tenant" : "Create tenant"}
           </button>
+          {editing ? (
+            <button
+              className="cs-btn cs-btn-ghost"
+              type="button"
+              onClick={syncToSheet}
+              disabled={syncing}
+            >
+              {syncing ? "Syncing..." : "Sync to Google Sheet"}
+            </button>
+          ) : null}
           <button className="cs-btn" type="button" onClick={() => navigate("/admin/tenants")}>Cancel</button>
         </div>
+        {syncNotice ? <div style={successBox}>{syncNotice}</div> : null}
+        {syncError ? <div style={errorBox}>{syncError}</div> : null}
       </form>
 
       {editing && tenantId ? (

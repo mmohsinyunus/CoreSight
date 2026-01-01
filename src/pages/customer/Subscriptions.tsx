@@ -1,17 +1,29 @@
 import { useEffect, useState } from "react"
-import { ensureTenantLifecycleRecords, listSubscriptionsByTenant } from "../../data/tenantRecords"
+import type { CSSProperties } from "react"
+import { ensureTenantLifecycleRecords, listSubscriptionsByTenant, upsertSubscription } from "../../data/tenantRecords"
 import { useCustomerAuth } from "../../auth/CustomerAuthContext"
 import CustomerPageShell from "./CustomerPageShell"
 
 export default function CustomerSubscriptions() {
   const { tenant } = useCustomerAuth()
   const [rows, setRows] = useState(() => (tenant ? listSubscriptionsByTenant(tenant.tenant_id) : []))
+  const [toast, setToast] = useState<string | undefined>()
 
   useEffect(() => {
     if (!tenant) return
     ensureTenantLifecycleRecords(tenant)
     setRows(listSubscriptionsByTenant(tenant.tenant_id))
   }, [tenant])
+
+  const requestUpgrade = () => {
+    if (!tenant) return
+    const tenantSubs = listSubscriptionsByTenant(tenant.tenant_id)
+    tenantSubs.forEach((sub) => {
+      upsertSubscription({ ...sub, subscription_status: "Pending Upgrade", status: "Pending Upgrade" })
+    })
+    setRows(listSubscriptionsByTenant(tenant.tenant_id))
+    setToast("Request submitted.")
+  }
 
   return (
     <CustomerPageShell title="Subscriptions" subtitle="Current entitlements, terms, and upgrade controls">
@@ -23,7 +35,9 @@ export default function CustomerSubscriptions() {
               Boardroom-ready view of your plans and renewal posture.
             </p>
           </div>
-          <button className="cs-btn cs-btn-primary">Manage Subscription</button>
+          <button className="cs-btn cs-btn-primary" onClick={requestUpgrade}>
+            Request upgrade
+          </button>
         </div>
 
         <table className="cs-table">
@@ -52,7 +66,9 @@ export default function CustomerSubscriptions() {
                 <td className="cs-td">{row.seats ?? "-"}</td>
                 <td className="cs-td">{row.renewal_type || "Annual"}</td>
                 <td className="cs-td">
-                  <button className="cs-btn" style={{ height: 36 }}>Manage</button>
+                  <button className="cs-btn" style={{ height: 36 }} onClick={requestUpgrade}>
+                    Manage
+                  </button>
                 </td>
               </tr>
             ))}
@@ -65,7 +81,17 @@ export default function CustomerSubscriptions() {
             )}
           </tbody>
         </table>
+        {toast ? <div style={successBox}>{toast}</div> : null}
       </div>
     </CustomerPageShell>
   )
+}
+
+const successBox: CSSProperties = {
+  border: "1px solid rgba(77,163,255,0.35)",
+  background: "rgba(77,163,255,0.08)",
+  color: "var(--text)",
+  padding: 10,
+  borderRadius: 12,
+  fontWeight: 700,
 }
