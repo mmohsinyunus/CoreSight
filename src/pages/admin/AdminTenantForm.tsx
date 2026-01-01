@@ -7,7 +7,7 @@ import type { Tenant, TenantInput } from "../../data/tenants"
 import { createUser, listUsersByTenant, resetPassword } from "../../data/users"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
 import type { User } from "../../data/users"
-import { adminNav } from "./nav"
+import { adminNav } from "../../navigation/adminNav"
 
 export default function AdminTenantForm() {
   const { tenantId } = useParams()
@@ -114,7 +114,7 @@ export default function AdminTenantForm() {
           ? "Local mirror edit (does not auto-sync Google Sheet)"
           : "Admin controls for onboarding tenants"
       }
-      navSections={adminNav}
+      navItems={adminNav}
       chips={[editing ? "Tenant" : "Create", "Admin"]}
     >
       <form className="cs-card" style={{ padding: 18, display: "grid", gap: 14 }} onSubmit={onSubmit}>

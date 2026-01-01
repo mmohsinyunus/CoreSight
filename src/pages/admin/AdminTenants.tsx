@@ -3,7 +3,7 @@ import AppShell from "../../layout/AppShell"
 import { fetchTenantsFromSheet, listTenants, setTenantStatus } from "../../data/tenants"
 import type { Tenant, TenantStatus } from "../../data/tenants"
 import { Link } from "react-router-dom"
-import { adminNav } from "./nav"
+import { adminNav } from "../../navigation/adminNav"
 
 export default function AdminTenants() {
   const [tenants, setTenants] = useState<Tenant[]>([])
@@ -51,7 +51,7 @@ export default function AdminTenants() {
   }
 
   return (
-    <AppShell title="Tenants" subtitle="Administer tenant records" navSections={adminNav} chips={["Admin", "CoreSight"]}>
+    <AppShell title="Tenants" subtitle="Administer tenant records" navItems={adminNav} chips={["Admin", "CoreSight"]}>
       <div className="cs-card" style={{ padding: 18, display: "grid", gap: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>

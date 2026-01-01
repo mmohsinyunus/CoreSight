@@ -1,5 +1,6 @@
 import AppShell from "../../layout/AppShell"
 import { Link } from "react-router-dom"
+import { adminNav } from "../../navigation/adminNav"
 
 const wrap: React.CSSProperties = {
   display: "grid",
@@ -131,7 +132,7 @@ const hr: React.CSSProperties = {
 
 export default function AdminHome() {
   return (
-    <AppShell title="Platform Admin">
+    <AppShell title="Platform Admin" navItems={adminNav} chips={["Admin"]}>
       <div style={wrap}>
         {/* LEFT */}
         <div>

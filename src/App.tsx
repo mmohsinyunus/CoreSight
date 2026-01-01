@@ -9,6 +9,10 @@ import AdminTenantForm from "./pages/admin/AdminTenantForm"
 import AdminUsers from "./pages/admin/AdminUsers"
 import AdminSettings from "./pages/admin/AdminSettings"
 import VendorNew from "./pages/admin/VendorNew"
+import AdminHome from "./pages/admin/AdminHome"
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions"
+import AdminRenewals from "./pages/admin/AdminRenewals"
+import AdminAnalytics from "./pages/admin/AdminAnalytics"
 import CustomerDashboard from "./pages/customer/Dashboard"
 import CustomerReports from "./pages/customer/Reports"
 import CustomerDepartments from "./pages/customer/Departments"
@@ -17,6 +21,8 @@ import CustomerAIInsights from "./pages/customer/AIInsights"
 import CustomerSettings from "./pages/customer/Settings"
 import CustomerSubscriptions from "./pages/customer/Subscriptions"
 import CustomerRenewals from "./pages/customer/Renewals"
+import AdminLayout from "./layout/AdminLayout"
+import CustomerLayout from "./layout/CustomerLayout"
 import { useAdminAuth } from "./auth/AdminAuthContext"
 import { useCustomerAuth } from "./auth/CustomerAuthContext"
 
@@ -28,6 +34,8 @@ function AdminGuard({ children }: { children: ReactElement }) {
 
 function CustomerGuard({ children }: { children: ReactElement }) {
   const { isAuthenticated } = useCustomerAuth()
+  const { isAuthenticated: adminAuthed } = useAdminAuth()
+  if (!isAuthenticated && adminAuthed) return <Navigate to="/admin" replace />
   if (!isAuthenticated) return <Navigate to="/customer/login" replace />
   return children
 }
@@ -40,113 +48,43 @@ export default function App() {
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
-          path="/admin/tenants"
+          path="/admin"
           element={
             <AdminGuard>
-              <AdminTenants />
+              <AdminLayout />
             </AdminGuard>
           }
-        />
-        <Route
-          path="/admin/tenants/new"
-          element={
-            <AdminGuard>
-              <VendorNew />
-            </AdminGuard>
-          }
-        />
-        <Route
-          path="/admin/tenants/:tenantId/edit"
-          element={
-            <AdminGuard>
-              <AdminTenantForm />
-            </AdminGuard>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <AdminGuard>
-              <AdminUsers />
-            </AdminGuard>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <AdminGuard>
-              <AdminSettings />
-            </AdminGuard>
-          }
-        />
-        <Route path="/admin" element={<Navigate to="/admin/tenants" replace />} />
+        >
+          <Route index element={<AdminHome />} />
+          <Route path="tenants" element={<AdminTenants />} />
+          <Route path="tenants/new" element={<VendorNew />} />
+          <Route path="tenants/:tenantId/edit" element={<AdminTenantForm />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
+          <Route path="renewals" element={<AdminRenewals />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
 
         <Route path="/customer/login" element={<CustomerLogin />} />
         <Route
-          path="/app/dashboard"
+          path="/app"
           element={
             <CustomerGuard>
-              <CustomerDashboard />
+              <CustomerLayout />
             </CustomerGuard>
           }
-        />
-        <Route
-          path="/app/subscriptions"
-          element={
-            <CustomerGuard>
-              <CustomerSubscriptions />
-            </CustomerGuard>
-          }
-        />
-        <Route
-          path="/app/renewals"
-          element={
-            <CustomerGuard>
-              <CustomerRenewals />
-            </CustomerGuard>
-          }
-        />
-        <Route
-          path="/app/reports"
-          element={
-            <CustomerGuard>
-              <CustomerReports />
-            </CustomerGuard>
-          }
-        />
-        <Route
-          path="/app/departments"
-          element={
-            <CustomerGuard>
-              <CustomerDepartments />
-            </CustomerGuard>
-          }
-        />
-        <Route
-          path="/app/analytics"
-          element={
-            <CustomerGuard>
-              <CustomerAnalytics />
-            </CustomerGuard>
-          }
-        />
-        <Route
-          path="/app/ai-insights"
-          element={
-            <CustomerGuard>
-              <CustomerAIInsights />
-            </CustomerGuard>
-          }
-        />
-        <Route
-          path="/app/settings"
-          element={
-            <CustomerGuard>
-              <CustomerSettings />
-            </CustomerGuard>
-          }
-        />
-        <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<CustomerDashboard />} />
+          <Route path="subscriptions" element={<CustomerSubscriptions />} />
+          <Route path="renewals" element={<CustomerRenewals />} />
+          <Route path="reports" element={<CustomerReports />} />
+          <Route path="departments" element={<CustomerDepartments />} />
+          <Route path="analytics" element={<CustomerAnalytics />} />
+          <Route path="ai-insights" element={<CustomerAIInsights />} />
+          <Route path="settings" element={<CustomerSettings />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
