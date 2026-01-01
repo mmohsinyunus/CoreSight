@@ -3,27 +3,28 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
-  /* Core surfaces */
-  --bg: #0b1018;
-  --surface: #111926;
-  --surface-elevated: #162133;
+  /* Core theme tokens */
+  --background: #0f1115;
+  --surface: #161a20;
+  --surface-elevated: #1c2129;
   --card: var(--surface);
 
   /* Text */
-  --text: #e5edf7;
-  --text-secondary: #a8b6ce;
-  --muted: #8a97ad;
+  --text: #e5e7eb;
+  --text-secondary: #cbd5e1;
+  --muted: #9ca3af;
 
   /* Borders & shadows */
-  --border: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
   --border-soft: rgba(255, 255, 255, 0.08);
-  --shadow: 0 18px 38px rgba(0, 0, 0, 0.42);
-  --shadow-sm: 0 12px 26px rgba(0, 0, 0, 0.32);
+  --shadow: 0 18px 38px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 12px 26px rgba(0, 0, 0, 0.42);
+  --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.32);
 
   /* Accent */
-  --accent: #40c3e9;
-  --accent-hover: #64d2f3;
-  --focus-ring: rgba(64, 195, 233, 0.32);
+  --accent: #4da3ff;
+  --accent-hover: #63b4ff;
+  --focus-ring: rgba(77, 163, 255, 0.35);
 
   /* Radii */
   --radius-lg: 18px;
@@ -32,10 +33,13 @@
 
   --sidebar-w: 280px;
 
+  /* Legacy aliases (for existing components) */
+  --bg: var(--background);
+
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
     "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
-  background: var(--bg);
+  background: var(--background);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,7 +49,7 @@
 html, body { height: 100%; }
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--background);
   color: var(--text);
 }
 
@@ -74,7 +78,7 @@ button, input, select, textarea {
   width: 100%;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-elevated);
   color: var(--text);
   padding: 0 12px;
   outline: none;
@@ -99,7 +103,7 @@ button, input, select, textarea {
 .cs-textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface);
 }
 
 /* Buttons */
@@ -108,12 +112,12 @@ button, input, select, textarea {
   padding: 0 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-elevated);
   color: var(--text);
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 200ms ease, background 200ms ease, border-color 200ms ease;
 }
-.cs-btn:hover { box-shadow: var(--shadow-sm); background: rgba(255, 255, 255, 0.06); }
+.cs-btn:hover { box-shadow: var(--shadow-sm); background: var(--surface); }
 .cs-btn:active { transform: translateY(1px); }
 .cs-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -141,7 +145,7 @@ button, input, select, textarea {
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-elevated);
   color: var(--text);
   font-size: 13px;
   font-weight: 650;

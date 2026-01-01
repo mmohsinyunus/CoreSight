@@ -16,39 +16,32 @@ export default function AppShell({ title, subtitle, actions, children }: AppShel
   const navItems = useMemo(
     () => [
       {
-        label: "Overview",
+        label: "Core",
         items: [
-          { to: "/dashboard", label: "Dashboard", icon: "⧉" },
-          { to: "/subscriptions", label: "Subscriptions", icon: "▢" },
-          { to: "/reports", label: "Reports", icon: "☰" },
-          { to: "/analytics", label: "Analytics", icon: "▣" },
-          { to: "/approvals", label: "Approvals", icon: "✓" },
+          { to: "/dashboard", label: "Dashboard", icon: "📊" },
+          { to: "/subscriptions", label: "Subscriptions", icon: "💳" },
+          { to: "/users", label: "Users", icon: "👥" },
+          { to: "/departments", label: "Departments", icon: "🏢" },
+          { to: "/analytics", label: "Analytics", icon: "📈" },
+          { to: "/ai-insights", label: "AI Insights", icon: "✨" },
         ],
       },
       {
-        label: "People",
+        label: "Operations",
         items: [
-          { to: "/users", label: "Users", icon: "👤" },
-          { to: "/departments", label: "Departments", icon: "▥" },
-          { to: "/identity-queue", label: "Identity", icon: "⚡" },
-        ],
-      },
-      {
-        label: "AI & Insights",
-        items: [
-          { to: "/home", label: "Home", icon: "⌂" },
+          { to: "/approvals", label: "Approvals", icon: "✅" },
           { to: "/renewals", label: "Renewals", icon: "↻" },
-          { to: "/renewals/detail", label: "Renewal Detail", icon: "○" },
           { to: "/subscriptions/detail", label: "Subscription Detail", icon: "◉" },
-          { to: "/analytics", label: "AI Insights", icon: "✺" },
+          { to: "/renewals/detail", label: "Renewal Detail", icon: "○" },
+          { to: "/reports", label: "Reports", icon: "🗒" },
         ],
       },
       {
         label: "Admin",
         items: [
           { to: "/admin/vendors", label: "Tenants", icon: "🏢" },
-          { to: "/admin/vendor-new", label: "Onboard", icon: "＋" },
-          { to: "/admin/settings", label: "Settings", icon: "⚙" },
+          { to: "/admin/vendor-new", label: "Onboard Tenant", icon: "＋" },
+          { to: "/admin/settings", label: "Admin / Settings", icon: "⚙" },
         ],
       },
     ],
@@ -136,17 +129,27 @@ function SideLink({
   return (
     <NavLink
       to={to}
+      aria-label={label}
       style={({ isActive }) => ({
         ...navItem,
         padding: collapsed ? "12px 10px" : "12px 14px",
         justifyContent: collapsed ? "center" : "flex-start",
-        background: isActive ? "rgba(64,195,233,0.12)" : "transparent",
-        borderColor: isActive ? "var(--accent)" : "var(--border)",
-        color: isActive ? "#e9f8ff" : "var(--text-secondary)",
+        background: isActive ? "rgba(77,163,255,0.12)" : "transparent",
+        borderColor: isActive ? "rgba(77,163,255,0.45)" : "var(--border)",
+        boxShadow: isActive ? "inset 3px 0 0 var(--accent)" : "none",
+        color: isActive ? "var(--text)" : "var(--text-secondary)",
       })}
     >
       <span style={navIcon}>{icon}</span>
-      {!collapsed && <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>}
+      <span
+        style={{
+          ...navLabel,
+          maxWidth: collapsed ? 0 : 180,
+          opacity: collapsed ? 0 : 1,
+        }}
+      >
+        {label}
+      </span>
     </NavLink>
   )
 }
@@ -155,38 +158,41 @@ function SideLink({
 const shell: CSSProperties = {
   display: "grid",
   minHeight: "100vh",
-  background: "radial-gradient(circle at 10% 20%, rgba(255,255,255,0.04), transparent 30%), var(--bg)",
+  background:
+    "radial-gradient(circle at 16% 12%, rgba(77,163,255,0.06), transparent 28%)," +
+    "radial-gradient(circle at 82% 8%, rgba(77,163,255,0.04), transparent 24%)," +
+    "var(--background)",
 }
 
 const sidebar: CSSProperties = {
   padding: 14,
   borderRight: "1px solid var(--border)",
-  background: "linear-gradient(180deg, rgba(17,25,38,0.95), rgba(12,16,26,0.95))",
-  backdropFilter: "blur(8px)",
+  background: "linear-gradient(180deg, rgba(18,22,30,0.96), rgba(11,14,20,0.94))",
+  backdropFilter: "blur(10px)",
   display: "flex",
   flexDirection: "column",
   gap: 8,
-  transition: "width 200ms ease",
+  transition: "width 240ms ease, padding 200ms ease",
   position: "sticky",
   top: 0,
   alignSelf: "start",
   height: "100vh",
   overflowY: "auto",
-  boxShadow: "var(--shadow-sm)",
+  boxShadow: "var(--shadow-soft)",
 }
 
 const main: CSSProperties = {
   padding: 18,
   minHeight: "100vh",
   overflow: "auto",
-  background: "var(--bg)",
+  background: "var(--background)",
 }
 
 const brand: CSSProperties = {
   padding: 12,
   borderRadius: 14,
   border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.03)",
+  background: "rgba(255,255,255,0.02)",
   boxShadow: "var(--shadow-sm)",
   marginBottom: 8,
 }
@@ -206,7 +212,7 @@ const toggle: CSSProperties = {
   width: 36,
   borderRadius: 10,
   border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.04)",
+  background: "var(--surface)",
   color: "var(--text)",
   boxShadow: "none",
 }
@@ -230,10 +236,16 @@ const navItem: CSSProperties = {
   textDecoration: "none",
   marginBottom: 8,
   background: "transparent",
-  transition: "background 180ms ease, border-color 180ms ease, color 180ms ease",
+  transition: "background 200ms ease, border-color 200ms ease, color 200ms ease, max-width 200ms ease, opacity 200ms ease",
 }
 
 const navIcon: CSSProperties = { width: 20, textAlign: "center", color: "var(--text)" }
+const navLabel: CSSProperties = {
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  transition: "opacity 200ms ease, max-width 200ms ease",
+}
 
 const topBar: CSSProperties = {
   display: "flex",
@@ -264,7 +276,7 @@ const chip: CSSProperties = {
   padding: "8px 12px",
   borderRadius: 999,
   border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.04)",
+  background: "var(--surface-elevated)",
   fontWeight: 700,
   fontSize: 12,
   color: "var(--text-secondary)",
@@ -277,6 +289,6 @@ const tipCard: CSSProperties = {
   padding: 14,
   borderRadius: 14,
   border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.04)",
+  background: "var(--surface)",
   boxShadow: "var(--shadow-sm)",
 }
