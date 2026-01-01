@@ -10,12 +10,7 @@ import {
   updateTenant,
 } from "../../data/tenants"
 import type { Tenant, TenantInput } from "../../data/tenants"
-import {
-  createUser,
-  getAdminEmail,
-  listUsersByTenant,
-  resetPassword,
-} from "../../data/users"
+import { createUser, getAdminEmail, listUsersByTenant, resetPassword } from "../../data/users"
 import { ensureDepartmentSeed } from "../../data/departments"
 import { addAuditLog } from "../../data/auditLogs"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
@@ -37,7 +32,7 @@ const blankForm: Partial<Tenant> = {
   primary_admin_email: "",
   primary_admin_name: "",
   status: "Active",
-  // point 5
+  // point 5 (mandatory)
   vat_registration_number: "",
   national_address: "",
 }
@@ -49,7 +44,7 @@ export default function AdminTenantForm() {
 
   const [form, setForm] = useState<Partial<Tenant>>({ ...blankForm })
 
-  // Create-primary user section (edit mode)
+  // Primary user section (edit mode)
   const [primaryEmail, setPrimaryEmail] = useState("")
   const [primaryPassword, setPrimaryPassword] = useState("")
   const [primaryConfirm, setPrimaryConfirm] = useState("")
@@ -70,10 +65,14 @@ export default function AdminTenantForm() {
   const [createdTenantId, setCreatedTenantId] = useState<string | undefined>()
 
   useEffect(() => {
-    // reset notices when switching mode
+    // Reset all notices when switching mode or tenant
     setCreateNotice(undefined)
     setCreateError(undefined)
     setCreatedTenantId(undefined)
+    setUserError(undefined)
+    setUserNotice(undefined)
+    setSyncNotice(undefined)
+    setSyncError(undefined)
 
     if (editing && tenantId) {
       const tenant = getTenant(tenantId)
@@ -99,26 +98,24 @@ export default function AdminTenantForm() {
   }, [editing, tenantId])
 
   const validate = () => {
-    // point 2: legal name mandatory
     if (!String(form.tenant_name ?? "").trim()) return "Tenant name is required."
     if (!String(form.legal_name ?? "").trim()) return "Legal name is required."
 
-    // point 5: VAT + National Address mandatory
     if (!String((form as any).vat_registration_number ?? "").trim())
       return "VAT registration number is required."
     if (!String((form as any).national_address ?? "").trim())
       return "National address is required."
 
-    // currency required
     if (!String(form.currency ?? "").trim()) return "Currency is required."
     return undefined
   }
 
-  const resetAll = () => {
+  const hardResetForNewEntry = () => {
+    // point 7: completely reset page for new tenant entry
     setForm({ ...blankForm })
+    setCreatedTenantId(undefined)
     setCreateNotice(undefined)
     setCreateError(undefined)
-    setCreatedTenantId(undefined)
 
     setPrimaryEmail("")
     setPrimaryPassword("")
@@ -152,7 +149,7 @@ export default function AdminTenantForm() {
       return
     }
 
-    // Creating new tenant
+    // Create new tenant
     const newTenant = createTenant(form as TenantInput)
     ensureTenantLifecycleRecords(newTenant)
 
@@ -160,15 +157,11 @@ export default function AdminTenantForm() {
     setCreatedTenantId(newTenant.tenant_id)
     setCreateNotice(`New tenant created. The Tenant ID is ${newTenant.tenant_id}.`)
 
-    // point 7: reset page completely AFTER creation
-    // Keep Tenant ID visible; clear rest
+    // point 7: clear the form after create (keeps notice visible)
     setForm({ ...blankForm })
   }
 
-  const primaryUser = useMemo(
-    () => users.find((u) => u.role === "CUSTOMER_PRIMARY"),
-    [users],
-  )
+  const primaryUser = useMemo(() => users.find((u) => u.role === "CUSTOMER_PRIMARY"), [users])
 
   const createPrimary = (e: FormEvent) => {
     e.preventDefault()
@@ -177,6 +170,7 @@ export default function AdminTenantForm() {
       setUserError("Passwords do not match")
       return
     }
+
     const tenant = getTenant(tenantId)
     setUserError(undefined)
 
@@ -204,9 +198,7 @@ export default function AdminTenantForm() {
     setPrimaryPassword("")
     setPrimaryConfirm("")
     setPrimaryName("")
-    setUserNotice(
-      "Primary customer created. Subscriptions & renewals seeded for this tenant.",
-    )
+    setUserNotice("Primary customer created. Subscriptions & renewals seeded for this tenant.")
   }
 
   const resetPasswordHandler = (e: FormEvent) => {
@@ -238,13 +230,9 @@ export default function AdminTenantForm() {
 
     try {
       const result = await syncTenantToSheet(updated)
-      if (result.ok) {
-        setSyncNotice("Synced to Google Sheet.")
-      } else if (result.unsupported) {
-        setSyncError("Sheet sync not enabled yet. Local changes saved.")
-      } else {
-        setSyncError("Sync failed. Local changes remain saved.")
-      }
+      if (result.ok) setSyncNotice("Synced to Google Sheet.")
+      else if (result.unsupported) setSyncError("Sheet sync not enabled yet. Local changes saved.")
+      else setSyncError("Sync failed. Local changes remain saved.")
     } catch {
       setSyncError("Sync failed. Local changes remain saved.")
     } finally {
@@ -263,19 +251,8 @@ export default function AdminTenantForm() {
       navItems={adminNav}
       chips={[editing ? "Tenant" : "Create", "Admin"]}
     >
-      <form
-        className="cs-card"
-        style={{ padding: 18, display: "grid", gap: 14 }}
-        onSubmit={onSubmit}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 12,
-          }}
-        >
-          {/* Step 1 fields (point 5 mandatory) */}
+      <form className="cs-card" style={{ padding: 18, display: "grid", gap: 14 }} onSubmit={onSubmit}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
           {inputField("Tenant name *", "tenant_name", String(form.tenant_name ?? ""), setForm)}
           {inputField("Legal name *", "legal_name", String(form.legal_name ?? ""), setForm)}
 
@@ -286,7 +263,6 @@ export default function AdminTenantForm() {
           {inputField("Region", "region", String(form.region ?? ""), setForm)}
           {inputField("Timezone", "timezone", String(form.timezone ?? ""), setForm)}
 
-          {/* point 6 currency dropdown */}
           <label style={label}>
             Currency *
             <select
@@ -318,25 +294,13 @@ export default function AdminTenantForm() {
           </button>
 
           {editing ? (
-            <button
-              className="cs-btn cs-btn-ghost"
-              type="button"
-              onClick={syncToSheet}
-              disabled={syncing}
-            >
+            <button className="cs-btn cs-btn-ghost" type="button" onClick={syncToSheet} disabled={syncing}>
               {syncing ? "Syncing..." : "Sync to Google Sheet"}
             </button>
           ) : null}
 
           {!editing && createdTenantId ? (
-            <button
-              className="cs-btn"
-              type="button"
-              onClick={() => {
-                // point 7: hard reset for new entry
-                resetAll()
-              }}
-            >
+            <button className="cs-btn" type="button" onClick={hardResetForNewEntry}>
               Create another tenant
             </button>
           ) : null}
@@ -346,7 +310,6 @@ export default function AdminTenantForm() {
           </button>
         </div>
 
-        {/* point 3 wording + show ID */}
         {createNotice ? <div style={successBox}>{createNotice}</div> : null}
         {createError ? <div style={errorBox}>{createError}</div> : null}
 
@@ -354,19 +317,13 @@ export default function AdminTenantForm() {
         {syncError ? <div style={errorBox}>{syncError}</div> : null}
       </form>
 
-      {/* Edit-only: primary user management */}
       {editing && tenantId ? (
-        <div
-          className="cs-card"
-          style={{ padding: 18, marginTop: 18, display: "grid", gap: 14 }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <h3 style={{ margin: 0 }}>Primary customer login</h3>
-              <p style={{ margin: 0, color: "var(--text-secondary)" }}>
-                Create or reset the tenant's primary credentials.
-              </p>
-            </div>
+        <div className="cs-card" style={{ padding: 18, marginTop: 18, display: "grid", gap: 14 }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Primary customer login</h3>
+            <p style={{ margin: 0, color: "var(--text-secondary)" }}>
+              Create or reset the tenant&apos;s primary credentials.
+            </p>
           </div>
 
           {primaryUser ? (
@@ -423,12 +380,7 @@ export default function AdminTenantForm() {
   )
 }
 
-function inputField(
-  labelText: string,
-  key: keyof Tenant,
-  value: string,
-  setForm: (next: any) => void,
-) {
+function inputField(labelText: string, key: keyof Tenant, value: string, setForm: (next: any) => void) {
   return (
     <label style={label}>
       {labelText}
