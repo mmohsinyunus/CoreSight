@@ -1,6 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { findUserByEmail, hashPassword, listUsers, listUsersByTenant, verifyPassword } from "../data/users"
-import { fetchTenantsFromSheet, getTenantByCode, listTenants } from "../data/tenants"
+import {
+  findUserByEmail,
+  hashPassword,
+  listUsers,
+  listUsersByTenant,
+  verifyPassword,
+} from "../data/users"
+import { fetchTenantsFromSheet, getTenant, listTenants } from "../data/tenants"
 import type { Tenant } from "../data/tenants"
 import type { User, UserRole } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
@@ -20,7 +26,11 @@ type CustomerAuthValue = {
   tenant?: Tenant
   user?: User
   isAuthenticated: boolean
-  login: (tenantCode: string, email: string, password: string) => Promise<LoginResult>
+  /**
+   * Primary identifier is tenant_id.
+   * Legacy tenant_code values still work because getTenant() resolves both.
+   */
+  login: (tenantId: string, email: string, password: string) => Promise<LoginResult>
   logout: () => void
 }
 
@@ -41,22 +51,25 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     if (stored?.tenant && stored?.user) {
       const role = resolveRole(stored.user, stored.tenant)
       const normalizedUser = { ...stored.user, role }
-      const normalizedSession: CustomerSession = { tenant: stored.tenant, user: normalizedUser }
+      const normalizedSession: CustomerSession = {
+        tenant: stored.tenant,
+        user: normalizedUser,
+      }
       setSession(normalizedSession)
       writeStorage(STORAGE_KEY, normalizedSession)
     }
   }, [])
 
-  const login = async (tenantCode: string, email: string, password: string): Promise<LoginResult> => {
-    const code = tenantCode.trim()
+  const login = async (tenantId: string, email: string, password: string): Promise<LoginResult> => {
+    const id = tenantId.trim()
     const normalizedEmail = email.trim()
 
-    let tenant = getTenantByCode(code)
+    let tenant = getTenant(id)
 
     if (!tenant) {
       try {
         await fetchTenantsFromSheet()
-        tenant = getTenantByCode(code)
+        tenant = getTenant(id)
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unable to validate tenant"
         return { success: false, error: message }
@@ -72,7 +85,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
     const user = listUsers().find(
       (u) =>
-        u.tenant_id === tenant?.tenant_id &&
+        u.tenant_id === tenant.tenant_id &&
         u.email.toLowerCase() === normalizedEmail.toLowerCase() &&
         (!u.status || u.status === "Active") &&
         (u.role === "CUSTOMER_PRIMARY" || u.role === "CUSTOMER_USER"),
@@ -83,10 +96,15 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       if (emailMatch && emailMatch.tenant_id !== tenant.tenant_id) {
         return { success: false, error: "Email is registered to a different tenant." }
       }
-      return { success: false, error: "No user found for this tenant. Ask admin to create primary login." }
+      return {
+        success: false,
+        error: "No user found for this tenant. Ask admin to create primary login.",
+      }
     }
 
-    if (user.status && user.status !== "Active") return { success: false, error: "User inactive" }
+    if (user.status && user.status !== "Active") {
+      return { success: false, error: "User inactive" }
+    }
 
     if (!verifyPassword(password, user.password_hash)) {
       return { success: false, error: "Invalid credentials." }
@@ -95,9 +113,17 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     const role = resolveRole(user, tenant)
     const normalizedUser = { ...user, role }
     const newSession: CustomerSession = { tenant, user: normalizedUser }
+
     setSession(newSession)
     writeStorage(STORAGE_KEY, newSession)
-    addActivity({ tenant_id: tenant.tenant_id, user_email: normalizedEmail, user_id: user.user_id, event: "LOGIN" })
+
+    addActivity({
+      tenant_id: tenant.tenant_id,
+      user_email: normalizedEmail,
+      user_id: user.user_id,
+      event: "LOGIN",
+    })
+
     addAuditLog({
       actor_type: "CUSTOMER",
       actor_email: normalizedEmail,
@@ -105,6 +131,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       tenant_id: tenant.tenant_id,
       action: "LOGIN_SUCCESS",
     })
+
     return { success: true }
   }
 
@@ -114,7 +141,13 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   }
 
   const value = useMemo(
-    () => ({ tenant: session?.tenant, user: session?.user, isAuthenticated: Boolean(session), login, logout }),
+    () => ({
+      tenant: session?.tenant,
+      user: session?.user,
+      isAuthenticated: Boolean(session),
+      login,
+      logout,
+    }),
     [login, logout, session],
   )
 
@@ -127,14 +160,22 @@ export function useCustomerAuth() {
   return ctx
 }
 
-// Helper seeds for demo convenience
+/**
+ * Demo seeding (DEV ONLY)
+ * - Never runs in production
+ * - Seeds exactly one demo customer user if none exist
+ */
 export function seedDemoUsers() {
+  // 🚫 Never seed demo users in production
+  if (!import.meta.env.DEV) return
+
   const tenants = listTenants()
   const users = listUsers()
   const hasCustomer = users.some((u) => u.role !== "ADMIN")
   if (tenants.length === 0 || hasCustomer) return
+
   const tenant = tenants[0]
-  // Only seed a single demo user when storage is empty
+
   const demoUser: User = {
     user_id: "demo-user",
     tenant_id: tenant.tenant_id,
@@ -145,5 +186,6 @@ export function seedDemoUsers() {
     created_at: tenant.created_at,
     updated_at: tenant.created_at,
   }
+
   writeStorage("coresight_users", [...users, demoUser])
 }

@@ -5,20 +5,25 @@ import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useCustomerAuth, seedDemoUsers } from "../auth/CustomerAuthContext"
 import { ensureSeedTenant } from "../data/tenants"
 
-// Named component (helps editors/refactors)
 function CustomerLogin() {
   const { isAuthenticated, login } = useCustomerAuth()
   const navigate = useNavigate()
 
-  // Tenant ID (previously tenant code)
-  const [tenantId, setTenantId] = useState("acme")
-  const [email, setEmail] = useState("primary@demo.corp")
-  const [password, setPassword] = useState("demo123")
+  // Production-safe defaults (empty)
+  const [tenantId, setTenantId] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | undefined>()
 
   useEffect(() => {
+    // Keep the seed tenant for local/demo environments; harmless if already present
     ensureSeedTenant()
-    seedDemoUsers()
+
+    // Seed demo users ONLY in dev (and only when explicitly requested)
+    // Visit: /customer/login?demo=1 to pre-seed demo credentials in dev
+    const isDev = import.meta.env.DEV
+    const wantsDemo = new URLSearchParams(window.location.search).get("demo") === "1"
+    if (isDev && wantsDemo) seedDemoUsers()
   }, [])
 
   if (isAuthenticated) return <Navigate to="/app/dashboard" replace />
@@ -69,6 +74,7 @@ function CustomerLogin() {
               value={tenantId}
               onChange={(e) => setTenantId(e.target.value)}
               placeholder="e.g. acme"
+              autoComplete="organization"
             />
           </label>
 
@@ -78,7 +84,8 @@ function CustomerLogin() {
               className="cs-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="primary@demo.corp"
+              placeholder="name@company.com"
+              autoComplete="email"
             />
           </label>
 
@@ -90,6 +97,7 @@ function CustomerLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••"
+              autoComplete="current-password"
             />
           </label>
 
@@ -110,7 +118,6 @@ function CustomerLogin() {
   )
 }
 
-// ✅ Critical line: default export
 export default CustomerLogin
 
 const wrap: React.CSSProperties = {
