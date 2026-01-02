@@ -37,6 +37,9 @@ export default function VendorNew() {
   const [vat_registration_number, setVat] = useState("")
   const [national_address, setNationalAddress] = useState("")
 
+  // Point 6: Currency dropdown (best onboarding alignment = Step 1)
+  const [default_currency, setCurrency] = useState<Currency>("SAR")
+
   // Subscription (Step 2)
   const [plan_type, setPlanType] = useState<string>(
     PLAN_TYPE_OPTIONS[1] || "Standard",
@@ -59,9 +62,6 @@ export default function VendorNew() {
   const [primary_country, setCountry] = useState("Saudi Arabia")
   const [primary_timezone, setTimezone] = useState("Asia/Riyadh")
 
-  // Point 6: Currency dropdown options
-  const [default_currency, setCurrency] = useState<Currency>("SAR")
-
   const [data_retention_policy, setRetentionPolicy] = useState("standard")
   const [compliance_flag, setComplianceFlag] = useState(false)
   const [notes, setNotes] = useState("")
@@ -83,6 +83,7 @@ export default function VendorNew() {
 
     setVat("")
     setNationalAddress("")
+    setCurrency("SAR")
 
     setPlanType(PLAN_TYPE_OPTIONS[1] || "Standard")
     setSubscriptionStatus(SUBSCRIPTION_STATUS_OPTIONS[0] || "Active")
@@ -96,7 +97,6 @@ export default function VendorNew() {
     setAdminEmail("")
     setCountry("Saudi Arabia")
     setTimezone("Asia/Riyadh")
-    setCurrency("SAR")
 
     setRetentionPolicy("standard")
     setComplianceFlag(false)
@@ -114,7 +114,8 @@ export default function VendorNew() {
         legal_name.trim() && // Point 2 mandatory
         tenant_type.trim() &&
         vat_registration_number.trim() && // Point 5 mandatory in step 1
-        national_address.trim() // Point 5 mandatory in step 1
+        national_address.trim() && // Point 5 mandatory in step 1
+        String(default_currency).trim() // currency present
       )
 
     if (step === 2) return plan_type.trim() && subscription_status.trim()
@@ -129,6 +130,7 @@ export default function VendorNew() {
     tenant_type,
     vat_registration_number,
     national_address,
+    default_currency,
     plan_type,
     subscription_status,
     primary_admin_name,
@@ -221,8 +223,8 @@ export default function VendorNew() {
       const mirrorTenant = upsertTenantMirrorFromSheet(payload as any)
       if (mirrorTenant) ensureTenantLifecycleRecords(mirrorTenant)
 
-      // Point 3: improved message
-      setSuccess(`✅ New tenant is created. The Tenant ID is ${tenantId}.`)
+      // Point 3: updated success wording (clean + explicit)
+      setSuccess(`✅ Tenant created successfully. Tenant ID: ${tenantId}.`)
 
       // Point 7: reset form completely (but keep success visible)
       resetFieldsOnly()
@@ -282,6 +284,20 @@ export default function VendorNew() {
                     value={national_address}
                     onChange={(e) => setNationalAddress(e.target.value)}
                   />
+                </Field>
+
+                <Field label="Default Currency *">
+                  <select
+                    className="cs-input"
+                    value={default_currency}
+                    onChange={(e) => setCurrency(e.target.value as Currency)}
+                  >
+                    {CURRENCY_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
                 <Field label="Tenant Type *">
@@ -428,20 +444,6 @@ export default function VendorNew() {
                   />
                 </Field>
 
-                <Field label="Default Currency">
-                  <select
-                    className="cs-input"
-                    value={default_currency}
-                    onChange={(e) => setCurrency(e.target.value as Currency)}
-                  >
-                    {CURRENCY_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
                 <Field label="Data Retention Policy">
                   <select
                     className="cs-input"
@@ -539,6 +541,9 @@ export default function VendorNew() {
                   <b>National Address:</b> {national_address || "-"}
                 </div>
                 <div>
+                  <b>Currency:</b> {default_currency || "-"}
+                </div>
+                <div>
                   <b>Type:</b> {tenant_type || "-"}
                 </div>
                 <div>
@@ -546,9 +551,6 @@ export default function VendorNew() {
                 </div>
                 <div>
                   <b>Status:</b> {subscription_status || "-"}
-                </div>
-                <div>
-                  <b>Currency:</b> {default_currency || "-"}
                 </div>
                 <div>
                   <b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})

@@ -5,6 +5,10 @@ import { appsScriptBaseUrl } from "./api"
 export type TenantStatus = "Active" | "Inactive"
 export type Tenant = {
   tenant_id: string
+  /**
+   * Legacy alias for older Sheets / integrations.
+   * Prefer tenant_id everywhere.
+   */
   tenant_code?: string
   tenant_name: string
   legal_name?: string
@@ -39,16 +43,22 @@ function persistTenants(next: Tenant[]) {
   writeStorage(STORAGE_KEY, next)
 }
 
-export function getTenant(id: string) {
-  const normalizedId = id?.toLowerCase()
+/**
+ * Canonical lookup: resolves by tenant_id OR legacy tenant_code.
+ */
+export function getTenant(idOrCode: string) {
+  const normalized = idOrCode?.toLowerCase()
   return listTenants().find(
     (t) =>
-      t.tenant_id?.toLowerCase() === normalizedId || t.tenant_code?.toLowerCase() === normalizedId,
+      t.tenant_id?.toLowerCase() === normalized || t.tenant_code?.toLowerCase() === normalized,
   )
 }
 
+/**
+ * Backward-compatible name. Prefer getTenant().
+ */
 export function getTenantByCode(code: string) {
-  return listTenants().find((t) => t.tenant_code?.toLowerCase() === code.toLowerCase())
+  return getTenant(code)
 }
 
 export type TenantInput = Omit<Tenant, "tenant_id" | "created_at" | "updated_at" | "status"> & {
@@ -58,9 +68,13 @@ export type TenantInput = Omit<Tenant, "tenant_id" | "created_at" | "updated_at"
 export function createTenant(payload: TenantInput): Tenant {
   const now = nowIso()
   const tenantId = generateId("tenant")
+
   const tenant: Tenant = {
     tenant_id: tenantId,
-    tenant_code: payload.tenant_code?.trim() || tenantId,
+    // IMPORTANT: do not force tenant_code unless explicitly provided.
+    // This helps migrate the app away from tenant_code over time.
+    tenant_code: payload.tenant_code?.trim() || undefined,
+
     tenant_name: payload.tenant_name,
     legal_name: payload.legal_name ?? payload.tenant_name,
     tenant_type: payload.tenant_type ?? "Enterprise",
@@ -111,6 +125,8 @@ export function setTenantStatus(id: string, status: TenantStatus) {
 
 export function ensureSeedTenant() {
   if (listTenants().length > 0) return
+  // Keep demo stable: CustomerLogin defaults to "acme" and getTenant() resolves via tenant_code.
+  // In a later cleanup, you can seed with a fixed tenant_id if you want.
   createTenant({
     tenant_code: "acme",
     tenant_name: "Acme Holdings",
@@ -241,7 +257,9 @@ export function upsertTenantMirrorFromSheet(payload: TenantSheetPayload) {
 
   const nextTenant: Tenant = {
     tenant_id: id,
-    tenant_code: payload.tenant_code || payload.tenant_id || id,
+    // Only keep tenant_code if sheet provides it; otherwise leave undefined (migration-friendly)
+    tenant_code: payload.tenant_code?.trim() || undefined,
+
     tenant_name: payload.tenant_name,
     legal_name: payload.legal_name ?? payload.tenant_name,
     tenant_type: payload.tenant_type ?? "Enterprise",
@@ -264,7 +282,7 @@ export function upsertTenantMirrorFromSheet(payload: TenantSheetPayload) {
 
   const existing = listTenants()
   const matchIndex = existing.findIndex(
-    (t) => t.tenant_id === nextTenant.tenant_id || t.tenant_code === nextTenant.tenant_code,
+    (t) => t.tenant_id === nextTenant.tenant_id || (t.tenant_code && t.tenant_code === nextTenant.tenant_code),
   )
   if (matchIndex >= 0) {
     existing[matchIndex] = { ...existing[matchIndex], ...nextTenant, updated_at: nowIso() }

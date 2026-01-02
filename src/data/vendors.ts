@@ -11,8 +11,17 @@ export type SubscriptionStatus =
   | string
 
 export interface Vendor {
+  /**
+   * Primary identifier. This is what the UI and all new code should use.
+   */
   tenant_id: string
+
+  /**
+   * Legacy alias for backward compatibility (Sheets / older integrations).
+   * Avoid using this in UI. Keep only for compatibility during migration.
+   */
   tenant_code?: string
+
   tenant_name: string
   legal_name?: string
 
@@ -52,19 +61,9 @@ export interface Vendor {
   national_address?: string
 }
 
-export const TENANT_TYPE_OPTIONS: TenantType[] = [
-  "Enterprise",
-  "SME",
-  "Partner",
-  "Internal",
-]
+export const TENANT_TYPE_OPTIONS: TenantType[] = ["Enterprise", "SME", "Partner", "Internal"]
 
-export const PLAN_TYPE_OPTIONS: PlanType[] = [
-  "Free",
-  "Standard",
-  "Pro",
-  "Enterprise",
-]
+export const PLAN_TYPE_OPTIONS: PlanType[] = ["Free", "Standard", "Pro", "Enterprise"]
 
 export const SUBSCRIPTION_STATUS_OPTIONS: SubscriptionStatus[] = [
   "Active",
@@ -73,6 +72,15 @@ export const SUBSCRIPTION_STATUS_OPTIONS: SubscriptionStatus[] = [
   "Cancelled",
   "Inactive",
 ]
+
+/**
+ * Helper (optional): if you are posting to a legacy sheet endpoint that still expects tenant_code,
+ * you can call this to ensure tenant_code is filled with tenant_id when missing.
+ */
+export function withLegacyTenantCode<T extends { tenant_id: string; tenant_code?: string }>(obj: T): T {
+  if (obj.tenant_code && obj.tenant_code.trim()) return obj
+  return { ...obj, tenant_code: obj.tenant_id }
+}
 
 export function makeTenantId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {

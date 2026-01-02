@@ -7,6 +7,10 @@ export type RequestStatus = "NEW" | "IN_REVIEW" | "APPROVED" | "REJECTED"
 export type RequestRecord = {
   request_id: string
   tenant_id: string
+  /**
+   * Legacy alias for compatibility with older data/screens.
+   * Prefer tenant_id everywhere; tenant_code may be removed later.
+   */
   tenant_code?: string
   requested_by?: string
   requested_by_user_id?: string
@@ -35,6 +39,9 @@ export function listRequestsByTenant(tenantId: string) {
 
 export type CreateRequestInput = {
   tenant_id: string
+  /**
+   * Legacy alias; optional. If not provided, we will store tenant_id as tenant_code for backwards compat.
+   */
   tenant_code?: string
   requested_by?: string
   requested_by_user_id?: string
@@ -44,10 +51,12 @@ export type CreateRequestInput = {
 
 export function createRequest(input: CreateRequestInput): RequestRecord {
   const now = nowIso()
+
   const record: RequestRecord = {
     request_id: generateId("req"),
     tenant_id: input.tenant_id,
-    tenant_code: input.tenant_code,
+    // keep old consumers safe; do not force UI to provide tenant_code
+    tenant_code: (input.tenant_code || "").trim() || input.tenant_id,
     requested_by: input.requested_by,
     requested_by_user_id: input.requested_by_user_id,
     type: input.type,
