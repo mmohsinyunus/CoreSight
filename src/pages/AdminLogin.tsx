@@ -11,7 +11,7 @@ export default function AdminLogin() {
   const [error, setError] = useState<string | undefined>()
   const navigate = useNavigate()
 
-  if (isAuthenticated) return <Navigate to="/admin/tenants" replace />
+  if (isAuthenticated) return <Navigate to="/admin" replace />
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -20,7 +20,7 @@ export default function AdminLogin() {
       setError(result.error)
       return
     }
-    navigate("/admin/tenants")
+    navigate("/admin")
   }
 
   return (

@@ -9,7 +9,7 @@ import {
   SUBSCRIPTION_STATUS_OPTIONS,
   makeTenantId,
 } from "../../data/vendors"
-import { upsertTenantMirrorFromSheet } from "../../data/tenants"
+import { listTenants, upsertTenantMirrorFromSheet } from "../../data/tenants"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
 import { countryOptions } from "../../data/countries"
 
@@ -21,6 +21,7 @@ type CreateResponse = { ok?: boolean; error?: string }
 
 const CURRENCY_OPTIONS = ["SAR", "USD", "EUR", "AED"] as const
 type Currency = (typeof CURRENCY_OPTIONS)[number]
+const GOOGLE_MAPS_URL = "https://www.google.com/maps"
 
 export default function VendorNew() {
   const navigate = useNavigate()
@@ -156,7 +157,7 @@ export default function VendorNew() {
 
     try {
       const nowIso = new Date().toISOString()
-      const tenantId = makeTenantId()
+      const tenantId = makeTenantId(listTenants().map((tenant) => tenant.tenant_id))
 
       /**
        * IMPORTANT:
@@ -282,12 +283,23 @@ export default function VendorNew() {
                   />
                 </Field>
 
-                <Field label="National Address *">
+                <Field label="National Address (Google Maps link) *">
                   <input
                     className="cs-input"
                     value={national_address}
                     onChange={(e) => setNationalAddress(e.target.value)}
+                    placeholder="Paste Google Maps share link"
                   />
+                  <div style={helperRow}>
+                    <a href={GOOGLE_MAPS_URL} target="_blank" rel="noreferrer" style={helperLink}>
+                      Open Google Maps
+                    </a>
+                    {national_address.startsWith("http") ? (
+                      <a href={national_address} target="_blank" rel="noreferrer" style={helperLink}>
+                        View selected
+                      </a>
+                    ) : null}
+                  </div>
                 </Field>
 
                 <Field label="Default Currency *">
@@ -548,7 +560,14 @@ export default function VendorNew() {
                   <b>VAT:</b> {vat_registration_number || "-"}
                 </div>
                 <div>
-                  <b>National Address:</b> {national_address || "-"}
+                  <b>National Address:</b>{" "}
+                  {national_address.startsWith("http") ? (
+                    <a href={national_address} target="_blank" rel="noreferrer" style={reviewLink}>
+                      View map link
+                    </a>
+                  ) : (
+                    national_address || "-"
+                  )}
                 </div>
                 <div>
                   <b>Currency:</b> {default_currency || "-"}
@@ -756,4 +775,24 @@ const reviewBox: React.CSSProperties = {
   background: "var(--surface-elevated)",
   display: "grid",
   gap: 6,
+}
+
+const helperRow: React.CSSProperties = {
+  display: "flex",
+  gap: 10,
+  alignItems: "center",
+  flexWrap: "wrap",
+  fontSize: 12,
+}
+
+const helperLink: React.CSSProperties = {
+  color: "var(--accent)",
+  fontWeight: 700,
+  textDecoration: "none",
+}
+
+const reviewLink: React.CSSProperties = {
+  color: "var(--accent)",
+  fontWeight: 700,
+  textDecoration: "none",
 }

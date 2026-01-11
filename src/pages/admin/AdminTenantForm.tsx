@@ -20,6 +20,7 @@ import { countryOptions } from "../../data/countries"
 
 const CURRENCY_OPTIONS = ["SAR", "USD", "EUR", "AED"] as const
 type Currency = (typeof CURRENCY_OPTIONS)[number]
+const GOOGLE_MAPS_URL = "https://www.google.com/maps"
 
 const blankForm: Partial<Tenant> = {
   // tenant_code removed (point 1)
@@ -257,8 +258,41 @@ export default function AdminTenantForm() {
           {inputField("Tenant name *", "tenant_name", String(form.tenant_name ?? ""), setForm)}
           {inputField("Legal name *", "legal_name", String(form.legal_name ?? ""), setForm)}
 
-          {inputField("VAT number *", "vat_registration_number" as any, String((form as any).vat_registration_number ?? ""), setForm)}
-          {inputField("National address *", "national_address" as any, String((form as any).national_address ?? ""), setForm)}
+          {inputField(
+            "VAT number *",
+            "vat_registration_number" as any,
+            String((form as any).vat_registration_number ?? ""),
+            setForm,
+          )}
+          <label style={label}>
+            National address (Google Maps link) *
+            <input
+              className="cs-input"
+              value={String((form as any).national_address ?? "")}
+              placeholder="Paste Google Maps share link"
+              onChange={(e) =>
+                setForm((prev: Partial<Tenant>) => ({
+                  ...prev,
+                  national_address: e.target.value,
+                }))
+              }
+            />
+            <div style={helperRow}>
+              <a href={GOOGLE_MAPS_URL} target="_blank" rel="noreferrer" style={helperLink}>
+                Open Google Maps
+              </a>
+              {String((form as any).national_address ?? "").startsWith("http") ? (
+                <a
+                  href={String((form as any).national_address ?? "")}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={helperLink}
+                >
+                  View selected
+                </a>
+              ) : null}
+            </div>
+          </label>
 
           {inputField("Type", "tenant_type", String(form.tenant_type ?? ""), setForm)}
           <label style={label}>
@@ -424,6 +458,20 @@ const label: React.CSSProperties = {
   gap: 6,
   fontWeight: 700,
   color: "var(--text-secondary)",
+}
+
+const helperRow: React.CSSProperties = {
+  display: "flex",
+  gap: 10,
+  alignItems: "center",
+  flexWrap: "wrap",
+  fontSize: 12,
+}
+
+const helperLink: React.CSSProperties = {
+  color: "var(--accent)",
+  fontWeight: 700,
+  textDecoration: "none",
 }
 
 const errorBox: React.CSSProperties = {

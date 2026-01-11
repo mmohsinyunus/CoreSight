@@ -5,6 +5,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useCustomerAuth, seedDemoUsers } from "../auth/CustomerAuthContext"
 import { ensureSeedTenant } from "../data/tenants"
 import UiControls from "../layout/UiControls"
+import { isValidTenantId, sanitizeTenantId } from "../lib/tenantId"
 
 function CustomerLogin() {
   const { isAuthenticated, login } = useCustomerAuth()
@@ -32,6 +33,11 @@ function CustomerLogin() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError(undefined)
+
+    if (!isValidTenantId(tenantId)) {
+      setError("Tenant ID must be 5 digits.")
+      return
+    }
 
     const result = await login(tenantId, email, password)
     if (!result.success) {
@@ -72,13 +78,16 @@ function CustomerLogin() {
 
         <form style={form} onSubmit={onSubmit}>
           <label style={label}>
-            Tenant ID
+            Tenant ID (5 digits)
             <input
               className="cs-input"
               value={tenantId}
-              onChange={(e) => setTenantId(e.target.value)}
-              placeholder="e.g. acme"
+              onChange={(e) => setTenantId(sanitizeTenantId(e.target.value))}
+              placeholder="e.g. 12345"
               autoComplete="organization"
+              inputMode="numeric"
+              maxLength={5}
+              pattern="\\d{5}"
             />
           </label>
 
