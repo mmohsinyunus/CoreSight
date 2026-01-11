@@ -25,6 +25,7 @@
   --accent: #4da3ff;
   --accent-hover: #63b4ff;
   --focus-ring: rgba(77, 163, 255, 0.35);
+  --accent-contrast: #041018;
 
   /* Radii */
   --radius-lg: 18px;
@@ -36,13 +37,37 @@
   /* Legacy aliases (for existing components) */
   --bg: var(--background);
 
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
+  --font-family: "Inter", "Segoe UI", system-ui, -apple-system, "SF Pro Display", "SF Pro Text",
     "Helvetica Neue", Arial, sans-serif;
+
+  font-family: var(--font-family);
   color: var(--text);
   background: var(--background);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="light"] {
+  --background: #f5f7fb;
+  --surface: #ffffff;
+  --surface-elevated: #f1f4f9;
+  --card: #ffffff;
+
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --muted: #64748b;
+
+  --border: rgba(15, 23, 42, 0.12);
+  --border-soft: rgba(15, 23, 42, 0.08);
+  --shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+  --shadow-sm: 0 12px 26px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.12);
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --focus-ring: rgba(37, 99, 235, 0.28);
+  --accent-contrast: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -124,7 +149,7 @@ button, input, select, textarea {
 .cs-btn-primary {
   border: 1px solid transparent;
   background: var(--accent);
-  color: #041018;
+  color: var(--accent-contrast);
   font-weight: 700;
   box-shadow: var(--shadow-sm);
 }

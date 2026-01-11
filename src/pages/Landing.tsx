@@ -1,15 +1,19 @@
 import { Link } from "react-router-dom"
+import UiControls from "../layout/UiControls"
 
 export default function Landing() {
   return (
     <div style={container}>
       <div style={heroBox}>
+        <div style={topRow}>
+          <UiControls compact />
+        </div>
         <p style={eyebrow}>CoreSight Prototype</p>
         <h1 style={title}>Choose your entry point</h1>
         <p style={subtitle}>Boardroom-ready access for admins and customers. Dark-first, calm gradients.</p>
 
         <div style={actions}>
-          <Link to="/customer/login" style={{ ...cta, background: "var(--accent)", color: "#041018" }}>
+          <Link to="/customer/login" style={{ ...cta, background: "var(--accent)", color: "var(--accent-contrast)" }}>
             Customer Login
           </Link>
           <Link to="/admin/login" style={{ ...cta, border: "1px solid var(--border)", color: "var(--text)" }}>
@@ -39,8 +43,14 @@ const heroBox: React.CSSProperties = {
   padding: 40,
   borderRadius: 24,
   border: "1px solid var(--border)",
-  background: "linear-gradient(180deg, rgba(22,26,32,0.96), rgba(16,18,23,0.98))",
+  background: "var(--surface-elevated)",
   boxShadow: "var(--shadow)",
+}
+
+const topRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "flex-end",
+  marginBottom: 10,
 }
 
 const eyebrow: React.CSSProperties = {

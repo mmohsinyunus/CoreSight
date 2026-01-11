@@ -29,23 +29,16 @@ export default function Sidebar({ items, onWidthChange }: { items: NavItem[]; on
           <div style={brandName}>CS</div>
           <button
             className="cs-btn cs-btn-ghost"
-            style={toggle}
-            aria-label={expanded ? "Collapse navigation" : "Expand navigation"}
+            style={{ ...toggle, ...(isPinned ? toggleActive : null) }}
+            aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+            title={isPinned ? "Unpin sidebar" : "Pin sidebar"}
             onClick={() => setIsPinned((v) => {
               const next = !v
               if (!next) setIsHovered(false)
               return next
             })}
           >
-            <span
-              style={{
-                display: "inline-block",
-                transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 200ms ease",
-              }}
-            >
-              ➜
-            </span>
+            <span style={{ fontSize: 14 }}>{isPinned ? "📌" : "📍"}</span>
           </button>
         </div>
         {expanded && <div style={brandSub}>CoreSight — Enterprise control</div>}
@@ -101,7 +94,7 @@ function SideLink({ to, label, icon, collapsed }: NavItem & { collapsed: boolean
 const sidebar: CSSProperties = {
   padding: 14,
   borderRight: "1px solid var(--border)",
-  background: "linear-gradient(180deg, rgba(18,22,30,0.96), rgba(11,14,20,0.94))",
+  background: "var(--surface)",
   backdropFilter: "blur(10px)",
   display: "flex",
   flexDirection: "column",
@@ -119,7 +112,7 @@ const brand: CSSProperties = {
   padding: 12,
   borderRadius: 14,
   border: "1px solid var(--border)",
-  background: "rgba(255,255,255,0.02)",
+  background: "var(--surface-elevated)",
   boxShadow: "var(--shadow-sm)",
   marginBottom: 8,
 }
@@ -142,6 +135,11 @@ const toggle: CSSProperties = {
   background: "var(--surface)",
   color: "var(--text)",
   boxShadow: "none",
+}
+
+const toggleActive: CSSProperties = {
+  borderColor: "var(--accent)",
+  boxShadow: "0 0 0 2px var(--focus-ring)",
 }
 
 const navItem: CSSProperties = {
