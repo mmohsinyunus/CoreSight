@@ -1,5 +1,6 @@
 // src/data/tenants.ts
-import { generateId, nowIso, readStorage, writeStorage } from "../lib/storage"
+import { nowIso, readStorage, writeStorage } from "../lib/storage"
+import { generateTenantId, isValidTenantId } from "../lib/tenantId"
 import { appsScriptBaseUrl } from "./api"
 
 export type TenantStatus = "Active" | "Inactive"
@@ -63,11 +64,15 @@ export function getTenantByCode(code: string) {
 
 export type TenantInput = Omit<Tenant, "tenant_id" | "created_at" | "updated_at" | "status"> & {
   status?: TenantStatus
+  tenant_id?: string
 }
 
 export function createTenant(payload: TenantInput): Tenant {
   const now = nowIso()
-  const tenantId = generateId("tenant")
+  const existingIds = listTenants().map((tenant) => tenant.tenant_id)
+  const preferredId = payload.tenant_id?.trim()
+  const tenantId =
+    preferredId && isValidTenantId(preferredId) ? preferredId : generateTenantId(existingIds)
 
   const tenant: Tenant = {
     tenant_id: tenantId,
@@ -125,10 +130,10 @@ export function setTenantStatus(id: string, status: TenantStatus) {
 
 export function ensureSeedTenant() {
   if (listTenants().length > 0) return
-  // Keep demo stable: CustomerLogin defaults to "acme" and getTenant() resolves via tenant_code.
-  // In a later cleanup, you can seed with a fixed tenant_id if you want.
+  // Keep demo stable with a 5-digit tenant ID.
   createTenant({
-    tenant_code: "acme",
+    tenant_id: "10001",
+    tenant_code: "10001",
     tenant_name: "Acme Holdings",
     legal_name: "Acme Holdings LLC",
     tenant_type: "Demo Enterprise",
