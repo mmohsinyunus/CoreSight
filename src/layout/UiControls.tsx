@@ -3,7 +3,7 @@ import {
   applyUiPreferences,
   getUiPreferences,
   setUiPreferences,
-  uiFontOptions,
+  uiFontScaleOptions,
   type ThemeMode,
 } from "../lib/uiPreferences"
 
@@ -20,8 +20,8 @@ export default function UiControls({ compact = false }: { compact?: boolean }) {
     setUiPreferences(next)
   }
 
-  const updateFont = (nextFont: (typeof uiFontOptions)[number]["value"]) => {
-    const next = { ...preferences, font: nextFont }
+  const updateFontScale = (nextFontScale: (typeof uiFontScaleOptions)[number]["value"]) => {
+    const next = { ...preferences, fontScale: nextFontScale }
     setPreferences(next)
     setUiPreferences(next)
   }
@@ -29,14 +29,14 @@ export default function UiControls({ compact = false }: { compact?: boolean }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
       <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: compact ? 12 : 13, fontWeight: 700 }}>
-        Font
+        Text size
         <select
           className="cs-select"
-          value={preferences.font}
-          onChange={(event) => updateFont(event.target.value as (typeof uiFontOptions)[number]["value"])}
+          value={preferences.fontScale}
+          onChange={(event) => updateFontScale(event.target.value as (typeof uiFontScaleOptions)[number]["value"])}
           style={{ height: compact ? 32 : 38, paddingInline: 8, fontSize: compact ? 12 : 13 }}
         >
-          {uiFontOptions.map((option) => (
+          {uiFontScaleOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
