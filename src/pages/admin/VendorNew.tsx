@@ -446,6 +446,20 @@ export default function VendorNew() {
                   />
                 </Field>
 
+                <Field label="Primary Country *">
+                  <select
+                    className="cs-input"
+                    value={primary_country}
+                    onChange={(e) => setCountry(e.target.value)}
+                  >
+                    {countryOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
                 <Field label="Primary Timezone">
                   <input
                     className="cs-input"
