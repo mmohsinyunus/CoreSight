@@ -2,10 +2,12 @@ import { readStorage, writeStorage } from "./storage"
 
 export type ThemeMode = "dark" | "light"
 export type FontChoice = "inter" | "system" | "serif"
+export type FontScaleChoice = "sm" | "md" | "lg" | "xl"
 
 export type UiPreferences = {
   theme: ThemeMode
   font: FontChoice
+  fontScale: FontScaleChoice
 }
 
 const STORAGE_KEY = "coresight_ui_preferences"
@@ -21,6 +23,7 @@ const FONT_STACKS: Record<FontChoice, string> = {
 const defaultPreferences: UiPreferences = {
   theme: "dark",
   font: "inter",
+  fontScale: "md",
 }
 
 export function getUiPreferences(): UiPreferences {
@@ -29,6 +32,7 @@ export function getUiPreferences(): UiPreferences {
   return {
     theme: stored.theme === "light" ? "light" : "dark",
     font: stored.font in FONT_STACKS ? stored.font : defaultPreferences.font,
+    fontScale: stored.fontScale in FONT_SCALES ? stored.fontScale : defaultPreferences.fontScale,
   }
 }
 
@@ -37,6 +41,7 @@ export function applyUiPreferences(preferences: UiPreferences) {
   const root = document.documentElement
   root.dataset.theme = preferences.theme
   root.style.setProperty("--font-family", FONT_STACKS[preferences.font])
+  root.style.setProperty("--font-scale", String(FONT_SCALES[preferences.fontScale]))
 }
 
 export function setUiPreferences(preferences: UiPreferences) {
@@ -48,4 +53,18 @@ export const uiFontOptions = [
   { value: "inter" as const, label: "Inter" },
   { value: "system" as const, label: "System" },
   { value: "serif" as const, label: "Serif" },
+]
+
+const FONT_SCALES: Record<FontScaleChoice, number> = {
+  sm: 0.9,
+  md: 1,
+  lg: 1.1,
+  xl: 1.2,
+}
+
+export const uiFontScaleOptions = [
+  { value: "sm" as const, label: "A-" },
+  { value: "md" as const, label: "A" },
+  { value: "lg" as const, label: "A+" },
+  { value: "xl" as const, label: "A++" },
 ]

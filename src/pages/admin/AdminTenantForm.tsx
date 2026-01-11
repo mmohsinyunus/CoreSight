@@ -16,6 +16,7 @@ import { addAuditLog } from "../../data/auditLogs"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
 import type { User } from "../../data/users"
 import { adminNav } from "../../navigation/adminNav"
+import { countryOptions } from "../../data/countries"
 
 const CURRENCY_OPTIONS = ["SAR", "USD", "EUR", "AED"] as const
 type Currency = (typeof CURRENCY_OPTIONS)[number]
@@ -260,7 +261,26 @@ export default function AdminTenantForm() {
           {inputField("National address *", "national_address" as any, String((form as any).national_address ?? ""), setForm)}
 
           {inputField("Type", "tenant_type", String(form.tenant_type ?? ""), setForm)}
-          {inputField("Region", "region", String(form.region ?? ""), setForm)}
+          <label style={label}>
+            Region
+            <select
+              className="cs-input"
+              value={String(form.region ?? "")}
+              onChange={(e) =>
+                setForm((prev: Partial<Tenant>) => ({
+                  ...prev,
+                  region: e.target.value,
+                }))
+              }
+            >
+              <option value="">Select a country</option>
+              {countryOptions.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </label>
           {inputField("Timezone", "timezone", String(form.timezone ?? ""), setForm)}
 
           <label style={label}>

@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "react"
 import { NavLink } from "react-router-dom"
 import type { CSSProperties } from "react"
 import type { NavItem } from "../navigation/types"
+import { readStorage, writeStorage } from "../lib/storage"
+
+const PIN_STORAGE_KEY = "coresight_sidebar_pinned"
 
 export default function Sidebar({ items, onWidthChange }: { items: NavItem[]; onWidthChange?: (width: number) => void }) {
-  const [isPinned, setIsPinned] = useState(false)
+  const [isPinned, setIsPinned] = useState(() => readStorage(PIN_STORAGE_KEY, false))
   const [isHovered, setIsHovered] = useState(false)
 
   const expanded = isPinned || isHovered
@@ -13,6 +16,11 @@ export default function Sidebar({ items, onWidthChange }: { items: NavItem[]; on
   useEffect(() => {
     onWidthChange?.(sidebarWidth)
   }, [sidebarWidth, onWidthChange])
+
+  useEffect(() => {
+    writeStorage(PIN_STORAGE_KEY, isPinned)
+    if (isPinned) setIsHovered(false)
+  }, [isPinned])
 
   const groupedItems = useMemo(() => items, [items])
 

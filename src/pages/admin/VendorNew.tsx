@@ -10,6 +10,7 @@ import {
 } from "../../data/vendors"
 import { upsertTenantMirrorFromSheet } from "../../data/tenants"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
+import { countryOptions } from "../../data/countries"
 
 const SHEET_URL =
   "https://script.google.com/macros/s/AKfycbwxTAPJITLdR3AUQoseEs-TsUefbWfuPPmt2rrqsmgDBGXSfAL3xDeUG10VLKUrGhDb0w/exec"
@@ -429,11 +430,17 @@ export default function VendorNew() {
                 </Field>
 
                 <Field label="Primary Country">
-                  <input
+                  <select
                     className="cs-input"
                     value={primary_country}
                     onChange={(e) => setCountry(e.target.value)}
-                  />
+                  >
+                    {countryOptions.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
                 <Field label="Primary Timezone">
