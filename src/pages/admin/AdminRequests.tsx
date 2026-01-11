@@ -98,7 +98,7 @@ export default function AdminRequests() {
           </thead>
           <tbody>
             {requests.map((req, idx) => (
-              <tr key={req.request_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={req.request_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{req.tenant_id || "–"}</td>
                 <td className="cs-td">{req.type}</td>
                 <td className="cs-td">{req.status}</td>

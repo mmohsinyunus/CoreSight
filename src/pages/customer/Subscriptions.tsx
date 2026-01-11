@@ -66,7 +66,7 @@ export default function CustomerSubscriptions() {
           </thead>
           <tbody>
             {rows.map((row, idx) => (
-              <tr key={row.id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={row.id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{row.plan}</td>
                 <td className="cs-td">
                   <span className="cs-pill" style={{ padding: "6px 10px", background: "var(--surface-elevated)" }}>

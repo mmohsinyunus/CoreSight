@@ -139,7 +139,7 @@ export default function CustomerUsers() {
           </thead>
           <tbody>
             {rows.map((row, idx) => (
-              <tr key={row.user_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={row.user_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{row.name || "—"}</td>
                 <td className="cs-td">{row.email}</td>
                 <td className="cs-td">{row.role}</td>

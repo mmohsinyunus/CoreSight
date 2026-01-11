@@ -64,7 +64,7 @@ export default function AdminSubscriptions() {
                 <tr
                   key={row.id}
                   style={{
-                    background: idx % 2 === 0 ? "var(--surface)" : "#181c23",
+                    background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)",
                   }}
                 >
                   <td className="cs-td">{row.tenant_id}</td>
