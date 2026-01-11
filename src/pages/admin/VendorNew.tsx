@@ -29,6 +29,7 @@ export default function VendorNew() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>("")
   const [success, setSuccess] = useState<string>("")
+  const [clipboardNotice, setClipboardNotice] = useState<string>("")
 
   // Tenant (Step 1)
   const [tenant_name, setTenantName] = useState("")
@@ -76,6 +77,26 @@ export default function VendorNew() {
   const [usage_analytics_enabled, setAnalytics] = useState(true)
 
   const created_by_user_id = "platform_admin_mock"
+
+  const handlePasteNationalAddress = async () => {
+    setError("")
+    setClipboardNotice("")
+    if (!navigator.clipboard?.readText) {
+      setError("Clipboard access is unavailable. Paste the Google Maps link manually.")
+      return
+    }
+    try {
+      const text = await navigator.clipboard.readText()
+      if (!text.trim()) {
+        setError("Clipboard is empty. Copy a Google Maps link first.")
+        return
+      }
+      setNationalAddress(text.trim())
+      setClipboardNotice("Google Maps link pasted from clipboard.")
+    } catch (err) {
+      setError("Unable to read clipboard. Paste the Google Maps link manually.")
+    }
+  }
 
   // Point 7: reset fields after create (but keep success message visible)
   function resetFieldsOnly() {
@@ -296,12 +317,16 @@ export default function VendorNew() {
                     <a href={GOOGLE_MAPS_URL} target="_blank" rel="noreferrer" style={helperLink}>
                       Open Google Maps
                     </a>
+                    <button className="cs-btn cs-btn-ghost" type="button" onClick={handlePasteNationalAddress}>
+                      Paste from clipboard
+                    </button>
                     {national_address.startsWith("http") ? (
                       <a href={national_address} target="_blank" rel="noreferrer" style={helperLink}>
                         View selected
                       </a>
                     ) : null}
                   </div>
+                  {clipboardNotice ? <div style={helperNote}>{clipboardNotice}</div> : null}
                 </Field>
 
                 <Field label="Default Currency *">
@@ -785,6 +810,11 @@ const helperRow: React.CSSProperties = {
   alignItems: "center",
   flexWrap: "wrap",
   fontSize: 12,
+}
+
+const helperNote: React.CSSProperties = {
+  fontSize: 12,
+  color: "var(--text-secondary)",
 }
 
 const helperLink: React.CSSProperties = {
