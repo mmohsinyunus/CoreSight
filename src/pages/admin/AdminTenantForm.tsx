@@ -65,6 +65,7 @@ export default function AdminTenantForm() {
   const [createNotice, setCreateNotice] = useState<string | undefined>()
   const [createError, setCreateError] = useState<string | undefined>()
   const [createdTenantId, setCreatedTenantId] = useState<string | undefined>()
+  const [clipboardNotice, setClipboardNotice] = useState<string | undefined>()
 
   useEffect(() => {
     // Reset all notices when switching mode or tenant
@@ -110,6 +111,28 @@ export default function AdminTenantForm() {
 
     if (!String(form.currency ?? "").trim()) return "Currency is required."
     return undefined
+  }
+
+  const handlePasteNationalAddress = async () => {
+    setClipboardNotice(undefined)
+    if (!navigator.clipboard?.readText) {
+      setClipboardNotice("Clipboard access is unavailable. Paste the Google Maps link manually.")
+      return
+    }
+    try {
+      const text = await navigator.clipboard.readText()
+      if (!text.trim()) {
+        setClipboardNotice("Clipboard is empty. Copy a Google Maps link first.")
+        return
+      }
+      setForm((prev: Partial<Tenant>) => ({
+        ...prev,
+        national_address: text.trim(),
+      }))
+      setClipboardNotice("Google Maps link pasted from clipboard.")
+    } catch (err) {
+      setClipboardNotice("Unable to read clipboard. Paste the Google Maps link manually.")
+    }
   }
 
   const hardResetForNewEntry = () => {
@@ -281,6 +304,9 @@ export default function AdminTenantForm() {
               <a href={GOOGLE_MAPS_URL} target="_blank" rel="noreferrer" style={helperLink}>
                 Open Google Maps
               </a>
+              <button className="cs-btn cs-btn-ghost" type="button" onClick={handlePasteNationalAddress}>
+                Paste from clipboard
+              </button>
               {String((form as any).national_address ?? "").startsWith("http") ? (
                 <a
                   href={String((form as any).national_address ?? "")}
@@ -292,6 +318,7 @@ export default function AdminTenantForm() {
                 </a>
               ) : null}
             </div>
+            {clipboardNotice ? <div style={helperNote}>{clipboardNotice}</div> : null}
           </label>
 
           {inputField("Type", "tenant_type", String(form.tenant_type ?? ""), setForm)}
@@ -466,6 +493,11 @@ const helperRow: React.CSSProperties = {
   alignItems: "center",
   flexWrap: "wrap",
   fontSize: 12,
+}
+
+const helperNote: React.CSSProperties = {
+  fontSize: 12,
+  color: "var(--text-secondary)",
 }
 
 const helperLink: React.CSSProperties = {
