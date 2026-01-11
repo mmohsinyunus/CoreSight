@@ -1,5 +1,6 @@
 // src/pages/admin/VendorNew.tsx
 import { useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import AppShell from "../../layout/AppShell"
 import type { Vendor } from "../../data/vendors"
 import {
@@ -22,6 +23,7 @@ const CURRENCY_OPTIONS = ["SAR", "USD", "EUR", "AED"] as const
 type Currency = (typeof CURRENCY_OPTIONS)[number]
 
 export default function VendorNew() {
+  const navigate = useNavigate()
   const [step, setStep] = useState<Step>(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>("")
@@ -229,6 +231,7 @@ export default function VendorNew() {
 
       // Point 7: reset form completely (but keep success visible)
       resetFieldsOnly()
+      navigate("/admin/tenants")
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Failed to fetch"
       setError(`Create failed: ${message}`)
@@ -560,7 +563,47 @@ export default function VendorNew() {
                   <b>Status:</b> {subscription_status || "-"}
                 </div>
                 <div>
+                  <b>Subscription Start:</b> {subscription_start_date || "-"}
+                </div>
+                <div>
+                  <b>Subscription End:</b> {subscription_end_date || "-"}
+                </div>
+                <div>
+                  <b>Max Users:</b> {Number.isFinite(max_users) ? max_users : "-"}
+                </div>
+                <div>
+                  <b>Max Organizations:</b>{" "}
+                  {Number.isFinite(max_organizations) ? max_organizations : "-"}
+                </div>
+                <div>
+                  <b>Tenant Status:</b> {tenant_status || "-"}
+                </div>
+                <div>
                   <b>Admin:</b> {primary_admin_name || "-"} ({primary_admin_email || "-"})
+                </div>
+                <div>
+                  <b>Primary Country:</b> {primary_country || "-"}
+                </div>
+                <div>
+                  <b>Primary Timezone:</b> {primary_timezone || "-"}
+                </div>
+                <div>
+                  <b>Data Retention:</b> {data_retention_policy || "-"}
+                </div>
+                <div>
+                  <b>Compliance Flag:</b> {compliance_flag ? "Yes" : "No"}
+                </div>
+                <div>
+                  <b>AI Insights:</b> {ai_insights_enabled ? "Enabled" : "Disabled"}
+                </div>
+                <div>
+                  <b>Cost Optimization:</b> {cost_optimization_enabled ? "Enabled" : "Disabled"}
+                </div>
+                <div>
+                  <b>Usage Analytics:</b> {usage_analytics_enabled ? "Enabled" : "Disabled"}
+                </div>
+                <div>
+                  <b>Notes:</b> {notes || "-"}
                 </div>
               </div>
             </>
@@ -643,7 +686,7 @@ const wrap: React.CSSProperties = {
 }
 const card: React.CSSProperties = {
   width: "100%",
-  background: "linear-gradient(145deg, #161a20, #13161d)",
+  background: "linear-gradient(145deg, var(--surface), var(--surface-elevated))",
   border: "1px solid var(--border)",
   borderRadius: 14,
   padding: 20,
