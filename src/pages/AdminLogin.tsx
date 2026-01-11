@@ -2,6 +2,7 @@ import { useState } from "react"
 import type { FormEvent } from "react"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useAdminAuth } from "../auth/AdminAuthContext"
+import UiControls from "../layout/UiControls"
 
 export default function AdminLogin() {
   const { login, isAuthenticated } = useAdminAuth()
@@ -32,6 +33,9 @@ export default function AdminLogin() {
           <Link to="/customer/login" style={{ ...switchLink }}>
             Go to Customer Login
           </Link>
+        </div>
+        <div style={topRow}>
+          <UiControls compact />
         </div>
         <p style={eyebrow}>Admin access</p>
         <h2 style={title}>Administrator login</h2>
@@ -83,6 +87,12 @@ const card: React.CSSProperties = {
   border: "1px solid var(--border)",
   background: "var(--surface-elevated)",
   boxShadow: "var(--shadow-sm)",
+}
+
+const topRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "flex-end",
+  marginBottom: 10,
 }
 
 const eyebrow: React.CSSProperties = { color: "var(--muted)", textTransform: "uppercase", letterSpacing: 3, fontWeight: 800, fontSize: 11 }

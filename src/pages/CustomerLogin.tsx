@@ -4,6 +4,7 @@ import type { FormEvent } from "react"
 import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useCustomerAuth, seedDemoUsers } from "../auth/CustomerAuthContext"
 import { ensureSeedTenant } from "../data/tenants"
+import UiControls from "../layout/UiControls"
 
 function CustomerLogin() {
   const { isAuthenticated, login } = useCustomerAuth()
@@ -58,6 +59,9 @@ function CustomerLogin() {
           <Link to="/admin/login" style={switchLink}>
             Go to Admin Login
           </Link>
+        </div>
+        <div style={topRow}>
+          <UiControls compact />
         </div>
 
         <p style={eyebrow}>Customer access</p>
@@ -136,6 +140,12 @@ const card: React.CSSProperties = {
   border: "1px solid var(--border)",
   background: "var(--surface-elevated)",
   boxShadow: "var(--shadow-sm)",
+}
+
+const topRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "flex-end",
+  marginBottom: 10,
 }
 
 const eyebrow: React.CSSProperties = {

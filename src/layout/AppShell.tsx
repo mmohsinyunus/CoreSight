@@ -9,6 +9,7 @@ import type { NavItem } from "../navigation/types"
 import { customerNav } from "../navigation/customerNav"
 import { adminNav } from "../navigation/adminNav"
 import { useNavItemsContext } from "../navigation/NavItemsProvider"
+import UiControls from "./UiControls"
 
 export type AppShellProps = {
   title: string
@@ -72,6 +73,8 @@ export default function AppShell({
 
           <div style={topRight}>
             {actions ? <div style={actionsWrap}>{actions}</div> : null}
+
+            <UiControls compact />
 
             {(chips ?? defaultChips).map((chipNode, idx) => (
               <span key={idx} style={chip}>
