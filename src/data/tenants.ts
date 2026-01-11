@@ -71,8 +71,11 @@ export function createTenant(payload: TenantInput): Tenant {
   const now = nowIso()
   const existingIds = listTenants().map((tenant) => tenant.tenant_id)
   const preferredId = payload.tenant_id?.trim()
+  const existingIdSet = new Set(existingIds.filter(Boolean))
   const tenantId =
-    preferredId && isValidTenantId(preferredId) ? preferredId : generateTenantId(existingIds)
+    preferredId && isValidTenantId(preferredId) && !existingIdSet.has(preferredId)
+      ? preferredId
+      : generateTenantId(existingIds)
 
   const tenant: Tenant = {
     tenant_id: tenantId,
@@ -259,11 +262,13 @@ export function upsertTenantMirrorFromSheet(payload: TenantSheetPayload) {
 
   const id = payload.tenant_id || payload.tenant_code
   if (!id) throw new Error("Tenant payload missing identifiers")
+  const existingIds = listTenants().map((tenant) => tenant.tenant_id)
+  const resolvedId = isValidTenantId(id) ? id : generateTenantId(existingIds)
 
   const nextTenant: Tenant = {
-    tenant_id: id,
+    tenant_id: resolvedId,
     // Only keep tenant_code if sheet provides it; otherwise leave undefined (migration-friendly)
-    tenant_code: payload.tenant_code?.trim() || undefined,
+    tenant_code: payload.tenant_code?.trim() || (resolvedId !== id ? id : undefined),
 
     tenant_name: payload.tenant_name,
     legal_name: payload.legal_name ?? payload.tenant_name,
