@@ -1,5 +1,7 @@
 // src/data/vendors.ts
 
+import { generateTenantId } from "../lib/tenantId"
+
 export type TenantType = "Enterprise" | "SME" | "Partner" | "Internal" | string
 export type PlanType = "Free" | "Standard" | "Pro" | "Enterprise" | string
 export type SubscriptionStatus =
@@ -82,9 +84,6 @@ export function withLegacyTenantCode<T extends { tenant_id: string; tenant_code?
   return { ...obj, tenant_code: obj.tenant_id }
 }
 
-export function makeTenantId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID()
-  }
-  return `t_${Date.now()}_${Math.random().toString(16).slice(2)}`
+export function makeTenantId(existingIds: string[] = []): string {
+  return generateTenantId(existingIds)
 }

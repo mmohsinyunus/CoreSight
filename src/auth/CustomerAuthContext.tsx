@@ -12,6 +12,7 @@ import type { User, UserRole } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
 import { addActivity } from "../data/activity"
 import { addAuditLog } from "../data/auditLogs"
+import { isValidTenantId } from "../lib/tenantId"
 
 const STORAGE_KEY = "coresight_customer_session"
 
@@ -63,6 +64,10 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
   const login = async (tenantId: string, email: string, password: string): Promise<LoginResult> => {
     const id = tenantId.trim()
     const normalizedEmail = email.trim()
+
+    if (!isValidTenantId(id)) {
+      return { success: false, error: "Tenant ID must be 5 digits." }
+    }
 
     let tenant = getTenant(id)
 
