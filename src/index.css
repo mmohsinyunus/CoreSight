@@ -141,6 +141,9 @@ button, input, select, textarea {
   border: 1px solid var(--border);
   background: var(--surface-elevated);
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 200ms ease, background 200ms ease, border-color 200ms ease;
 }
@@ -210,7 +213,7 @@ button, input, select, textarea {
 }
 .cs-th {
   text-align: left;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
@@ -221,7 +224,7 @@ button, input, select, textarea {
 .cs-td {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  font-size: 0.875rem;
   white-space: nowrap;
   color: var(--text);
 }

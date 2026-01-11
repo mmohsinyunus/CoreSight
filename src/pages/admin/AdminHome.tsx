@@ -153,7 +153,7 @@ export default function AdminHome() {
                   <Link to="/admin/vendors" style={ghostLink}>
                     View
                   </Link>
-                  <Link to="/admin/vendor-new" style={primaryLink}>
+                  <Link to="/admin/tenants/new" style={primaryLink}>
                     + Create
                   </Link>
                 </div>
