@@ -31,7 +31,7 @@ export default function CustomerDepartments() {
           </thead>
           <tbody>
             {departments.map((dept, idx) => (
-              <tr key={dept.department_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={dept.department_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{dept.name}</td>
                 <td className="cs-td">{dept.owner || "-"}</td>
               </tr>

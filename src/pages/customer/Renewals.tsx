@@ -63,7 +63,7 @@ export default function CustomerRenewals() {
           </thead>
           <tbody>
             {rows.map((row, idx) => (
-              <tr key={row.id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={row.id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{row.subscription}</td>
                 <td className="cs-td">
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

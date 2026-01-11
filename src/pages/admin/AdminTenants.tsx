@@ -122,7 +122,7 @@ export default function AdminTenants() {
               {filtered.map((tenant, idx) => (
                 <tr
                   key={tenant.tenant_id || `${tenant.tenant_name || "tenant"}-${idx}`}
-                  style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}
+                  style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}
                 >
                   <td className="cs-td" style={{ width: 44 }}>
                     {idx + 1}
@@ -153,7 +153,7 @@ export default function AdminTenants() {
                     <span
                       className="cs-pill"
                       style={{
-                        background: "rgba(255,255,255,0.05)",
+                        background: "var(--surface-elevated)",
                         borderColor: "var(--border)",
                       }}
                     >
@@ -162,7 +162,10 @@ export default function AdminTenants() {
                   </td>
                   <td className="cs-td">{tenant.created_at ? tenant.created_at.slice(0, 10) : "-"}</td>
 
-                  <td className="cs-td" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <td
+                    className="cs-td"
+                    style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}
+                  >
                     <Link className="cs-btn" to={`/admin/tenants/${tenant.tenant_id}/edit`}>
                       View / Edit
                     </Link>

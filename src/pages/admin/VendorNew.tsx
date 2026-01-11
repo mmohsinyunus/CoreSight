@@ -118,7 +118,8 @@ export default function VendorNew() {
         tenant_type.trim() &&
         vat_registration_number.trim() && // Point 5 mandatory in step 1
         national_address.trim() && // Point 5 mandatory in step 1
-        String(default_currency).trim() // currency present
+        String(default_currency).trim() && // currency present
+        primary_country.trim()
       )
 
     if (step === 2) return plan_type.trim() && subscription_status.trim()
@@ -134,6 +135,7 @@ export default function VendorNew() {
     vat_registration_number,
     national_address,
     default_currency,
+    primary_country,
     plan_type,
     subscription_status,
     primary_admin_name,
@@ -280,6 +282,20 @@ export default function VendorNew() {
                     value={vat_registration_number}
                     onChange={(e) => setVat(e.target.value)}
                   />
+                </Field>
+
+                <Field label="Primary Country *">
+                  <select
+                    className="cs-input"
+                    value={primary_country}
+                    onChange={(e) => setCountry(e.target.value)}
+                  >
+                    {countryOptions.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
 
                 <Field label="National Address *">
@@ -430,20 +446,6 @@ export default function VendorNew() {
                     value={primary_admin_email}
                     onChange={(e) => setAdminEmail(e.target.value)}
                   />
-                </Field>
-
-                <Field label="Primary Country">
-                  <select
-                    className="cs-input"
-                    value={primary_country}
-                    onChange={(e) => setCountry(e.target.value)}
-                  >
-                    {countryOptions.map((country) => (
-                      <option key={country} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
                 </Field>
 
                 <Field label="Primary Timezone">

@@ -51,7 +51,7 @@ export default function AdminAudit() {
           </thead>
           <tbody>
             {audits.map((log, idx) => (
-              <tr key={log.audit_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={log.audit_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{log.actor_type}</td>
                 <td className="cs-td">{log.action}</td>
                 <td className="cs-td">{log.tenant_id || "-"}</td>

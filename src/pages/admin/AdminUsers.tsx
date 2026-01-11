@@ -33,7 +33,7 @@ export default function AdminUsers() {
           </thead>
           <tbody>
             {users.map((user, idx) => (
-              <tr key={user.user_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "#181c23" }}>
+              <tr key={user.user_id} style={{ background: idx % 2 === 0 ? "var(--surface)" : "var(--surface-elevated)" }}>
                 <td className="cs-td">{user.email}</td>
                 <td className="cs-td">{user.role}</td>
                 <td className="cs-td">{user.tenant_id ? tenantMap[user.tenant_id] ?? user.tenant_id : "Admin"}</td>
