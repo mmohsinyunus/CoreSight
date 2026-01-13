@@ -6,6 +6,7 @@ import AdminLogin from "./pages/AdminLogin"
 import CustomerLogin from "./pages/CustomerLogin.tsx"
 import AdminTenants from "./pages/admin/AdminTenants"
 import AdminTenantForm from "./pages/admin/AdminTenantForm"
+import AdminTenantView from "./pages/admin/AdminTenantView"
 import AdminUsers from "./pages/admin/AdminUsers"
 import AdminSettings from "./pages/admin/AdminSettings"
 import VendorNew from "./pages/admin/VendorNew"
@@ -70,6 +71,7 @@ export default function App() {
           <Route index element={<AdminHome />} />
           <Route path="tenants" element={<AdminTenants />} />
           <Route path="tenants/new" element={<VendorNew />} />
+          <Route path="tenants/:tenantId" element={<AdminTenantView />} />
           <Route path="tenants/:tenantId/edit" element={<AdminTenantForm />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="requests" element={<AdminRequests />} />
