@@ -164,7 +164,13 @@ export default function AdminTenants() {
 
                   <td
                     className="cs-td"
-                    style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      flexWrap: "nowrap",
+                      alignItems: "center",
+                      whiteSpace: "nowrap",
+                    }}
                   >
                     {tenant.tenant_id ? (
                       <Link className="cs-btn" to={`/admin/tenants/${tenant.tenant_id}`}>
@@ -173,6 +179,15 @@ export default function AdminTenants() {
                     ) : (
                       <button className="cs-btn" type="button" disabled>
                         View
+                      </button>
+                    )}
+                    {tenant.tenant_id ? (
+                      <Link className="cs-btn" to={`/admin/tenants/${tenant.tenant_id}/edit`}>
+                        Edit
+                      </Link>
+                    ) : (
+                      <button className="cs-btn" type="button" disabled>
+                        Edit
                       </button>
                     )}
                     <button className="cs-btn" onClick={() => toggleStatus(tenant)} disabled={loading || !tenant.tenant_id}>
