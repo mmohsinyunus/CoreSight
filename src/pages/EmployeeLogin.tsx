@@ -1,4 +1,4 @@
-// src/pages/CustomerLogin.tsx
+// src/pages/EmployeeLogin.tsx
 import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, Navigate, useNavigate } from "react-router-dom"
@@ -7,7 +7,7 @@ import { ensureSeedTenant } from "../data/tenants"
 import UiControls from "../layout/UiControls"
 import { isValidTenantId, sanitizeTenantId } from "../lib/tenantId"
 
-function CustomerLogin() {
+function EmployeeLogin() {
   const { isAuthenticated, login } = useCustomerAuth()
   const navigate = useNavigate()
 
@@ -22,7 +22,7 @@ function CustomerLogin() {
     ensureSeedTenant()
 
     // Seed demo users ONLY in dev (and only when explicitly requested)
-    // Visit: /customer/login?demo=1 to pre-seed demo credentials in dev
+    // Visit: /employee/login?demo=1 to pre-seed demo credentials in dev
     const isDev = import.meta.env.DEV
     const wantsDemo = new URLSearchParams(window.location.search).get("demo") === "1"
     if (isDev && wantsDemo) seedDemoUsers()
@@ -62,19 +62,17 @@ function CustomerLogin() {
           <Link to="/" style={backLink}>
             ← Back to login selection
           </Link>
-          <Link to="/employee/login" style={switchLink}>
-            Go to Employee Login
+          <Link to="/customer/login" style={switchLink}>
+            Go to Tenant Login
           </Link>
         </div>
         <div style={topRow}>
           <UiControls compact />
         </div>
 
-        <p style={eyebrow}>Tenant access</p>
-        <h2 style={title}>Tenant login</h2>
-        <p style={subtitle}>
-          Enter the tenant ID and credentials issued by your CoreSight admin.
-        </p>
+        <p style={eyebrow}>Employee access</p>
+        <h2 style={title}>Employee login</h2>
+        <p style={subtitle}>Sign in with your tenant ID and employee credentials.</p>
 
         <form style={form} onSubmit={onSubmit}>
           <label style={label}>
@@ -131,7 +129,7 @@ function CustomerLogin() {
   )
 }
 
-export default CustomerLogin
+export default EmployeeLogin
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
