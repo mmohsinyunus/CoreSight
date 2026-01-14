@@ -10,14 +10,19 @@ export default function Landing() {
         </div>
         <p style={eyebrow}>CoreSight Prototype</p>
         <h1 style={title}>Choose your entry point</h1>
-        <p style={subtitle}>Boardroom-ready access for admins and customers. Dark-first, calm gradients.</p>
+        <p style={subtitle}>Tenant and employee access live here. Admin sign-in is separate.</p>
 
         <div style={actions}>
           <Link to="/customer/login" style={{ ...cta, background: "var(--accent)", color: "var(--accent-contrast)" }}>
-            Customer Login
+            Tenant Login
           </Link>
-          <Link to="/admin/login" style={{ ...cta, border: "1px solid var(--border)", color: "var(--text)" }}>
-            Admin Login
+          <Link to="/employee/login" style={{ ...cta, border: "1px solid var(--border)", color: "var(--text)" }}>
+            Employee Login
+          </Link>
+        </div>
+        <div style={adminLinkWrap}>
+          <Link to="/admin/login" style={adminLink}>
+            Admin login
           </Link>
         </div>
       </div>
@@ -67,6 +72,15 @@ const title: React.CSSProperties = { fontSize: 36, margin: "4px 0", letterSpacin
 const subtitle: React.CSSProperties = { color: "var(--text-secondary)", marginTop: 6, lineHeight: 1.45 }
 
 const actions: React.CSSProperties = { display: "flex", gap: 16, marginTop: 26, flexWrap: "wrap" }
+
+const adminLinkWrap: React.CSSProperties = { marginTop: 18 }
+
+const adminLink: React.CSSProperties = {
+  color: "var(--muted)",
+  fontWeight: 700,
+  textDecoration: "none",
+  fontSize: 13,
+}
 
 const cta: React.CSSProperties = {
   padding: "12px 18px",

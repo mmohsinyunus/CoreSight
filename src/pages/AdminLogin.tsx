@@ -31,7 +31,7 @@ export default function AdminLogin() {
             ← Back to login selection
           </Link>
           <Link to="/customer/login" style={{ ...switchLink }}>
-            Go to Customer Login
+            Go to Tenant Login
           </Link>
         </div>
         <div style={topRow}>
@@ -62,7 +62,7 @@ export default function AdminLogin() {
           </button>
           <div style={{ textAlign: "right" }}>
             <Link to="/customer/login" style={{ ...switchLink, fontSize: 12 }}>
-              Switch to Customer Login
+              Switch to Tenant Login
             </Link>
           </div>
         </form>

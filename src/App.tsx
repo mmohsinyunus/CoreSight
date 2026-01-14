@@ -4,6 +4,7 @@ import { HashRouter, Navigate, Route, Routes } from "react-router-dom"
 import Landing from "./pages/Landing"
 import AdminLogin from "./pages/AdminLogin"
 import CustomerLogin from "./pages/CustomerLogin.tsx"
+import EmployeeLogin from "./pages/EmployeeLogin"
 import AdminTenants from "./pages/admin/AdminTenants"
 import AdminTenantForm from "./pages/admin/AdminTenantForm"
 import AdminTenantView from "./pages/admin/AdminTenantView"
@@ -83,6 +84,7 @@ export default function App() {
         </Route>
 
         <Route path="/customer/login" element={<CustomerLogin />} />
+        <Route path="/employee/login" element={<EmployeeLogin />} />
         <Route
           path="/app"
           element={
