@@ -199,6 +199,75 @@ button, input, select, textarea {
   box-shadow: var(--shadow-sm);
 }
 
+/* App shell responsiveness */
+.cs-shell {
+  display: grid;
+}
+
+.cs-topbar {
+  flex-wrap: wrap;
+}
+
+.cs-top-right {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .cs-shell {
+    grid-template-columns: 72px 1fr !important;
+  }
+
+  .cs-main {
+    padding: 14px !important;
+  }
+
+  .cs-topbar {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .cs-page-title {
+    font-size: 24px !important;
+  }
+
+  .cs-page-subtitle {
+    font-size: 14px;
+  }
+
+  .cs-sidebar {
+    padding: 10px !important;
+    width: 72px !important;
+  }
+
+  .cs-sidebar-brand {
+    padding: 10px !important;
+  }
+
+  .cs-sidebar-tip {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .cs-shell {
+    grid-template-columns: 64px 1fr !important;
+  }
+
+  .cs-top-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cs-top-right .cs-btn {
+    width: 100%;
+  }
+
+  .cs-container {
+    padding: 16px;
+  }
+}
+
 /* Tables (utility classes you can reuse) */
 .cs-table {
   width: 100%;
