@@ -61,17 +61,23 @@ export default function AppShell({
   const isLoggedIn = adminAuth.isAuthenticated || customerAuth.isAuthenticated
 
   return (
-    <div style={shellStyle}>
+    <div className="cs-shell" style={shellStyle}>
       <Sidebar items={resolvedNavItems} onWidthChange={setSidebarWidth} />
 
-      <main style={main}>
-        <div style={topBar}>
+      <main className="cs-main" style={main}>
+        <div className="cs-topbar" style={topBar}>
           <div style={{ minWidth: 0 }}>
-            <div style={pageTitle}>{title}</div>
-            {subtitle ? <div style={pageSubtitle}>{subtitle}</div> : null}
+            <div className="cs-page-title" style={pageTitle}>
+              {title}
+            </div>
+            {subtitle ? (
+              <div className="cs-page-subtitle" style={pageSubtitle}>
+                {subtitle}
+              </div>
+            ) : null}
           </div>
 
-          <div style={topRight}>
+          <div className="cs-top-right" style={topRight}>
             {actions ? <div style={actionsWrap}>{actions}</div> : null}
 
             <UiControls compact />
@@ -109,7 +115,9 @@ export default function AppShell({
           </div>
         </div>
 
-        <div style={content}>{children}</div>
+        <div className="cs-content" style={content}>
+          {children}
+        </div>
       </main>
     </div>
   )

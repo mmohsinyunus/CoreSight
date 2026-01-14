@@ -26,13 +26,14 @@ export default function Sidebar({ items, onWidthChange }: { items: NavItem[]; on
 
   return (
     <aside
+      className="cs-sidebar"
       style={{ ...sidebar, width: sidebarWidth }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         if (!isPinned) setIsHovered(false)
       }}
     >
-      <div style={brand}>
+      <div className="cs-sidebar-brand" style={brand}>
         <div style={brandRow}>
           <div style={brandName}>CS</div>
           <button
@@ -52,14 +53,14 @@ export default function Sidebar({ items, onWidthChange }: { items: NavItem[]; on
         {expanded && <div style={brandSub}>CoreSight — Enterprise control</div>}
       </div>
 
-      <div style={{ marginBottom: 12 }}>
+      <div className="cs-sidebar-nav" style={{ marginBottom: 12 }}>
         {groupedItems.map((item) => (
           <SideLink key={item.key} to={item.to} label={item.label} icon={item.icon} collapsed={!expanded} />
         ))}
       </div>
 
       {expanded && (
-        <div style={tipCard}>
+        <div className="cs-sidebar-tip" style={tipCard}>
           <div style={{ fontWeight: 800, marginBottom: 6, color: "var(--text)" }}>Boardroom ready</div>
           <div style={{ color: "var(--muted)", lineHeight: 1.45 }}>
             Dark-first, calm surfaces. Primary actions use the cyan accent; everything else remains muted.
