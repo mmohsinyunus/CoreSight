@@ -104,9 +104,9 @@ export default function AdminTenantForm() {
     if (!String(form.tenant_name ?? "").trim()) return "Tenant name is required."
     if (!String(form.legal_name ?? "").trim()) return "Legal name is required."
 
-    if (!String((form as any).vat_registration_number ?? "").trim())
+    if (!String(form.vat_registration_number ?? "").trim())
       return "VAT registration number is required."
-    if (!String((form as any).national_address ?? "").trim())
+    if (!String(form.national_address ?? "").trim())
       return "National address is required."
 
     if (!String(form.currency ?? "").trim()) return "Currency is required."
@@ -283,15 +283,15 @@ export default function AdminTenantForm() {
 
           {inputField(
             "VAT number *",
-            "vat_registration_number" as any,
-            String((form as any).vat_registration_number ?? ""),
+            "vat_registration_number",
+            String(form.vat_registration_number ?? ""),
             setForm,
           )}
           <label style={label}>
             National address (Google Maps link) *
             <input
               className="cs-input"
-              value={String((form as any).national_address ?? "")}
+              value={String(form.national_address ?? "")}
               placeholder="Paste Google Maps share link"
               onChange={(e) =>
                 setForm((prev: Partial<Tenant>) => ({
@@ -307,9 +307,9 @@ export default function AdminTenantForm() {
               <button className="cs-btn cs-btn-ghost" type="button" onClick={handlePasteNationalAddress}>
                 Paste from clipboard
               </button>
-              {String((form as any).national_address ?? "").startsWith("http") ? (
+              {String(form.national_address ?? "").startsWith("http") ? (
                 <a
-                  href={String((form as any).national_address ?? "")}
+                  href={String(form.national_address ?? "")}
                   target="_blank"
                   rel="noreferrer"
                   style={helperLink}

@@ -27,7 +27,7 @@ export default function AdminRequests() {
           const subs = listSubscriptionsByTenant(updated.tenant_id)
           subs.forEach((sub) =>
             updateSubscription(sub.id, {
-              plan_type: (updated.payload as any)?.desired_plan || sub.plan_type,
+              plan_type: (updated.payload.desired_plan as string) || sub.plan_type,
               status: "Pending Upgrade",
               subscription_status: "Pending Upgrade",
             }),

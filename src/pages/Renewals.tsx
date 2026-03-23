@@ -181,7 +181,7 @@ export default function Renewals() {
               placeholder="Search id, vendor, owner, subscription…"
             />
 
-            <select style={select} value={status} onChange={(e) => setStatus(e.target.value as any)} title="Status">
+            <select style={select} value={status} onChange={(e) => setStatus(e.target.value as "All" | RenewalStatus)} title="Status">
               <option value="All">All statuses</option>
               {distinctStatuses.map((s) => (
                 <option key={s} value={s}>
@@ -190,7 +190,7 @@ export default function Renewals() {
               ))}
             </select>
 
-            <select style={select} value={risk} onChange={(e) => setRisk(e.target.value as any)} title="Risk">
+            <select style={select} value={risk} onChange={(e) => setRisk(e.target.value as "All" | "Low" | "Medium" | "High")} title="Risk">
               <option value="All">All risk</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>

@@ -10,6 +10,7 @@ import {
   makeTenantId,
 } from "../../data/vendors"
 import { listTenants, upsertTenantMirrorFromSheet } from "../../data/tenants"
+import type { TenantSheetPayload } from "../../data/tenants"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
 import { countryOptions } from "../../data/countries"
 
@@ -247,7 +248,7 @@ export default function VendorNew() {
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`)
       if (!json?.ok) throw new Error(json?.error || "Create failed")
 
-      const mirrorTenant = upsertTenantMirrorFromSheet(payload as any)
+      const mirrorTenant = upsertTenantMirrorFromSheet(payload as unknown as TenantSheetPayload)
       if (mirrorTenant) ensureTenantLifecycleRecords(mirrorTenant)
 
       // Point 3: updated success wording (clean + explicit)
