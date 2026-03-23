@@ -10,7 +10,7 @@ import {
   updateTenant,
 } from "../../data/tenants"
 import type { Tenant, TenantInput } from "../../data/tenants"
-import { createUser, getAdminEmail, listUsersByTenant, resetPassword } from "../../data/users"
+import { createUser, getAdminEmail, listUsersByTenant } from "../../data/users"
 import { ensureDepartmentSeed } from "../../data/departments"
 import { addAuditLog } from "../../data/auditLogs"
 import { ensureTenantLifecycleRecords } from "../../data/tenantRecords"
@@ -48,10 +48,7 @@ export default function AdminTenantForm() {
 
   // Primary user section (edit mode)
   const [primaryEmail, setPrimaryEmail] = useState("")
-  const [primaryPassword, setPrimaryPassword] = useState("")
-  const [primaryConfirm, setPrimaryConfirm] = useState("")
   const [primaryName, setPrimaryName] = useState("")
-  const [resetPasswordValue, setResetPasswordValue] = useState("")
   const [users, setUsers] = useState<User[]>([])
   const [userError, setUserError] = useState<string | undefined>()
   const [userNotice, setUserNotice] = useState<string | undefined>()
@@ -143,10 +140,7 @@ export default function AdminTenantForm() {
     setCreateError(undefined)
 
     setPrimaryEmail("")
-    setPrimaryPassword("")
-    setPrimaryConfirm("")
     setPrimaryName("")
-    setResetPasswordValue("")
     setUsers([])
     setUserError(undefined)
     setUserNotice(undefined)
@@ -178,7 +172,26 @@ export default function AdminTenantForm() {
     const newTenant = createTenant(form as TenantInput)
     ensureTenantLifecycleRecords(newTenant)
 
-    // point 3: better wording
+    // Auto-create primary user if primary_admin_email was provided
+    const adminEmail = String(form.primary_admin_email ?? "").trim()
+    if (adminEmail) {
+      createUser({
+        tenant_id: newTenant.tenant_id,
+        email: adminEmail,
+        password: "",
+        role: "CUSTOMER_PRIMARY",
+        name: String(form.primary_admin_name ?? "").trim() || undefined,
+      })
+      ensureDepartmentSeed(newTenant.tenant_id)
+      addAuditLog({
+        actor_type: "ADMIN",
+        actor_email: getAdminEmail(),
+        action: "PRIMARY_USER_CREATED",
+        tenant_id: newTenant.tenant_id,
+        meta: { email: adminEmail },
+      })
+    }
+
     setCreatedTenantId(newTenant.tenant_id)
     setCreateNotice(`New tenant created. The Tenant ID is ${newTenant.tenant_id}.`)
 
@@ -190,11 +203,7 @@ export default function AdminTenantForm() {
 
   const createPrimary = (e: FormEvent) => {
     e.preventDefault()
-    if (!tenantId || !primaryEmail || !primaryPassword) return
-    if (primaryPassword !== primaryConfirm) {
-      setUserError("Passwords do not match")
-      return
-    }
+    if (!tenantId || !primaryEmail) return
 
     const tenant = getTenant(tenantId)
     setUserError(undefined)
@@ -202,7 +211,7 @@ export default function AdminTenantForm() {
     createUser({
       tenant_id: tenantId,
       email: primaryEmail.trim(),
-      password: primaryPassword,
+      password: "",
       role: "CUSTOMER_PRIMARY",
       name: primaryName.trim() || undefined,
     })
@@ -220,19 +229,8 @@ export default function AdminTenantForm() {
     }
 
     setUsers(listUsersByTenant(tenantId))
-    setPrimaryPassword("")
-    setPrimaryConfirm("")
     setPrimaryName("")
     setUserNotice("Primary customer created. Subscriptions & renewals seeded for this tenant.")
-  }
-
-  const resetPasswordHandler = (e: FormEvent) => {
-    e.preventDefault()
-    if (!primaryUser || !resetPasswordValue) return
-    resetPassword(primaryUser.user_id, resetPasswordValue)
-    setUsers(listUsersByTenant(primaryUser.tenant_id || ""))
-    setResetPasswordValue("")
-    setUserNotice("Password reset")
   }
 
   const syncToSheet = async () => {
@@ -412,19 +410,6 @@ export default function AdminTenantForm() {
               <div className="cs-pill" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
                 Primary: {primaryUser.email}
               </div>
-              <form style={{ display: "flex", gap: 10, alignItems: "center" }} onSubmit={resetPasswordHandler}>
-                <input
-                  className="cs-input"
-                  type="password"
-                  placeholder="New password"
-                  value={resetPasswordValue}
-                  onChange={(e) => setResetPasswordValue(e.target.value)}
-                  style={{ width: 220 }}
-                />
-                <button className="cs-btn" type="submit">
-                  Reset password
-                </button>
-              </form>
             </div>
           ) : (
             <form style={{ display: "grid", gap: 12, maxWidth: 420 }} onSubmit={createPrimary}>
@@ -435,14 +420,6 @@ export default function AdminTenantForm() {
               <label style={label}>
                 Primary admin email
                 <input className="cs-input" value={primaryEmail} onChange={(e) => setPrimaryEmail(e.target.value)} />
-              </label>
-              <label style={label}>
-                Password
-                <input className="cs-input" type="password" value={primaryPassword} onChange={(e) => setPrimaryPassword(e.target.value)} />
-              </label>
-              <label style={label}>
-                Confirm password
-                <input className="cs-input" type="password" value={primaryConfirm} onChange={(e) => setPrimaryConfirm(e.target.value)} />
               </label>
 
               {userError ? <div style={errorBox}>{userError}</div> : null}
