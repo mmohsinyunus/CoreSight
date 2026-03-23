@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { ensureSeedAdmin, getAdminEmail } from "../data/users"
+import { ensureSeedAdmin, getAdminEmail, migrateMissingPrimaryUsers } from "../data/users"
 import type { User } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
 import { addAuditLog } from "../data/auditLogs"
@@ -26,6 +26,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     ensureSeedAdmin()
+    migrateMissingPrimaryUsers()
     const stored = readStorage<AdminSession | undefined>(STORAGE_KEY, undefined)
     if (stored?.user) {
       setCurrentUser(stored.user)

@@ -1,5 +1,6 @@
 // src/data/users.ts
 import { generateId, nowIso, readStorage, writeStorage } from "../lib/storage"
+import { listTenants } from "./tenants"
 import type { Tenant } from "./tenants"
 
 export type UserRole = "ADMIN" | "CUSTOMER_PRIMARY" | "CUSTOMER_USER"
@@ -119,4 +120,30 @@ export function getAdminEmail() {
 
 export function getAdminPassword() {
   return import.meta.env.VITE_ADMIN_PASSWORD || "admin123"
+}
+
+/**
+ * One-time migration: create CUSTOMER_PRIMARY users for any existing tenant
+ * that has a primary_admin_email but no user account yet.
+ */
+export function migrateMissingPrimaryUsers() {
+  const existing = listUsers()
+  const tenantUsers = new Set(
+    existing.filter((u) => u.role === "CUSTOMER_PRIMARY").map((u) => u.tenant_id),
+  )
+
+  for (const tenant of listTenants()) {
+    const email = tenant.primary_admin_email?.trim()
+    if (!email) continue
+    if (tenantUsers.has(tenant.tenant_id)) continue
+    if (existing.some((u) => u.email.toLowerCase() === email.toLowerCase())) continue
+
+    createUser({
+      tenant_id: tenant.tenant_id,
+      email,
+      password: "",
+      role: "CUSTOMER_PRIMARY",
+      name: tenant.primary_admin_name?.trim() || undefined,
+    })
+  }
 }
