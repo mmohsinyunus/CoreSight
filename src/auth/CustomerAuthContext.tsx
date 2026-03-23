@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
+  hashPassword,
   listUsers,
   listUsersByTenant,
 } from "../data/users"

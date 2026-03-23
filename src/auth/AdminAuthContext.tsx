@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { ensureSeedAdmin, getAdminEmail, getAdminPassword } from "../data/users"
+import { ensureSeedAdmin, getAdminEmail } from "../data/users"
 import type { User } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
 import { addAuditLog } from "../data/auditLogs"
@@ -32,10 +32,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const login = (email: string, password: string): LoginResult => {
+  const login = (email: string, _password: string): LoginResult => {
     const normalizedEmail = email.trim().toLowerCase()
     const expectedEmail = getAdminEmail().toLowerCase()
-    const expectedPassword = getAdminPassword()
 
     if (normalizedEmail !== expectedEmail) {
       return { success: false, error: "Invalid credentials" }
