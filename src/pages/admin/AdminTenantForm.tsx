@@ -130,7 +130,7 @@ export default function AdminTenantForm() {
         national_address: text.trim(),
       }))
       setClipboardNotice("Google Maps link pasted from clipboard.")
-    } catch (err) {
+    } catch {
       setClipboardNotice("Unable to read clipboard. Paste the Google Maps link manually.")
     }
   }

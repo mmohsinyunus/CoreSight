@@ -93,7 +93,7 @@ export default function VendorNew() {
       }
       setNationalAddress(text.trim())
       setClipboardNotice("Google Maps link pasted from clipboard.")
-    } catch (err) {
+    } catch {
       setError("Unable to read clipboard. Paste the Google Maps link manually.")
     }
   }
