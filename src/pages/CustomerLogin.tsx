@@ -5,16 +5,13 @@ import { Link, Navigate, useNavigate } from "react-router-dom"
 import { useCustomerAuth, seedDemoUsers } from "../auth/CustomerAuthContext"
 import { ensureSeedTenant } from "../data/tenants"
 import UiControls from "../layout/UiControls"
-import { isValidTenantId, sanitizeTenantId } from "../lib/tenantId"
 
 function CustomerLogin() {
   const { isAuthenticated, login } = useCustomerAuth()
   const navigate = useNavigate()
 
   // Production-safe defaults (empty)
-  const [tenantId, setTenantId] = useState("")
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | undefined>()
 
   useEffect(() => {
@@ -34,12 +31,7 @@ function CustomerLogin() {
     e.preventDefault()
     setError(undefined)
 
-    if (!isValidTenantId(tenantId)) {
-      setError("Tenant ID must be 5 digits.")
-      return
-    }
-
-    const result = await login(tenantId, email, password)
+    const result = await login(email)
     if (!result.success) {
       setError(result.error)
       return
@@ -78,20 +70,6 @@ function CustomerLogin() {
 
         <form style={form} onSubmit={onSubmit}>
           <label style={label}>
-            Tenant ID (5 digits)
-            <input
-              className="cs-input"
-              value={tenantId}
-              onChange={(e) => setTenantId(sanitizeTenantId(e.target.value))}
-              placeholder="e.g. 12345"
-              autoComplete="organization"
-              inputMode="numeric"
-              maxLength={5}
-              pattern="\\d{5}"
-            />
-          </label>
-
-          <label style={label}>
             Email
             <input
               className="cs-input"
@@ -99,18 +77,6 @@ function CustomerLogin() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
               autoComplete="email"
-            />
-          </label>
-
-          <label style={label}>
-            Password
-            <input
-              className="cs-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••"
-              autoComplete="current-password"
             />
           </label>
 

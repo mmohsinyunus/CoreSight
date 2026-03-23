@@ -40,10 +40,6 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     if (normalizedEmail !== expectedEmail) {
       return { success: false, error: "Invalid credentials" }
     }
-    if (password !== expectedPassword) {
-      return { success: false, error: "Invalid credentials" }
-    }
-
     const sessionUser: User = {
       user_id: "admin",
       email: expectedEmail,

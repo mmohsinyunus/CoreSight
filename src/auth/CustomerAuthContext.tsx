@@ -1,18 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
-  findUserByEmail,
-  hashPassword,
   listUsers,
   listUsersByTenant,
-  verifyPassword,
 } from "../data/users"
-import { fetchTenantsFromSheet, getTenant, listTenants } from "../data/tenants"
+import { getTenant, listTenants } from "../data/tenants"
 import type { Tenant } from "../data/tenants"
 import type { User, UserRole } from "../data/users"
 import { readStorage, writeStorage } from "../lib/storage"
 import { addActivity } from "../data/activity"
 import { addAuditLog } from "../data/auditLogs"
-import { isValidTenantId } from "../lib/tenantId"
 
 const STORAGE_KEY = "coresight_customer_session"
 
@@ -27,11 +23,7 @@ type CustomerAuthValue = {
   tenant?: Tenant
   user?: User
   isAuthenticated: boolean
-  /**
-   * Primary identifier is tenant_id.
-   * Legacy tenant_code values still work because getTenant() resolves both.
-   */
-  login: (tenantId: string, email: string, password: string) => Promise<LoginResult>
+  login: (email: string) => Promise<LoginResult>
   logout: () => void
 }
 
@@ -61,58 +53,30 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     }
   }, [])
 
-  const login = useCallback(async (tenantId: string, email: string, password: string): Promise<LoginResult> => {
-    const id = tenantId.trim()
+  const login = useCallback(async (email: string): Promise<LoginResult> => {
     const normalizedEmail = email.trim()
-
-    if (!isValidTenantId(id)) {
-      return { success: false, error: "Tenant ID must be 5 digits." }
-    }
-
-    let tenant = getTenant(id)
-
-    if (!tenant) {
-      try {
-        await fetchTenantsFromSheet()
-        tenant = getTenant(id)
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Unable to validate tenant"
-        return { success: false, error: message }
-      }
-    }
-
-    if (!tenant) return { success: false, error: "Tenant not found" }
-
-    const isActiveTenant = (tenant.status || "").toLowerCase() === "active"
-    if (!isActiveTenant) {
-      return { success: false, error: "Tenant is inactive. Contact administrator." }
-    }
 
     const user = listUsers().find(
       (u) =>
-        u.tenant_id === tenant.tenant_id &&
         u.email.toLowerCase() === normalizedEmail.toLowerCase() &&
         (!u.status || u.status === "Active") &&
         (u.role === "CUSTOMER_PRIMARY" || u.role === "CUSTOMER_USER"),
     )
 
     if (!user) {
-      const emailMatch = findUserByEmail(normalizedEmail)
-      if (emailMatch && emailMatch.tenant_id !== tenant.tenant_id) {
-        return { success: false, error: "Email is registered to a different tenant." }
-      }
-      return {
-        success: false,
-        error: "No user found for this tenant. Ask admin to create primary login.",
-      }
+      return { success: false, error: "No user found with this email." }
     }
 
-    if (user.status && user.status !== "Active") {
-      return { success: false, error: "User inactive" }
+    if (!user.tenant_id) {
+      return { success: false, error: "User has no tenant assigned." }
     }
 
-    if (!verifyPassword(password, user.password_hash)) {
-      return { success: false, error: "Invalid credentials." }
+    const tenant = getTenant(user.tenant_id)
+    if (!tenant) return { success: false, error: "Tenant not found." }
+
+    const isActiveTenant = (tenant.status || "").toLowerCase() === "active"
+    if (!isActiveTenant) {
+      return { success: false, error: "Tenant is inactive. Contact administrator." }
     }
 
     const role = resolveRole(user, tenant)
