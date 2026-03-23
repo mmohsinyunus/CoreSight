@@ -150,7 +150,7 @@ export default function AdminHome() {
                   <div style={cardDesc}>Create and manage tenant records.</div>
                 </div>
                 <div style={ctaRow}>
-                  <Link to="/admin/vendors" style={ghostLink}>
+                  <Link to="/admin/tenants" style={ghostLink}>
                     View
                   </Link>
                   <Link to="/admin/tenants/new" style={primaryLink}>

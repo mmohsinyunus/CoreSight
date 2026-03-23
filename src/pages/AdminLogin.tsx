@@ -7,7 +7,6 @@ import UiControls from "../layout/UiControls"
 export default function AdminLogin() {
   const { login, isAuthenticated } = useAdminAuth()
   const [email, setEmail] = useState("admin@coresight.local")
-  const [password, setPassword] = useState("admin123")
   const [error, setError] = useState<string | undefined>()
   const navigate = useNavigate()
 
@@ -15,7 +14,7 @@ export default function AdminLogin() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
-    const result = login(email, password)
+    const result = login(email, "")
     if (!result.success) {
       setError(result.error)
       return
@@ -45,16 +44,6 @@ export default function AdminLogin() {
           <label style={label}>
             Email
             <input className="cs-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@coresight.local" />
-          </label>
-          <label style={label}>
-            Password
-            <input
-              className="cs-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="admin123"
-            />
           </label>
           {error ? <div style={errorBox}>{error}</div> : null}
           <button className="cs-btn cs-btn-primary" type="submit">
