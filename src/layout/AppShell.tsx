@@ -1,10 +1,10 @@
 // src/layout/AppShell.tsx
 import { useNavigate, useLocation } from "react-router-dom"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import type { ReactNode, CSSProperties } from "react"
 import { useAdminAuth } from "../auth/AdminAuthContext"
 import { useCustomerAuth } from "../auth/CustomerAuthContext"
-import Sidebar from "./Sidebar"
+import TopNav from "./TopNav"
 import type { NavItem } from "../navigation/types"
 import { customerNav } from "../navigation/customerNav"
 import { adminNav } from "../navigation/adminNav"
@@ -34,8 +34,6 @@ export default function AppShell({
   const customerAuth = useCustomerAuth()
   const contextNavItems = useNavItemsContext()
 
-  const [sidebarWidth, setSidebarWidth] = useState(72)
-
   // Decide which nav to show (Admin vs Customer)
   const resolvedNavItems = useMemo(() => {
     if (navItems) return navItems
@@ -50,74 +48,56 @@ export default function AppShell({
     return contextNavItems ?? customerNav
   }, [navItems, location.pathname, adminAuth.isAuthenticated, customerAuth.isAuthenticated, contextNavItems])
 
-  const shellStyle = useMemo<CSSProperties>(
-    () => ({
-      ...shell,
-      gridTemplateColumns: `${sidebarWidth}px 1fr`,
-    }),
-    [sidebarWidth],
-  )
-
   const isLoggedIn = adminAuth.isAuthenticated || customerAuth.isAuthenticated
 
   return (
-    <div className="cs-shell" style={shellStyle}>
-      <Sidebar items={resolvedNavItems} onWidthChange={setSidebarWidth} />
+    <div className="cs-shell" style={shell}>
+      <TopNav items={resolvedNavItems} />
 
-      <main className="cs-main" style={main}>
-        <div className="cs-topbar" style={topBar}>
-          <div style={{ minWidth: 0 }}>
-            <div className="cs-page-title" style={pageTitle}>
-              {title}
-            </div>
-            {subtitle ? (
-              <div className="cs-page-subtitle" style={pageSubtitle}>
-                {subtitle}
-              </div>
-            ) : null}
-          </div>
+      <div style={subHeader}>
+        <div style={{ minWidth: 0 }}>
+          <div className="cs-page-title" style={pageTitle}>{title}</div>
+          {subtitle ? (
+            <div className="cs-page-subtitle" style={pageSubtitle}>{subtitle}</div>
+          ) : null}
+        </div>
 
-          <div className="cs-top-right" style={topRight}>
-            {actions ? <div style={actionsWrap}>{actions}</div> : null}
+        <div className="cs-top-right" style={topRight}>
+          {actions ? <div style={actionsWrap}>{actions}</div> : null}
 
-            <UiControls compact />
+          <UiControls compact />
 
-            {(chips ?? defaultChips).map((chipNode, idx) => (
-              <span key={idx} style={chip}>
-                {chipNode}
-              </span>
-            ))}
+          {(chips ?? defaultChips).map((chipNode, idx) => (
+            <span key={idx} style={chip}>{chipNode}</span>
+          ))}
 
-            {/* Switch role / go back to login chooser */}
+          <button
+            className="cs-btn"
+            style={{ height: 34 }}
+            onClick={() => navigate("/")}
+            title="Back to login selection"
+          >
+            Switch login
+          </button>
+
+          {isLoggedIn && (
             <button
               className="cs-btn"
-              style={{ height: 38, marginLeft: 8 }}
-              onClick={() => navigate("/")}
-              title="Back to login selection"
+              style={{ height: 34 }}
+              onClick={() => {
+                if (adminAuth.isAuthenticated) adminAuth.logout()
+                if (customerAuth.isAuthenticated) customerAuth.logout()
+                navigate("/")
+              }}
             >
-              Switch login
+              Logout
             </button>
-
-            {/* Logout */}
-            {isLoggedIn && (
-              <button
-                className="cs-btn"
-                style={{ height: 38 }}
-                onClick={() => {
-                  if (adminAuth.isAuthenticated) adminAuth.logout()
-                  if (customerAuth.isAuthenticated) customerAuth.logout()
-                  navigate("/")
-                }}
-              >
-                Logout
-              </button>
-            )}
-          </div>
+          )}
         </div>
+      </div>
 
-        <div className="cs-content" style={content}>
-          {children}
-        </div>
+      <main className="cs-main" style={main}>
+        {children}
       </main>
     </div>
   )
@@ -125,7 +105,8 @@ export default function AppShell({
 
 /* Styles */
 const shell: CSSProperties = {
-  display: "grid",
+  display: "flex",
+  flexDirection: "column",
   minHeight: "100vh",
   background:
     "radial-gradient(circle at 16% 12%, rgba(77,163,255,0.06), transparent 28%)," +
@@ -133,48 +114,54 @@ const shell: CSSProperties = {
     "var(--background)",
 }
 
-const main: CSSProperties = {
-  padding: 18,
-  minHeight: "100vh",
-  overflow: "auto",
-  background: "var(--background)",
-}
-
-const topBar: CSSProperties = {
+const subHeader: CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   gap: 14,
-  padding: 18,
-  borderRadius: 16,
+  padding: "14px 24px",
+  borderBottom: "1px solid var(--border)",
   background: "var(--surface-elevated)",
-  border: "1px solid var(--border)",
-  boxShadow: "var(--shadow-sm)",
+  flexWrap: "wrap",
 }
 
-const pageTitle: CSSProperties = { fontSize: 30, fontWeight: 800, letterSpacing: -0.6, color: "var(--text)" }
-const pageSubtitle: CSSProperties = { marginTop: 6, color: "var(--text-secondary)" }
+const pageTitle: CSSProperties = {
+  fontSize: 22,
+  fontWeight: 800,
+  letterSpacing: -0.4,
+  color: "var(--text)",
+}
+
+const pageSubtitle: CSSProperties = {
+  marginTop: 2,
+  fontSize: 13,
+  color: "var(--text-secondary)",
+}
 
 const topRight: CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 10,
+  gap: 8,
   flexWrap: "wrap",
   justifyContent: "flex-end",
 }
 
-const actionsWrap: CSSProperties = { display: "flex", alignItems: "center", gap: 10 }
+const actionsWrap: CSSProperties = { display: "flex", alignItems: "center", gap: 8 }
 
 const chip: CSSProperties = {
-  padding: "8px 12px",
+  padding: "5px 10px",
   borderRadius: 999,
   border: "1px solid var(--border)",
-  background: "var(--surface-elevated)",
+  background: "var(--surface)",
   fontWeight: 700,
-  fontSize: 12,
+  fontSize: 11,
   color: "var(--text-secondary)",
 }
 
-const content: CSSProperties = { marginTop: 16 }
+const main: CSSProperties = {
+  flex: 1,
+  padding: "20px 24px",
+  overflow: "auto",
+}
 
-const defaultChips = ["Env: PROD", "Region: KSA"]
+const defaultChips = ["Env: DEV", "Region: KSA"]

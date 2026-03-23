@@ -6,15 +6,18 @@ import "./index.css"
 import { AdminAuthProvider } from "./auth/AdminAuthContext"
 import { CustomerAuthProvider } from "./auth/CustomerAuthContext"
 import { applyUiPreferences, getUiPreferences } from "./lib/uiPreferences"
+import ErrorBoundary from "./ErrorBoundary"
 
 applyUiPreferences(getUiPreferences())
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AdminAuthProvider>
-      <CustomerAuthProvider>
-        <App />
-      </CustomerAuthProvider>
-    </AdminAuthProvider>
+    <ErrorBoundary>
+      <AdminAuthProvider>
+        <CustomerAuthProvider>
+          <App />
+        </CustomerAuthProvider>
+      </AdminAuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 )

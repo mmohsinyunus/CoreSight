@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import {
   findUserByEmail,
   hashPassword,
@@ -61,7 +61,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     }
   }, [])
 
-  const login = async (tenantId: string, email: string, password: string): Promise<LoginResult> => {
+  const login = useCallback(async (tenantId: string, email: string, password: string): Promise<LoginResult> => {
     const id = tenantId.trim()
     const normalizedEmail = email.trim()
 
@@ -138,12 +138,12 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     })
 
     return { success: true }
-  }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setSession(undefined)
     writeStorage(STORAGE_KEY, undefined)
-  }
+  }, [])
 
   const value = useMemo(
     () => ({

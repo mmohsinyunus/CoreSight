@@ -17,7 +17,7 @@ export default function CustomerDepartments() {
   const departments = useMemo(() => {
     if (!tenant) return []
     return listDepartmentsByTenant(tenant.tenant_id)
-  }, [tenant, initialized])
+  }, [tenant])
 
   return (
     <CustomerPageShell title="Departments" subtitle="Department level controls and visibility">
